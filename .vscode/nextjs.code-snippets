@@ -256,5 +256,31 @@
       "});"
     ],
     "description": "Vitest + React Testing Library test template"
+  },
+  "RajaOngkir Shipping Cost Calculator": {
+    "prefix": "rajaongkir",
+    "body": [
+      "import axios from \"axios\";",
+      "",
+      "export async function cekOngkirRajaOngkir(destinationCityId: string, weightInGrams: number, courier: string = \"jne\") {",
+      "  const res = await axios.post(",
+      "    `${process.env.RAJAONGKIR_BASE_URL || \"https://api.rajaongkir.com/starter\"}/cost`,",
+      "    {",
+      "      origin: process.env.RAJAONGKIR_ORIGIN_CITY_ID || \"152\",",
+      "      destination: destinationCityId,",
+      "      weight: weightInGrams,",
+      "      courier: courier,",
+      "    },",
+      "    {",
+      "      headers: {",
+      "        key: process.env.RAJAONGKIR_API_KEY || \"\",",
+      "        \"content-type\": \"application/x-www-form-urlencoded\",",
+      "      },",
+      "    }",
+      "  );",
+      "  return res.data.rajaongkir.results;",
+      "}"
+    ],
+    "description": "RajaOngkir Shipping Cost Calculator Server Action"
   }
 }
