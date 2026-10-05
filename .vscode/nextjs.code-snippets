@@ -1,0 +1,168 @@
+{
+  "Next.js Server Component": {
+    "prefix": "nsc",
+    "body": [
+      "interface ${1:${TM_FILENAME_BASE}}Props {",
+      "  ${2:children?: React.ReactNode;}",
+      "}",
+      "",
+      "export default async function ${1:${TM_FILENAME_BASE}}({ ${3:} }: ${1:${TM_FILENAME_BASE}}Props) {",
+      "  return (",
+      "    <div className=\"${4:flex flex-col gap-4}\">",
+      "      ${0}",
+      "    </div>",
+      "  );",
+      "}"
+    ],
+    "description": "Next.js 16 App Router Server Component"
+  },
+  "Next.js Client Component": {
+    "prefix": "ncc",
+    "body": [
+      "\"use client\";",
+      "",
+      "import * as React from \"react\";",
+      "",
+      "interface ${1:${TM_FILENAME_BASE}}Props {",
+      "  ${2:children?: React.ReactNode;}",
+      "}",
+      "",
+      "export function ${1:${TM_FILENAME_BASE}}({ ${3:} }: ${1:${TM_FILENAME_BASE}}Props) {",
+      "  return (",
+      "    <div className=\"${4:flex flex-col gap-4}\">",
+      "      ${0}",
+      "    </div>",
+      "  );",
+      "}"
+    ],
+    "description": "Next.js 16 Client Component dengan 'use client'"
+  },
+  "Zod Schema + Type Inferred": {
+    "prefix": "zschema",
+    "body": [
+      "import { z } from \"zod\";",
+      "",
+      "export const ${1:Model}Schema = z.object({",
+      "  id: z.string().uuid(),",
+      "  ${2:name}: z.string().min(1, \"Wajib diisi\"),",
+      "  ${0}",
+      "});",
+      "",
+      "export type ${1:Model} = z.infer<typeof ${1:Model}Schema>;"
+    ],
+    "description": "Skema validasi Zod beserta type inferensi TypeScript"
+  },
+  "React Hook Form with Zod": {
+    "prefix": "rhfform",
+    "body": [
+      "\"use client\";",
+      "",
+      "import { useForm } from \"react-hook-form\";",
+      "import { zodResolver } from \"@hookform/resolvers/zod\";",
+      "import { z } from \"zod\";",
+      "",
+      "const formSchema = z.object({",
+      "  ${1:email}: z.string().email(\"Format email tidak valid\"),",
+      "});",
+      "",
+      "type FormValues = z.infer<typeof formSchema>;",
+      "",
+      "export function ${2:MyForm}() {",
+      "  const {",
+      "    register,",
+      "    handleSubmit,",
+      "    formState: { errors, isSubmitting },",
+      "  } = useForm<FormValues>({",
+      "    resolver: zodResolver(formSchema),",
+      "    defaultValues: {",
+      "      ${1:email}: \"\",",
+      "    },",
+      "  });",
+      "",
+      "  const onSubmit = async (values: FormValues) => {",
+      "    ${0}",
+      "  };",
+      "",
+      "  return (",
+      "    <form onSubmit={handleSubmit(onSubmit)} className=\"space-y-4\">",
+      "      <div>",
+      "        <input {...register(\"${1:email}\")} className=\"border rounded p-2 w-full\" />",
+      "        {errors.${1:email} && <p className=\"text-sm text-red-500\">{errors.${1:email}?.message}</p>}",
+      "      </div>",
+      "      <button type=\"submit\" disabled={isSubmitting} className=\"px-4 py-2 bg-black text-white rounded\">",
+      "        Submit",
+      "      </button>",
+      "    </form>",
+      "  );",
+      "}"
+    ],
+    "description": "Formulir React Hook Form dengan integrasi Zod resolver"
+  },
+  "Zustand Store": {
+    "prefix": "zstore",
+    "body": [
+      "import { create } from \"zustand\";",
+      "",
+      "interface ${1:Cart}State {",
+      "  ${2:items}: string[];",
+      "  ${3:addItem}: (item: string) => void;",
+      "  ${4:reset}: () => void;",
+      "}",
+      "",
+      "export const use${1:Cart}Store = create<${1:Cart}State>((set) => ({",
+      "  ${2:items}: [],",
+      "  ${3:addItem}: (item) => set((state) => ({ ${2:items}: [...state.${2:items}, item] })),",
+      "  ${4:reset}: () => set({ ${2:items}: [] }),",
+      "}));"
+    ],
+    "description": "Zustand Client State Store"
+  },
+  "TanStack Query Fetcher": {
+    "prefix": "tqquery",
+    "body": [
+      "import { useQuery } from \"@tanstack/react-query\";",
+      "",
+      "export function use${1:Products}() {",
+      "  return useQuery({",
+      "    queryKey: [\"${2:products}\"],",
+      "    queryFn: async () => {",
+      "      const res = await fetch(\"${3:/api/products}\");",
+      "      if (!res.ok) throw new Error(\"Gagal mengambil data\");",
+      "      return res.json();",
+      "    },",
+      "  });",
+      "}"
+    ],
+    "description": "TanStack React Query Hook"
+  },
+  "Drizzle PostgreSQL Table Schema": {
+    "prefix": "drtable",
+    "body": [
+      "import { pgTable, text, timestamp, uuid, integer } from \"drizzle-orm/pg-core\";",
+      "",
+      "export const ${1:products} = pgTable(\"${1:products}\", {",
+      "  id: uuid(\"id\").defaultRandom().primaryKey(),",
+      "  name: text(\"name\").notNull(),",
+      "  price: integer(\"price\").notNull(),",
+      "  createdAt: timestamp(\"created_at\").defaultNow().notNull(),",
+      "  updatedAt: timestamp(\"updated_at\").defaultNow().notNull(),",
+      "});"
+    ],
+    "description": "Drizzle ORM PostgreSQL Table Definition"
+  },
+  "Vitest Component Test Suite": {
+    "prefix": "vitest",
+    "body": [
+      "import { describe, it, expect } from \"vitest\";",
+      "import { render, screen } from \"@testing-library/react\";",
+      "",
+      "describe(\"${1:Component}\", () => {",
+      "  it(\"renders properly\", () => {",
+      "    render(<${1:Component} />);",
+      "    expect(screen.getByText(/test/i)).toBeInTheDocument();",
+      "  });",
+      "});"
+    ],
+    "description": "Vitest + React Testing Library test template"
+  }
+}
