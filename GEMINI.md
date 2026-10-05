@@ -1,123 +1,123 @@
 # GEMINI.md - Panduan Arsitektur, Aturan Sistem & Konvensi Proyek
 
 > **Proyek**: VOID Supply (E-Commerce Merchandise)  
-> **Agen Utama**: Antigravity (Google DeepMind)  
+> **Agen Utama**: Antigravity (Google DeepMind) / Gemini CLI (`agy`)  
 > **Status GitHub Copilot**: Dinonaktifkan Permanen (Disabled)  
-> **Bahasa Konvensi Penamaan**: Bahasa Indonesia (Domain & Business Logic)
+> **Bahasa Konvensi Penamaan**: Bahasa Indonesia (Domain & Business Logic)  
+> **Mode Anti-Slop**: Mode 1 (DURING) — Diterapkan secara ketat sejak awal penulisan kode
 
 ---
 
-## 1. Peran & Instruksi Agen Utama (Antigravity)
+## 1. Peran & Instruksi Agen Utama (Antigravity / agy)
 
-- **Agen Tunggal**: Antigravity adalah autonomous AI pair programmer utama untuk repositori VOID Supply.
-- **Bebas Bloatware / Anti-Slop**: Jangan menambahkan komentar tidak berguna atau file boilerplate yang tidak diminta. Terapkan prinsip *Fix Terkecil yang Aman*.
-- **Prioritas Referensi Dokumentasi**: Selalu gunakan dokumentasi resmi dan termutakhir (via Context7) untuk setiap library / framework.
+- **Agen Tunggal**: Antigravity dan Gemini CLI (`agy`) adalah autonomous AI pair programmer resmi untuk repositori VOID Supply.
+- **Bebas Bloatware / Anti-Slop**: Terapkan prinsip *Fix Terkecil yang Aman*. Dilarang menyisipkan boilerplate atau komentar tak berbobot.
+- **Prioritas Dokumentasi**: Selalu rujuk dokumentasi termutakhir melalui Context7 untuk setiap library pihak ketiga.
 
 ---
 
 ## 2. Status Lingkungan & Versi Tools Terinstal
 
-Berdasarkan audit sistem lokal per Oktober 2026:
+Berdasarkan audit sistem lokal:
 
 | Tool / Runtime | Versi Terinstal | Lokasi / Eksekusi | Status Aktivasi |
 | :--- | :--- | :--- | :--- |
+| **Antigravity CLI (`agy`)** | `1.2.5` | `C:\Users\Acer\AppData\Local\agy\bin\agy.exe` | **Aktif & Terkonfigurasi di PATH** |
 | **Node.js** | `v22.23.2` | System PATH | Aktif |
 | **npm** | `10.9.8` | System PATH | Aktif |
-| **PostgreSQL** | `18.6` | `C:\Users\Acer\scoop\apps\postgresql\current\bin\pg_ctl.exe` | Cluster Aktif (`localhost:5432`) |
-| **PHP CLI** | `8.5.10` | `C:\Users\Acer\scoop\apps\php\current\php.exe` | Aktif (`pdo_pgsql`, `curl`, `openssl`) |
+| **PostgreSQL** | `18.6` | `C:\Users\Acer\scoop\apps\postgresql\current\bin\pg_ctl.exe` | **Cluster Aktif** (`localhost:5432`) |
+| **Database `void_supply`** | PostgreSQL 18 | `localhost:5432/void_supply` | **Bersih / Dikosongkan dari 0** |
+| **PHP CLI** | `8.5.10` | `C:\Users\Acer\scoop\apps\php\current\php.exe` | **Aktif** (`pdo_pgsql`, `curl`, `openssl`, `mbstring`) |
 | **Git** | `2.55.0.windows.5` | System PATH | Aktif |
 | **GitHub CLI (`gh`)**| `2.101.0` | System PATH | Terotentikasi (`s9mcqytn4y-sys`) |
+| **Google Chrome** | Current | `C:\Program Files\Google\Chrome\Application\chrome.exe` | Browser Utama (VS Code Debugging) |
+| **Git Bash** | Current | `C:\Program Files\Git\bin\bash.exe` | Terminal Profile VS Code |
 
-### Perintah Aktivasi PostgreSQL (`pg_ctl`)
-Jika PostgreSQL belum berjalan, jalankan perintah berikut di terminal:
+### Perintah Operasional PostgreSQL (`pg_ctl`)
 ```powershell
+# Jalankan PostgreSQL Server
 pg_ctl -D "C:\Users\Acer\scoop\persist\postgresql\data" -l "C:\Users\Acer\scoop\persist\postgresql\data\server.log" start
-```
-Untuk memeriksa status server:
-```powershell
+
+# Cek Status Server
 pg_ctl -D "C:\Users\Acer\scoop\persist\postgresql\data" status
-```
-Untuk mematikan server:
-```powershell
+
+# Hentikan Server
 pg_ctl -D "C:\Users\Acer\scoop\persist\postgresql\data" stop
 ```
 
-### Konfigurasi PHP (`php.ini`)
-- Lokasi file: `C:\Users\Acer\scoop\persist\php\cli\php.ini`
-- Modul pendukung aktif: `pdo_pgsql`, `pgsql`, `openssl`, `curl`, `mbstring`, `zip`, `zlib`.
+---
+
+## 3. Tech Stack Resmi & Daftar Dependensi
+
+| Layer | Teknologi & Versi | Peran dalam Proyek |
+| :--- | :--- | :--- |
+| **Framework** | **Next.js 16** (`16.3.8`) | Core App Router, Turbopack, Server Actions, API routes |
+| **UI Runtime** | **React 19.3** (`19.3.0`) | Server & Client Components |
+| **Bahasa** | **TypeScript 5.8** (`5.8.2`) | Strict mode, static typing tingkat lanjut |
+| **Build & Testing Tool** | **Vite 6** (`6.2.0`) & **Vitest** (`3.0.7`) | Testing unit/integrasi super cepat dengan Tailwind v4 plugin |
+| **Styling** | **Tailwind CSS v4** (`4.0.0`) & Native CSS | Desain utilitas performa tinggi (`@tailwindcss/postcss`, `@tailwindcss/vite`) |
+| **Komponen UI** | **shadcn/ui primitives** | `clsx` (`2.1.1`), `tailwind-merge` (`3.0.2`), `cva` (`0.7.1`), `lucide-react` (`0.479.0`) |
+| **Validasi Skema** | **Zod** (`3.24.2`) | Validasi skema runtime & TypeScript inference otomatis |
+| **Formulir** | **React Hook Form** (`7.54.2`) | Manajemen form efisien dengan `@hookform/resolvers` (`3.10.0`) |
+| **State Klien** | **React State, Context, Zustand** (`5.0.3`) | Global cart & client interactions |
+| **State Server** | **TanStack Query v5** (`5.67.1`) | Caching & fetching data sisi klien |
+| **Database & ORM** | **PostgreSQL 18** + **Drizzle ORM** (`0.45.3`) | Database relasional dengan `drizzle-kit` (`0.30.5`) |
+| **Payment Gateway** | **Midtrans Snap** (`1.4.3`) | Integrasi pembayaran transaksi online lokal |
+| **Pengiriman** | **Biteship API** (`axios 1.7.9`) | Kalkulasi ongkos kirim real-time & resi pengiriman |
+| **E2E Testing** | **Playwright** (`1.51.0`) | End-to-end browser testing |
+| **Observabilitas** | **Sentry** (`11.4.0`) | Error monitoring & crash reporting |
+| **Deployment** | **Vercel** (`vercel.json`) | Hosting production serverless/edge otomatis via GitHub integration |
 
 ---
 
-## 3. Tech Stack Resmi
+## 4. Implementasi Aturan Anti-Slop (Mode 1: DURING)
 
-- **Bahasa**: TypeScript 5.8+ (Strict Mode aktif)
-- **Framework**: Next.js 16 (App Router, Turbopack)
-- **UI Runtime**: React 19.3
-- **Styling**: Tailwind CSS v4 & Native CSS
-- **Komponen UI**: shadcn/ui primitives (`clsx`, `tailwind-merge`, `cva`, `lucide-react`)
-- **Validasi**: Zod (Type inference otomatis)
-- **Formulir**: React Hook Form (`@hookform/resolvers/zod`)
-- **State Klien**: React State, Context, & Zustand (bila diperlukan)
-- **State Server**: TanStack Query v5 (bila diperlukan untuk client-side fetching/caching)
-- **Database & ORM**: PostgreSQL 18 + Drizzle ORM (`drizzle-kit`)
-- **Payment Gateway**: Midtrans Snap (`midtrans-client`)
-- **Pengiriman / Logistik**: Biteship API
-- **Pengujian**: Vitest + React Testing Library (Unit/Integration) & Playwright (E2E)
-- **Observabilitas**: Sentry (`@sentry/nextjs`)
-- **Deployment**: Vercel
+Sesuai aturan `/antislop`, `/antislop-code`, `/antislop-copywriting`, `/antislop-human`, `/antislop-layoutmobile`, `/antislop-ui`:
 
----
+### A. Aturan Hard Gate
+1. **DILARANG menggunakan karakter em dash (`—`)** dalam teks copywriting atau UI. Gunakan tanda koma (`,`), titik (`.`), titik dua (`:`), atau tanda kurung `()`.
+2. **Desain Mobile-First (R-03)**: Tidak ada horizontal overflow, tidak ada teks terpotong, dan ukuran tombol minimal 44px tap target.
+3. **Data & Klaim Jujur (R-17, R-18, R-36)**: Dilarang menggunakan testimoni palsu, avatar AI acak, atau metrik rekaan.
+4. **Kontras Aksesibilitas WCAG AA (R-25)**: Rasio kontras teks minimal 4.5:1 untuk teks normal dan 3:1 untuk teks besar.
+5. **Aksesibilitas Keyboard (R-32)**: Semua elemen interaktif wajib dapat dinavigasi via Tab, Enter, dan Escape dengan indikator fokus terlihat jelas.
+6. **Kelengkapan State UI (R-27)**: Semua antarmuka data harus memiliki *Empty State*, *Loading State*, dan *Error State*.
+7. **No Script Patching (R-33)**: Seluruh style dikelola langsung di komponen, dilarang mengubah CSS melalui skrip string replacement eksternal.
 
-## 4. Konvensi Penamaan (Bahasa Indonesia)
+### B. Code Comment Hygiene (`/antislop-code`)
+- Dilarang membuat banner separator dekoratif (`// =======================`).
+- Dilarang menarasikan kode yang sudah jelas (`// Initialize state`).
+- Dilarang menggunakan emoji dekoratif pada komentar (`// 🚀 Performance`).
+- Pertahankan komentar yang menjelaskan keputusan bisnis, pertimbangan keamanan, dan integrasi webhook.
 
-Seluruh entitas domain bisnis, skema database, dan alur aplikasi wajib mengikuti konvensi penamaan berbasis Bahasa Indonesia yang konsisten:
-
-### A. Tabel Database & Kolom (Drizzle ORM)
-- Format tabel: Jamak / Tunggal baku, `snake_case` huruf kecil.
-- Contoh nama tabel:
-  - `produk` (bukan *products*)
-  - `pesanan` (bukan *orders*)
-  - `item_pesanan` (bukan *order_items*)
-  - `pelanggan` (bukan *customers*)
-  - `inventaris` (bukan *inventories*)
-  - `pembayaran` (bukan *payments*)
-  - `pengiriman` (bukan *shipments*)
-- Kolom timestamp standar: `dibuat_pada`, `diperbarui_pada`.
-
-### B. Tipe TypeScript & Interface
-- Format: `PascalCase` dengan bahasa Indonesia untuk entitas domain.
-- Contoh:
-  - `Produk`, `KategoriProduk`, `StatusPesanan`, `Pelanggan`, `DetailPengiriman`.
-
-### C. Zod Schema
-- Format: `camelCase` diakhiri dengan akhiran `Skema` atau `Schema`.
-- Contoh:
-  - `produkSkema`, `pesananSkema`, `alamatPengirimanSkema`.
-
-### D. Server Actions & API Routes
-- Format fungsi action: Kata kerja aktif bahasa Indonesia.
-  - `buatPesanan()`, `ambilDaftarProduk()`, `perbaruiStatusPembayaran()`, `cekOngkirBiteship()`.
+### C. Liveliness & Visual Dials (`/antislop-ui`)
+- **ENERGY**: Dial 2 (Balanced) — modern streetwear aesthetic.
+- **RHYTHM**: Dial 2 (Consistent with deliberate accents) — komposisi produk teratur dengan ritme visual menarik.
+- **MOTION**: Dial 1–2 (Subtle micro-animations) — transisi hover halus dan responsif.
+- Batasi palet aktif: maksimal 2–3 warna utama + 1 warna aksen terarah.
 
 ---
 
-## 5. Aturan Struktur Folder & Batasan Kode
+## 5. Implementasi Aturan TypeScript Expert (`/typescript-expert`)
 
-Struktur folder terstandarisasi di `src/`:
-```text
-src/
-├── app/          # Next.js App Router (Halaman & API Routes)
-├── components/   # UI Primitives & Reusable Components (shadcn/ui)
-├── features/     # Feature-sliced modules (keranjang, checkout, produk, pesanan)
-├── lib/          # Integrasi pihak ketiga (db/drizzle, midtrans, biteship, sentry)
-├── types/        # Definisi type TypeScript global & domain
-└── data/         # Mock data / seed data
-    └── products.ts  # File data produk awal
-```
+1. **Strict Type Safety**: Dilarang keras menggunakan tipe `any`. Gunakan `unknown` bila tipe belum pasti dan parse dengan Zod.
+2. **Inference Over Annotation**: Manfaatkan `z.infer<typeof schema>` untuk menghindari duplikasi interface.
+3. **Discriminated Unions**: Gunakan pola discriminated unions pada state transaksi dan status pengiriman.
+4. **Const Assertions**: Terapkan `as const` pada nilai konfigurasi statis.
 
-### Constraints Ketat:
-1. **Tidak Ada File Tambahan Tanpa Izin**: Di dalam `src/`, jangan menambahkan file dummy atau placeholder selain yang diinstruksikan.
-2. **Keamanan Kredensial**: Dilarang keras melakukan commit terhadap file `.env` atau `.env.local` yang berisi secret asli. Selalu gunakan `.env.example`.
-3. **Optimasi Performa Next.js 16 / React 19**:
-   - Manfaatkan Server Components secara default.
-   - Gunakan `"use client"` hanya pada interaktivitas tingkat daun (leaf component).
-   - Hindari waterfall fetch dengan `Promise.all` paralel jika data independen.
+---
+
+## 6. Konvensi Penamaan (Bahasa Indonesia)
+
+Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indonesia:
+- **Tabel Drizzle**: `produk`, `pesanan`, `item_pesanan`, `pelanggan`, `inventaris`, `pembayaran`, `pengiriman`.
+- **Kolom Timestamp**: `dibuat_pada`, `diperbarui_pada`.
+- **Type/Interface TypeScript**: `Produk`, `Pesanan`, `Pelanggan`, `StatusPembayaran`, `OpsiPengiriman`.
+- **Zod Schema**: `produkSkema`, `pesananSkema`, `checkoutSkema`.
+- **Server Actions**: `buatPesanan()`, `ambilDaftarProduk()`, `prosesWebhookMidtrans()`, `cekOngkirBiteship()`.
+
+---
+
+## 7. Batasan Struktur Kode & Keamanan
+
+- **Folder `src/`**: Direktori yang ada saat ini (`app`, `components`, `features`, `lib`, `types`, `data`) tidak boleh ditambahkan file dummy sebelum instruksi development resmi dimulai. File `products.ts` tetap 0 byte sebagai placeholder awal.
+- **Kredensial**: Dilarang melakukan commit terhadap secret atau API key asli ke Git. Selalu gunakan file template `.env.example`.

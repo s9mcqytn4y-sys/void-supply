@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "dev",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "nextjs",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Starting...",
+          "endsPattern": "Ready in"
+        }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "detail": "Jalankan Next.js development server dengan Turbopack"
+    },
+    {
+      "type": "npm",
+      "script": "db:studio",
+      "isBackground": true,
+      "problemMatcher": [],
+      "detail": "Buka Drizzle Studio web GUI untuk inspeksi PostgreSQL"
+    },
+    {
+      "type": "npm",
+      "script": "test",
+      "group": "test",
+      "problemMatcher": [],
+      "detail": "Jalankan unit/integration tests dengan Vitest"
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Build Next.js untuk production"
+    }
+  ]
+}

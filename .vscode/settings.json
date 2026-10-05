@@ -1,5 +1,6 @@
 {
-  // Layout UI & Workflow - Bersih, Fokus, Modern
+  // Workspace UI & Theme - Material Icons & Focused Layout
+  "workbench.iconTheme": "material-icon-theme",
   "workbench.sideBar.location": "left",
   "workbench.panel.defaultLocation": "right",
   "workbench.activityBar.location": "top",
@@ -7,9 +8,9 @@
   "workbench.editor.showTabs": "multiple",
   "workbench.tree.indent": 16,
   "workbench.tree.renderIndentGuides": "always",
-  "workbench.iconTheme": null,
+  "workbench.tips.enabled": false,
 
-  // Antigravity / Gemini Agent Utama (Copilot dinonaktifkan secara total)
+  // Antigravity / Gemini Agent Utama (Copilot Dinonaktifkan Total)
   "chat.defaultAgent": "antigravity",
   "github.copilot.enable": {
     "*": false,
@@ -31,9 +32,32 @@
   "editor.cursorBlinking": "smooth",
   "editor.cursorSmoothCaretAnimation": "on",
   "editor.smoothScrolling": true,
+  "editor.wordWrap": "on",
+
+  // Bracket Pair Colorization (Aktif)
   "editor.bracketPairColorization.enabled": true,
   "editor.guides.bracketPairs": true,
-  "editor.wordWrap": "on",
+  "editor.guides.bracketPairsHorizontal": true,
+  "editor.guides.highlightActiveBracketPair": true,
+
+  // Auto Close & Rename Tags (HTML, TSX, JSX)
+  "auto-close-tag.activationOnLanguage": [
+    "html",
+    "xml",
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "editor.autoClosingBrackets": "always",
+  "editor.autoClosingQuotes": "always",
+  "editor.linkedEditing": true,
+
+  // Emmet Support JSX / TSX
+  "emmet.includeLanguages": {
+    "javascript": "javascriptreact",
+    "typescript": "typescriptreact"
+  },
 
   // Formatting & Linting Otomatis
   "editor.formatOnSave": true,
@@ -53,10 +77,16 @@
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
 
@@ -67,7 +97,7 @@
   "typescript.updateImportsOnFileMove.enabled": "always",
   "javascript.updateImportsOnFileMove.enabled": "always",
 
-  // Tailwind CSS IntelliSense & Utility Support
+  // Tailwind CSS v4 IntelliSense & Helper Regex
   "tailwindCSS.emmetCompletions": true,
   "tailwindCSS.includeLanguages": {
     "typescript": "javascript",
@@ -82,6 +112,32 @@
     "*.css": "tailwindcss"
   },
 
+  // Terminal Profiles (PowerShell, Command Prompt, Git Bash)
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    },
+    "Command Prompt": {
+      "path": [
+        "${env:windir}\\Sysnative\\cmd.exe",
+        "${env:windir}\\System32\\cmd.exe"
+      ],
+      "args": [],
+      "icon": "terminal-cmd"
+    },
+    "Git Bash": {
+      "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "icon": "terminal-bash"
+    }
+  },
+
+  // Error Lens (Instant Visual Diagnostics)
+  "errorLens.enabled": true,
+  "errorLens.followCursor": "allLines",
+  "errorLens.delay": 200,
+
   // File Watching & Clean Explorer
   "files.exclude": {
     "**/.git": true,
@@ -92,10 +148,5 @@
     "**/node_modules": true,
     "**/.next": true,
     "**/dist": true
-  },
-
-  // Error Lens Configuration (Gratis, Feedback visual langsung pada baris)
-  "errorLens.enabled": true,
-  "errorLens.followCursor": "allLines",
-  "errorLens.delay": 200
+  }
 }
