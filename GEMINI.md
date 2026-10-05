@@ -11,7 +11,7 @@
 ## 1. Peran & Instruksi Agen Utama (Antigravity / agy)
 
 - **Agen Tunggal**: Antigravity dan Gemini CLI (`agy`) adalah autonomous AI pair programmer resmi untuk repositori VOID Supply.
-- **Bebas Bloatware / Anti-Slop**: Terapkan prinsip *Fix Terkecil yang Aman*. Dilarang menyisipkan boilerplate atau komentar tak berbobot.
+- **Bebas Bloatware / Anti-Slop**: Terapkan prinsip _Fix Terkecil yang Aman_. Dilarang menyisipkan boilerplate atau komentar tak berbobot.
 - **Prioritas Dokumentasi**: Selalu rujuk dokumentasi termutakhir melalui Context7 untuk setiap library pihak ketiga.
 
 ---
@@ -20,20 +20,21 @@
 
 Berdasarkan audit sistem lokal:
 
-| Tool / Runtime | Versi Terinstal | Lokasi / Eksekusi | Status Aktivasi |
-| :--- | :--- | :--- | :--- |
-| **Antigravity CLI (`agy`)** | `1.2.5` | `C:\Users\Acer\AppData\Local\agy\bin\agy.exe` | **Aktif & Terkonfigurasi di PATH** |
-| **Node.js** | `v22.23.2` | System PATH | Aktif |
-| **npm** | `10.9.8` | System PATH | Aktif |
-| **PostgreSQL** | `18.6` | `C:\Users\Acer\scoop\apps\postgresql\current\bin\pg_ctl.exe` | **Cluster Aktif** (`localhost:5432`) |
-| **Database `void_supply`** | PostgreSQL 18 | `localhost:5432/void_supply` | **Bersih / Dikosongkan dari 0** |
-| **PHP CLI** | `8.5.10` | `C:\Users\Acer\scoop\apps\php\current\php.exe` | **Aktif** (`pdo_pgsql`, `curl`, `openssl`, `mbstring`) |
-| **Git** | `2.55.0.windows.5` | System PATH | Aktif |
-| **GitHub CLI (`gh`)**| `2.101.0` | System PATH | Terotentikasi (`s9mcqytn4y-sys`) |
-| **Google Chrome** | Current | `C:\Program Files\Google\Chrome\Application\chrome.exe` | Browser Utama (VS Code Debugging) |
-| **Git Bash** | Current | `C:\Program Files\Git\bin\bash.exe` | Terminal Profile VS Code |
+| Tool / Runtime              | Versi Terinstal    | Lokasi / Eksekusi                                            | Status Aktivasi                                        |
+| :-------------------------- | :----------------- | :----------------------------------------------------------- | :----------------------------------------------------- |
+| **Antigravity CLI (`agy`)** | `1.2.5`            | `C:\Users\Acer\AppData\Local\agy\bin\agy.exe`                | **Aktif & Terkonfigurasi di PATH**                     |
+| **Node.js**                 | `v22.23.2`         | System PATH                                                  | Aktif                                                  |
+| **npm**                     | `10.9.8`           | System PATH                                                  | Aktif                                                  |
+| **PostgreSQL**              | `18.6`             | `C:\Users\Acer\scoop\apps\postgresql\current\bin\pg_ctl.exe` | **Cluster Aktif** (`localhost:5432`)                   |
+| **Database `void_supply`**  | PostgreSQL 18      | `localhost:5432/void_supply`                                 | **Bersih / Dikosongkan dari 0**                        |
+| **PHP CLI**                 | `8.5.10`           | `C:\Users\Acer\scoop\apps\php\current\php.exe`               | **Aktif** (`pdo_pgsql`, `curl`, `openssl`, `mbstring`) |
+| **Git**                     | `2.55.0.windows.5` | System PATH                                                  | Aktif                                                  |
+| **GitHub CLI (`gh`)**       | `2.101.0`          | System PATH                                                  | Terotentikasi (`s9mcqytn4y-sys`)                       |
+| **Google Chrome**           | Current            | `C:\Program Files\Google\Chrome\Application\chrome.exe`      | Browser Utama (VS Code Debugging)                      |
+| **Git Bash**                | Current            | `C:\Program Files\Git\bin\bash.exe`                          | Terminal Profile VS Code                               |
 
 ### Perintah Operasional PostgreSQL (`pg_ctl`)
+
 ```powershell
 # Jalankan PostgreSQL Server
 pg_ctl -D "C:\Users\Acer\scoop\persist\postgresql\data" -l "C:\Users\Acer\scoop\persist\postgresql\data\server.log" start
@@ -49,24 +50,24 @@ pg_ctl -D "C:\Users\Acer\scoop\persist\postgresql\data" stop
 
 ## 3. Tech Stack Resmi & Daftar Dependensi
 
-| Layer | Teknologi & Versi | Peran dalam Proyek |
-| :--- | :--- | :--- |
-| **Framework** | **Next.js 16** (`16.3.8`) | Core App Router, Turbopack, Server Actions, API routes |
-| **UI Runtime** | **React 19.3** (`19.3.0`) | Server & Client Components |
-| **Bahasa** | **TypeScript 5.8** (`5.8.2`) | Strict mode, static typing tingkat lanjut |
-| **Build & Testing Tool** | **Vite 6** (`6.2.0`) & **Vitest** (`3.0.7`) | Testing unit/integrasi super cepat dengan Tailwind v4 plugin |
-| **Styling** | **Tailwind CSS v4** (`4.0.0`) & Native CSS | Desain utilitas performa tinggi (`@tailwindcss/postcss`, `@tailwindcss/vite`) |
-| **Komponen UI** | **shadcn/ui primitives** | `clsx` (`2.1.1`), `tailwind-merge` (`3.0.2`), `cva` (`0.7.1`), `lucide-react` (`0.479.0`) |
-| **Validasi Skema** | **Zod** (`3.24.2`) | Validasi skema runtime & TypeScript inference otomatis |
-| **Formulir** | **React Hook Form** (`7.54.2`) | Manajemen form efisien dengan `@hookform/resolvers` (`3.10.0`) |
-| **State Klien** | **React State, Context, Zustand** (`5.0.3`) | Global cart & client interactions |
-| **State Server** | **TanStack Query v5** (`5.67.1`) | Caching & fetching data sisi klien |
-| **Database & ORM** | **PostgreSQL 18** + **Drizzle ORM** (`0.45.3`) | Database relasional dengan `drizzle-kit` (`0.30.5`) |
-| **Payment Gateway** | **Midtrans Snap** (`1.4.3`) | Integrasi pembayaran transaksi online lokal |
-| **Pengiriman** | **Biteship API** (`axios 1.7.9`) | Kalkulasi ongkos kirim real-time & resi pengiriman |
-| **E2E Testing** | **Playwright** (`1.51.0`) | End-to-end browser testing |
-| **Observabilitas** | **Sentry** (`11.4.0`) | Error monitoring & crash reporting |
-| **Deployment** | **Vercel** (`vercel.json`) | Hosting production serverless/edge otomatis via GitHub integration |
+| Layer                    | Teknologi & Versi                              | Peran dalam Proyek                                                                        |
+| :----------------------- | :--------------------------------------------- | :---------------------------------------------------------------------------------------- |
+| **Framework**            | **Next.js 16** (`16.3.8`)                      | Core App Router, Turbopack, Server Actions, API routes                                    |
+| **UI Runtime**           | **React 19.3** (`19.3.0`)                      | Server & Client Components                                                                |
+| **Bahasa**               | **TypeScript 5.8** (`5.8.2`)                   | Strict mode, static typing tingkat lanjut                                                 |
+| **Build & Testing Tool** | **Vite 6** (`6.2.0`) & **Vitest** (`3.0.7`)    | Testing unit/integrasi super cepat dengan Tailwind v4 plugin                              |
+| **Styling**              | **Tailwind CSS v4** (`4.0.0`) & Native CSS     | Desain utilitas performa tinggi (`@tailwindcss/postcss`, `@tailwindcss/vite`)             |
+| **Komponen UI**          | **shadcn/ui primitives**                       | `clsx` (`2.1.1`), `tailwind-merge` (`3.0.2`), `cva` (`0.7.1`), `lucide-react` (`0.479.0`) |
+| **Validasi Skema**       | **Zod** (`3.24.2`)                             | Validasi skema runtime & TypeScript inference otomatis                                    |
+| **Formulir**             | **React Hook Form** (`7.54.2`)                 | Manajemen form efisien dengan `@hookform/resolvers` (`3.10.0`)                            |
+| **State Klien**          | **React State, Context, Zustand** (`5.0.3`)    | Global cart & client interactions                                                         |
+| **State Server**         | **TanStack Query v5** (`5.67.1`)               | Caching & fetching data sisi klien                                                        |
+| **Database & ORM**       | **PostgreSQL 18** + **Drizzle ORM** (`0.45.3`) | Database relasional dengan `drizzle-kit` (`0.30.5`)                                       |
+| **Payment Gateway**      | **Midtrans Snap** (`1.4.3`)                    | Integrasi pembayaran transaksi online lokal                                               |
+| **Pengiriman**           | **Biteship API** (`axios 1.7.9`)               | Kalkulasi ongkos kirim real-time & resi pengiriman                                        |
+| **E2E Testing**          | **Playwright** (`1.51.0`)                      | End-to-end browser testing                                                                |
+| **Observabilitas**       | **Sentry** (`11.4.0`)                          | Error monitoring & crash reporting                                                        |
+| **Deployment**           | **Vercel** (`vercel.json`)                     | Hosting production serverless/edge otomatis via GitHub integration                        |
 
 ---
 
@@ -75,21 +76,24 @@ pg_ctl -D "C:\Users\Acer\scoop\persist\postgresql\data" stop
 Sesuai aturan `/antislop`, `/antislop-code`, `/antislop-copywriting`, `/antislop-human`, `/antislop-layoutmobile`, `/antislop-ui`:
 
 ### A. Aturan Hard Gate
+
 1. **DILARANG menggunakan karakter em dash (`—`)** dalam teks copywriting atau UI. Gunakan tanda koma (`,`), titik (`.`), titik dua (`:`), atau tanda kurung `()`.
 2. **Desain Mobile-First (R-03)**: Tidak ada horizontal overflow, tidak ada teks terpotong, dan ukuran tombol minimal 44px tap target.
 3. **Data & Klaim Jujur (R-17, R-18, R-36)**: Dilarang menggunakan testimoni palsu, avatar AI acak, atau metrik rekaan.
 4. **Kontras Aksesibilitas WCAG AA (R-25)**: Rasio kontras teks minimal 4.5:1 untuk teks normal dan 3:1 untuk teks besar.
 5. **Aksesibilitas Keyboard (R-32)**: Semua elemen interaktif wajib dapat dinavigasi via Tab, Enter, dan Escape dengan indikator fokus terlihat jelas.
-6. **Kelengkapan State UI (R-27)**: Semua antarmuka data harus memiliki *Empty State*, *Loading State*, dan *Error State*.
+6. **Kelengkapan State UI (R-27)**: Semua antarmuka data harus memiliki _Empty State_, _Loading State_, dan _Error State_.
 7. **No Script Patching (R-33)**: Seluruh style dikelola langsung di komponen, dilarang mengubah CSS melalui skrip string replacement eksternal.
 
 ### B. Code Comment Hygiene (`/antislop-code`)
+
 - Dilarang membuat banner separator dekoratif (`// =======================`).
 - Dilarang menarasikan kode yang sudah jelas (`// Initialize state`).
 - Dilarang menggunakan emoji dekoratif pada komentar (`// 🚀 Performance`).
 - Pertahankan komentar yang menjelaskan keputusan bisnis, pertimbangan keamanan, dan integrasi webhook.
 
 ### C. Liveliness & Visual Dials (`/antislop-ui`)
+
 - **ENERGY**: Dial 2 (Balanced) — modern streetwear aesthetic.
 - **RHYTHM**: Dial 2 (Consistent with deliberate accents) — komposisi produk teratur dengan ritme visual menarik.
 - **MOTION**: Dial 1–2 (Subtle micro-animations) — transisi hover halus dan responsif.
@@ -109,6 +113,7 @@ Sesuai aturan `/antislop`, `/antislop-code`, `/antislop-copywriting`, `/antislop
 ## 6. Konvensi Penamaan (Bahasa Indonesia)
 
 Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indonesia:
+
 - **Tabel Drizzle**: `produk`, `pesanan`, `item_pesanan`, `pelanggan`, `inventaris`, `pembayaran`, `pengiriman`.
 - **Kolom Timestamp**: `dibuat_pada`, `diperbarui_pada`.
 - **Type/Interface TypeScript**: `Produk`, `Pesanan`, `Pelanggan`, `StatusPembayaran`, `OpsiPengiriman`.

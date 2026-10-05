@@ -51,6 +51,8 @@
   ],
   "editor.autoClosingBrackets": "always",
   "editor.autoClosingQuotes": "always",
+  "editor.autoSurround": "quotes",
+  "keyboard.dispatch": "keyCode",
   "editor.linkedEditing": true,
 
   // Emmet Support JSX / TSX
@@ -120,10 +122,7 @@
       "icon": "terminal-powershell"
     },
     "Command Prompt": {
-      "path": [
-        "${env:windir}\\Sysnative\\cmd.exe",
-        "${env:windir}\\System32\\cmd.exe"
-      ],
+      "path": ["${env:windir}\\Sysnative\\cmd.exe", "${env:windir}\\System32\\cmd.exe"],
       "args": [],
       "icon": "terminal-cmd"
     },

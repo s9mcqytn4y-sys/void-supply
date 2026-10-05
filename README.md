@@ -63,6 +63,7 @@ VOID Supply/
 ## Memulai Pengembangan
 
 ### 1. Prasyarat Sistem
+
 - **Node.js**: `v22.23.2` atau lebih baru
 - **npm**: `10.9.8`
 - **PostgreSQL**: `18.6` (Cluster lokal port `5432`)
@@ -70,7 +71,9 @@ VOID Supply/
 - **Browser Utama**: Google Chrome
 
 ### 2. Aktivasi PostgreSQL Lokal (`pg_ctl`)
+
 Jika PostgreSQL belum berjalan di Windows:
+
 ```powershell
 # Menjalankan PostgreSQL Server
 pg_ctl -D "C:\Users\Acer\scoop\persist\postgresql\data" -l "C:\Users\Acer\scoop\persist\postgresql\data\server.log" start
@@ -80,16 +83,20 @@ pg_ctl -D "C:\Users\Acer\scoop\persist\postgresql\data" status
 ```
 
 ### 3. Database & Migrasi
+
 Database lokal `void_supply` telah disiapkan dalam kondisi bersih (dari 0). Untuk menerapkan skema Drizzle:
+
 ```bash
 npm run db:push
 npm run db:studio
 ```
 
 ### 4. Menjalankan Server Pengembangan
+
 ```bash
 npm run dev
 ```
+
 Buka [http://localhost:3000](http://localhost:3000) pada Google Chrome.
 
 ---
@@ -116,4 +123,5 @@ npm run format
 ---
 
 ## Konvensi & Pedoman Kode
+
 Lihat panduan lengkap di [`GEMINI.md`](file:///c:/Projects/VOID%20Supply/GEMINI.md) untuk konvensi penamaan Bahasa Indonesia serta aturan Anti-Slop (Mode 1: DURING).

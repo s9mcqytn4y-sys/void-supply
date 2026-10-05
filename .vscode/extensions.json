@@ -11,8 +11,5 @@
     "vitest.explorer",
     "eamodio.gitlens"
   ],
-  "unwantedRecommendations": [
-    "github.copilot",
-    "github.copilot-chat"
-  ]
+  "unwantedRecommendations": ["github.copilot", "github.copilot-chat"]
 }
