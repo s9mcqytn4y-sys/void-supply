@@ -114,9 +114,18 @@
     "*.css": "tailwindcss"
   },
 
-  // Terminal Profiles (PowerShell, Command Prompt, Git Bash)
-  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  // Advanced Setup Terminal Git Bash (Default)
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
   "terminal.integrated.profiles.windows": {
+    "Git Bash": {
+      "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "args": ["--login", "-i"],
+      "icon": "terminal-bash",
+      "env": {
+        "CHERE_INVOKING": "1",
+        "MSYSTEM": "MINGW64"
+      }
+    },
     "PowerShell": {
       "source": "PowerShell",
       "icon": "terminal-powershell"
@@ -125,17 +134,34 @@
       "path": ["${env:windir}\\Sysnative\\cmd.exe", "${env:windir}\\System32\\cmd.exe"],
       "args": [],
       "icon": "terminal-cmd"
-    },
-    "Git Bash": {
-      "path": "C:\\Program Files\\Git\\bin\\bash.exe",
-      "icon": "terminal-bash"
     }
   },
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.fontSize": 13,
+  "terminal.integrated.lineHeight": 1.4,
+  "terminal.integrated.fontFamily": "Cascadia Code, Consolas, 'Courier New', monospace",
+  "terminal.integrated.enableMultiLinePasteWarning": false,
+  "terminal.integrated.scrollback": 10000,
+  "terminal.integrated.shellIntegration.enabled": true,
 
-  // Error Lens (Instant Visual Diagnostics)
+  // Error Lens (Instant Diagnostics)
   "errorLens.enabled": true,
   "errorLens.followCursor": "allLines",
   "errorLens.delay": 200,
+
+  // GitLens (Free Core Settings)
+  "gitlens.codeLens.enabled": false,
+  "gitlens.currentLine.enabled": true,
+  "gitlens.hovers.currentLine.over": "line",
+
+  // Testing & Runners (Vitest & Playwright)
+  "vitest.enable": true,
+  "playwright.reuseBrowser": true,
+
+  // Material Icon Theme Settings
+  "material-icon-theme.activeIconPack": "react",
+  "material-icon-theme.folders.theme": "specific",
 
   // File Watching & Clean Explorer
   "files.exclude": {

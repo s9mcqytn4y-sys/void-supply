@@ -135,20 +135,112 @@
     ],
     "description": "TanStack React Query Hook"
   },
+  "TanStack Query Mutation": {
+    "prefix": "tqmutation",
+    "body": [
+      "import { useMutation, useQueryClient } from \"@tanstack/react-query\";",
+      "",
+      "export function use${1:CreateOrder}() {",
+      "  const queryClient = useQueryClient();",
+      "",
+      "  return useMutation({",
+      "    mutationFn: async (payload: ${2:unknown}) => {",
+      "      const res = await fetch(\"${3:/api/orders}\", {",
+      "        method: \"POST\",",
+      "        headers: { \"Content-Type\": \"application/json\" },",
+      "        body: JSON.stringify(payload),",
+      "      });",
+      "      if (!res.ok) throw new Error(\"Gagal memproses data\");",
+      "      return res.json();",
+      "    },",
+      "    onSuccess: () => {",
+      "      queryClient.invalidateQueries({ queryKey: [\"${4:orders}\"] });",
+      "    },",
+      "  });",
+      "}"
+    ],
+    "description": "TanStack React Query Mutation Hook"
+  },
   "Drizzle PostgreSQL Table Schema": {
     "prefix": "drtable",
     "body": [
       "import { pgTable, text, timestamp, uuid, integer } from \"drizzle-orm/pg-core\";",
       "",
-      "export const ${1:products} = pgTable(\"${1:products}\", {",
+      "export const ${1:produk} = pgTable(\"${1:produk}\", {",
       "  id: uuid(\"id\").defaultRandom().primaryKey(),",
-      "  name: text(\"name\").notNull(),",
-      "  price: integer(\"price\").notNull(),",
-      "  createdAt: timestamp(\"created_at\").defaultNow().notNull(),",
-      "  updatedAt: timestamp(\"updated_at\").defaultNow().notNull(),",
+      "  nama: text(\"nama\").notNull(),",
+      "  harga: integer(\"harga\").notNull(),",
+      "  stok: integer(\"stok\").default(0).notNull(),",
+      "  dibuat_pada: timestamp(\"dibuat_pada\").defaultNow().notNull(),",
+      "  diperbarui_pada: timestamp(\"diperbarui_pada\").defaultNow().notNull(),",
       "});"
     ],
-    "description": "Drizzle ORM PostgreSQL Table Definition"
+    "description": "Drizzle ORM PostgreSQL Table Definition (Bahasa Indonesia)"
+  },
+  "Midtrans Snap Token Generator": {
+    "prefix": "midtoken",
+    "body": [
+      "import midtransClient from \"midtrans-client\";",
+      "",
+      "const snap = new midtransClient.Snap({",
+      "  isProduction: process.env.MIDTRANS_IS_PRODUCTION === \"true\",",
+      "  serverKey: process.env.MIDTRANS_SERVER_KEY || \"\",",
+      "  clientKey: process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || \"\",",
+      "});",
+      "",
+      "export async function buatSnapToken(orderId: string, grossAmount: number) {",
+      "  const parameter = {",
+      "    transaction_details: {",
+      "      order_id: orderId,",
+      "      gross_amount: grossAmount,",
+      "    },",
+      "  };",
+      "  const transaction = await snap.createTransaction(parameter);",
+      "  return transaction.token;",
+      "}"
+    ],
+    "description": "Midtrans Snap Token Generator Server Action"
+  },
+  "Biteship Shipping Rates Calculator": {
+    "prefix": "biteship",
+    "body": [
+      "import axios from \"axios\";",
+      "",
+      "export async function cekOngkirBiteship(destinationAreaId: string, weightInGrams: number) {",
+      "  const res = await axios.post(",
+      "    \"https://api.biteship.com/v1/rates/couriers\",",
+      "    {",
+      "      origin_area_id: process.env.BITESHIP_ORIGIN_AREA_ID || \"IDNP6IDJB71IDD123\",",
+      "      destination_area_id: destinationAreaId,",
+      "      couriers: \"jne,sicepat,jnt\",",
+      "      items: [{ name: \"Merchandise\", value: 100000, quantity: 1, weight: weightInGrams }],",
+      "    },",
+      "    {",
+      "      headers: {",
+      "        Authorization: `Bearer ${process.env.BITESHIP_API_KEY}`,",
+      "        \"Content-Type\": \"application/json\",",
+      "      },",
+      "    }",
+      "  );",
+      "  return res.data.pricing;",
+      "}"
+    ],
+    "description": "Biteship Logistics Rate Calculator"
+  },
+  "Playwright E2E Test Suite": {
+    "prefix": "pwtest",
+    "body": [
+      "import { test, expect } from \"@playwright/test\";",
+      "",
+      "test.describe(\"${1:Fitur}\", () => {",
+      "  test(\"${2:dapat memuat halaman dan melakukan aksi}\", async ({ page }) => {",
+      "    await page.goto(\"${3:/}\");",
+      "    await expect(page).toHaveTitle(/VOID Supply/i);",
+      "    ${0}",
+      "  });",
+      "});"
+    ],
+    "description": "Playwright End-to-End Test Spec"
   },
   "Vitest Component Test Suite": {
     "prefix": "vitest",
