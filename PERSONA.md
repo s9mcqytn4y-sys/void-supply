@@ -4,6 +4,7 @@ Dokumen ini memuat analisis persona pengguna untuk situs web VOID Supply berdasa
 
 Dokumen turunan perjalanan pengguna dapat dilihat pada [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md).
 Dokumen riset kompetitor terkait dapat dilihat pada [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md).
+Dokumen arsitektur informasi situs web dapat dilihat pada [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md).
 
 ---
 

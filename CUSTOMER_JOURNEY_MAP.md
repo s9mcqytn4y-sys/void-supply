@@ -1,126 +1,130 @@
 # Customer Journey Map : VOID Supply
 
-Dokumen ini memetakan perjalanan pengalaman pelanggan (_Customer Journey Map_) untuk situs web VOID Supply berdasarkan persona utama Rian "The Trendsetter" Pratama. Pemetaan ini merinci tindakan, pikiran, emosi, kendala, peluang, serta kebutuhan fitur pada setiap fase interaksi.
+Dokumen ini memetakan perjalanan pengalaman pelanggan (_Customer Journey Map_) untuk situs web VOID Supply berdasarkan riset mendalam kompetitor (_Erigo_, _Thanksinsomnia_, dan _Screamous_) serta persona utama Rian "The Trendsetter" Pratama.
 
-Tautan persona lengkap: [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md)
-Tautan riset kompetitor: [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md)
+Perjalanan ini dibagi ke dalam 5 fase strategis: **Awareness $\rightarrow$ Consideration $\rightarrow$ Decision $\rightarrow$ Purchase $\rightarrow$ Retention**.
 
----
+Dokumen terkait:
 
-## Informasi Persona
-
-- **Nama Persona:** Rian "The Trendsetter" Pratama
-- **Usia:** 21 tahun
-- **Peran:** Mahasiswa dan Content Creator Lepas
-- **Karakteristik Kunci:** Mobile-first user, penggemar streetwear edisi terbatas, pengambil keputusan impulsif berdasarkan visual otentik dan reputasi komunitas.
-- **Tujuan Utama:** Mendapatkan pakaian streetwear berkualitas dengan ukuran yang pas di badan pada rilis terbatas pertama tanpa hambatan transaksi.
+- Profil Persona: [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md)
+- Riset Kompetitor & Opportunity Gap: [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md)
+- Arsitektur Informasi: [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md)
 
 ---
 
-## Stage 1: Awareness (Kesadaran)
+## 1. Matriks Utama Customer Journey Map (5 Stages)
 
-Pada fase ini, calon pembeli pertama kali mengetahui keberadaan koleksi baru VOID Supply melalui media sosial saat waktu santai malam hari.
+| Stage                              | User Action                                                                                                                                                    | Feeling                                                            | Problem                                                                                                | Solution                                                                                                                                                           |
+| :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Awareness** (Kesadaran)          | Menjelajahi reels TikTok / linimasa Instagram pada malam hari (20.00-23.00), melihat kreator streetwear memakai kaos VOID Supply, lalu mengetuk tautan profil. | Penasaran, antusias, FOMO (_takut kehabisan rilis terbatas_).      | Tautan bio lambat dimuat di koneksi seluler; beranda umum membingungkan pembeli rilis baru.            | _Deep linking_ langsung ke koleksi rilis terbatas (_limited drop_), halaman awal ringan WebP dengan waktu muat < 1.5 detik.                                        |
+| **Consideration** (Pertimbangan)   | Menelusuri katalog produk, mengamati galeri foto dari berbagai sudut, dan mencari informasi bahan katun serta kerapian sablon.                                 | Kritis, teliti, sedikit skeptis terhadap klaim foto promosi.       | Standar ukuran _oversized_ tiap merek tidak seragam; foto studio sering menyamarkan tekstur asli kain. | Panduan ukuran interaktif (_Interactive Size Guide_) dengan indikator tinggi/berat badan model foto dan fitur _zoom_ tekstur kain asli tanpa filter.               |
+| **Decision** (Keputusan)           | Memilih varian ukuran dan warna, memeriksa ketersediaan kuota stok, serta menghitung estimasi ongkos kirim ke alamat rumah.                                    | Yakin, terburu-buru mengamankan barang sebelum stok habis.         | Stok varian tidak jelas (harus klik satu per satu); ongkos kirim tidak diketahui sebelum checkout.     | _Real-Time Stock Badge_ per varian ukuran dan kalkulator estimasi ongkir cepat berdasarkan kota tujuan langsung di halaman produk.                                 |
+| **Purchase** (Pembelian)           | Memasukkan item ke keranjang, membuka halaman checkout tanpa login akun, memilih kurir, dan memindai QRIS via mobile banking.                                  | Fokus, tergesa-gesa, lega saat notifikasi pembayaran lunas muncul. | Formulir checkout panjang dengan registrasi akun wajib; verifikasi transfer manual lambat.             | _One-Page Guest Checkout_ dengan formulir ringkas, kalkulasi ongkos kirim instan Biteship API, dan pembayaran otomatis Midtrans Snap QRIS.                         |
+| **Retention** (Retensi & Advokasi) | Menerima resi via WhatsApp, melacak posisi kurir di web, unboxing kemasan khusus, dan membagikan foto OOTD ke media sosial.                                    | Puas, bangga, terhubung dengan identitas merek, loyal.             | Resi kurir lambat diperbarui; prosedur penukaran barang membingungkan jika terjadi cacat produksi.     | Halaman pelacakan pesanan mandiri (_Self-Service Order Tracking_), webhook pembaruan status kurir, serta sisipan kartu terima kasih ber-QR untuk rilis berikutnya. |
+
+---
+
+## 2. Analisis Rinci per Fase Interaksi
+
+### Stage 1: Awareness (Kesadaran)
+
+Calon pembeli pertama kali terpapar keberadaan produk VOID Supply melalui media sosial saat waktu santai malam hari.
 
 - **User Action:**
-  - Menjelajahi beranda TikTok dan linimasa Instagram pada pukul 21.30 WIB di kamar tidur.
-  - Melihat video OOTD (_Outfit of the Day_) dari kreator streetwear favorit yang mengenakan t-shirt grafis VOID Supply edisi terbaru.
-  - Mengetuk tautan merek di bio profil atau tautan langsung pada deskripsi video untuk mengunjungi situs web.
+  - Menjelajahi beranda TikTok dan linimasa Instagram pada pukul 21.00 WIB melalui smartphone.
+  - Melihat video OOTD dari kreator streetwear favorit yang mengenakan t-shirt grafis VOID Supply edisi terbaru.
+  - Mengetuk tautan di bio profil media sosial untuk masuk ke situs web resmi.
 - **User Thought:**
-  - "Desain kaosnya unik dan potongannya terlihat pas (_boxy/oversized fit_). Apakah ini merek baru lokal? Kapan koleksi ini rilis?"
-  - "Semoga harganya masih masuk akal untuk kualitas bahan seperti itu."
-- **Emotion:**
-  - Penasaran, antusias, dan ada sedikit rasa cemas tertinggal tren (_Fear of Missing Out / FOMO_).
-- **Pain Point:**
-  - Tautan di media sosial terkadang lambat dimuat atau mengarah ke beranda umum yang membingungkan alih-alih langsung ke halaman produk yang bersangkutan.
-  - Sinyal seluler malam hari di kamar yang kadang fluktuatif menyebabkan halaman terasa lambat jika aset gambar terlalu berat.
-- **Opportunity:**
-  - Memanfaatkan _deep linking_ langsung ke halaman detail produk dari kampanye media sosial.
-  - Mengoptimalkan kompresi gambar format WebP dan tata letak _mobile-first_ ringan agar situs terbuka dalam waktu di bawah 1.5 detik.
-- **Feature Needed:**
-  - Halaman produk responsif dengan performa muat cepat (_Optimized Next.js Image_).
-  - Banner pengumuman rilis terbatas (_Limited Drop Banner_) yang menegaskan keaslian dan ketersediaan koleksi.
+  - "Desain grafis kaosnya berkarakter dan potongan kerahnya rapi. Apakah ini merek lokal baru? Kapan rilisnya?"
+  - "Semoga situs webnya tidak lemot dan harganya sebanding dengan kualitas visualnya."
+- **Feeling:**
+  - Penasaran, bersemangat, ada dorongan FOMO (_Fear of Missing Out_) terhadap koleksi rilis terbatas.
+- **Problem:**
+  - Banyak situs web merek lokal memerlukan waktu muat lebih dari 3 detik pada sinyal seluler malam hari, memicu _bounce rate_ tinggi.
+  - Tautan media sosial sering mengarah ke beranda umum yang memaksa pengguna mencari ulang produk yang dilihat di video.
+- **Solution:**
+  - Optimasi Core Web Vitals dengan Next.js 16 Image Component (format WebP) agar halaman terbuka dalam waktu kurang dari 1.5 detik.
+  - Tautan kampanye langsung mengarah (_deep link_) ke halaman detail produk atau kurasi koleksi rilisan terkait.
 
----
+### Stage 2: Consideration (Pertimbangan)
 
-## Stage 2: Consideration (Pertimbangan)
-
-Pada fase ini, Rian mendalami detail produk di situs web, mengevaluasi ukuran, bahan, dan kredibilitas sebelum membuat keputusan beli.
+Rian meneliti keaslian visual produk, kualitas bahan, dan kesesuaian potongan baju dengan preferensi gaya pribadinya.
 
 - **User Action:**
-  - Mengamati foto produk resolusi tinggi dari berbagai sudut (tampak depan, belakang, detail jahitan kerah, dan tekstur sablon).
-  - Membuka panduan ukuran (_Size Chart_) dan membandingkan dimensi panjang/lebar baju dengan kaos yang biasa dipakainya.
-  - Memeriksa informasi tinggi badan model foto (misalnya: Model 175 cm, 65 kg mengenakan ukuran L) untuk mendapatkan gambaran visual proporsional.
-  - Membaca komposisi bahan kain (katun combed 24s/16s berat gramasi tinggi) dan testimoni foto asli dari pembeli sebelumnya.
+  - Mengamati foto produk resolusi tinggi dari sudut depan, belakang, dan jarak dekat (_close-up_ sablon dan rib leher).
+  - Meninjau spesifikasi material (katun combed gramasi berat 16s/24s) dan jenis sablon (_discharge / plastisol high-density_).
+  - Membuka panduan ukuran (_size chart_) dan membandingkan lebar dada serta panjang baju.
 - **User Thought:**
-  - "Apakah ukuran M ini cukup longgar di badan saya, atau saya harus mengambil ukuran L agar terlihat _oversized_?"
-  - "Apakah warna hitamnya pekat dan sablonnya tidak mudah retak setelah dicuci?"
-  - "Berapa biaya pengiriman ke alamat saya di Sleman, Yogyakarta?"
-- **Emotion:**
-  - Teliti, kritis, sedikit ragu akan kecocokan ukuran, namun tetap bersemangat untuk memiliki produk.
-- **Pain Point:**
-  - Bagan ukuran statis berbentuk tabel teks biasa yang sulit dibaca di layar smartphone kecil.
-  - Foto produk studio yang terlalu terang atau menggunakan filter berlebih sehingga warna aslinya diragukan.
-  - Tidak ada kejelasan stok apakah ukuran yang diinginkan masih tersedia sebelum tombol ditekan.
-- **Opportunity:**
-  - Menyajikan panduan ukuran interaktif dengan rekomendasi visual berdasarkan berat dan tinggi badan model foto.
-  - Menyediakan kalkulator estimasi ongkos kirim cepat berdasarkan kode pos atau kota tujuan tanpa harus masuk ke formulir checkout.
-- **Feature Needed:**
-  - Panduan ukuran interaktif (_Interactive Size Guide & Model Fit Indicator_).
-  - Indikator ketersediaan stok varian ukuran secara real-time (_Real-Time Stock Badge_).
-  - Galeri foto detail material kain (_High-Resolution Material Zoom_).
+  - "Apakah kaos ukuran M ini cukup boxy atau saya harus naik ke ukuran L agar terlihat proporsional?"
+  - "Apakah warna hitamnya benar-benar pekat dan sablonnya tahan cuci?"
+- **Feeling:**
+  - Teliti, analitis, sedikit cemas salah memilih ukuran karena kebijakan penukaran barang online sering merepotkan.
+- **Problem:**
+  - Riset kompetitor menunjukkan bagan ukuran di Erigo dan Screamous hanya tabel statis angka sentimeter yang membingungkan saat dibaca di layar ponsel kecil.
+  - Foto produk studio Thanksinsomnia sangat artistik tetapi minim menampilkan detail tekstur serat kain nyata.
+- **Solution:**
+  - **Interactive Size Guide**: Menampilkan visual proporsi dengan referensi model nyata (misalnya: _Tinggi 174 cm, Berat 64 kg mengenakan ukuran L_).
+  - **High-Resolution Fabric Viewer**: Galeri foto mikro-tekstur bahan kain asli tanpa filter saturasi berlebih.
 
----
+### Stage 3: Decision (Keputusan)
 
-## Stage 3: Purchase (Pembelian & Pembayaran)
-
-Pada fase ini, Rian telah mantap memilih produk dan ingin segera menyelesaikan pembayaran sebelum stok diambil pembeli lain.
+Rian menentukan varian produk yang ingin dibeli dan memastikan tidak ada biaya tak terduga sebelum melangkah ke proses checkout.
 
 - **User Action:**
-  - Memilih ukuran baju yang sesuai (ukuran L) lalu menekan tombol "Beli Sekarang" atau "Tambah ke Keranjang".
-  - Mengisi data pengiriman (nama penerima, nomor WhatsApp, alamat lengkap, dan kode pos).
-  - Memilih kurir pengiriman yang paling terjangkau atau paling cepat (JNE Regular atau SiCepat).
-  - Memilih metode pembayaran instan (QRIS) melalui antarmuka Midtrans Snap, membuka aplikasi mobile banking atau e-wallet di ponsel, lalu memindai kode QR.
+  - Memilih varian ukuran (L) dan warna utama (Washed Black).
+  - Memeriksa sisa stok yang tersedia pada varian terpilih.
+  - Mengetik kota atau kode pos tujuan untuk melihat perkiraan biaya ongkos kirim tercepat dan termurah.
+  - Menekan tombol "Tambah ke Keranjang" atau "Beli Sekarang".
 - **User Thought:**
-  - "Saya tidak ingin repot mendaftar akun atau mengingat password baru; saya ingin langsung bayar."
-  - "Apakah pembayaran saya langsung terverifikasi otomatis tanpa perlu kirim bukti transfer manual ke admin?"
-- **Emotion:**
-  - Terburu-buru, fokus, lega saat pembayaran sukses terverifikasi.
-- **Pain Point:**
-  - Formulir checkout yang terlalu panjang dengan banyak kolom yang tidak perlu.
-  - Harus keluar dari aplikasi untuk melakukan konfirmasi transfer manual.
-  - Proses kalkulasi ongkos kirim yang macet atau pilihan kurir yang tidak lengkap.
-- **Opportunity:**
-  - Menerapkan alur pembelian satu halaman (_One-Page Guest Checkout_) yang ringkas dan bebas friksi.
-  - Integrasi otomatis gateway pembayaran lokal Midtrans Snap (QRIS, GoPay, OVO, Virtual Account) dan resi kurir Biteship API.
-- **Feature Needed:**
-  - _One-Page Guest Checkout_ dengan validasi formulir instan (React Hook Form dan Zod).
-  - Integrasi pembayaran QRIS dan Virtual Account otomatis via Midtrans Snap.
-  - Perhitungan ongkos kirim real-time terintegrasi kurir lokal via Biteship API.
-  - Halaman konfirmasi pembayaran otomatis (_Instant Payment Callback & Order Confirmation_).
+  - "Ukuran L tinggal tersisa sedikit, saya harus segera mengamankan pesanan sebelum kehabisan."
+  - "Bagus, ongkos kirim ke Sleman masuk akal dan tersedia kurir reguler terpercaya."
+- **Feeling:**
+  - Mantap, fokus, waspada akan kecepatan perebutan stok (_high purchase intent_).
+- **Problem:**
+  - Ketiadaan indikator stok real-time membuat pembeli kecewa jika baru mengetahui produk habis saat berada di halaman checkout.
+  - Ketidakpastian ongkos kirim sering menjadi alasan utama keranjang belanja terbengkalai (_abandoned cart_).
+- **Solution:**
+  - **Real-Time Stock Badge**: Status kuota stok langsung terbarui via Drizzle ORM (misal: _Tersisa 4 pcs_).
+  - **Quick Shipping Calculator**: Pengecekan ongkir cepat di level halaman produk berbasis kota tujuan via Biteship API.
 
----
+### Stage 4: Purchase (Pembelian & Pembayaran)
 
-## Stage 4: Post Purchase (Pasca Pembelian & Retensi)
-
-Pada fase ini, Rian menunggu barang tiba, menerima paket, dan mengevaluasi kepuasan belanja untuk kemungkinan berbagi di media sosial atau membeli kembali.
+Rian menyelesaikan transaksi pembayaran dengan cepat, aman, dan tanpa hambatan registrasi yang merepotkan.
 
 - **User Action:**
-  - Menerima notifikasi konfirmasi pesanan dan nomor resi pengiriman melalui WhatsApp / Email.
-  - Membuka halaman pelacakan pesanan (_Order Tracking_) di situs web untuk memantau perjalanan kurir.
-  - Menerima paket produk yang dikemas rapi dengan kemasan khusus (_polymailer/box branded_), stiker eksklusif, dan kartu ucapan terima kasih.
-  - Mencoba pakaian di depan cermin, mengambil foto OOTD, dan membagikannya ke Instagram Story sambil menandai akun resmi VOID Supply.
+  - Membuka formulir checkout satu halaman (_One-Page Checkout_).
+  - Mengisi data pengiriman (Nama, No. WhatsApp, Alamat Jalan, dan Kode Pos).
+  - Memilih layanan kurir pengiriman (JNE Regular atau SiCepat) dengan tarif yang tertera transparan.
+  - Memilih metode pembayaran QRIS Midtrans Snap, membuka aplikasi e-wallet / mobile banking di ponsel yang sama, lalu memindai dan menyelesaikan transaksi.
 - **User Thought:**
-  - "Barangnya sampai lebih cepat dari perkiraan. Bahan kaosnya tebal, potongannya sesuai ekspektasi, dan stikernya keren!"
-  - "Pengalaman belanja tanpa hambatan, saya pasti akan membeli lagi saat koleksi berikutnya rilis."
-- **Emotion:**
-  - Puas, percaya diri, bangga, dan merasa terhubung dengan identitas merek (_Brand Loyalty_).
-- **Pain Point:**
-  - Resi pengiriman lambat diperbarui sehingga pembeli cemas apakah barangnya sudah dikirim atau belum.
-  - Prosedur penukaran barang yang rumit jika ternyata ada cacat produksi atau ukuran tidak pas.
-- **Opportunity:**
-  - Pelacakan resi pengiriman real-time langsung di situs web tanpa harus membuka situs kurir pihak ketiga.
-  - Menyertakan kartu terima kasih dengan kode QR untuk program rujukan (_referral_) atau diskon rilis berikutnya.
-- **Feature Needed:**
-  - Halaman pelacakan paket mandiri (_Self-Service Order Tracking_).
-  - Notifikasi status pengiriman otomatis via webhook Biteship.
-  - Integrasi galeri Lookbook komunitas (_UGC Showcase_) untuk menampilkan unggahan pembeli.
+  - "Sangat praktis tanpa harus membuat akun atau mengingat kata sandi baru."
+  - "Apakah pembayaran QRIS saya langsung terkonfirmasi otomatis tanpa perlu kirim bukti transfer ke WhatsApp admin?"
+- **Feeling:**
+  - Lega, puas, percaya diri bahwa pesanan berhasil tercatat dengan aman.
+- **Problem:**
+  - Pada Screamous, sebagian alur checkout masih mengarahkan konfirmasi ke WhatsApp staf toko yang lambat di luar jam kerja.
+  - Pada Erigo, alur checkout mewajibkan akun atau banyak langkah navigasi yang memperlambat proses transaksi di perangkat mobile.
+- **Solution:**
+  - **One-Page Guest Checkout**: Menghilangkan seluruh langkah berlebih; satu halaman mencakup alamat, pilihan kurir, dan pembayaran.
+  - **Automated Gateway (Midtrans Snap)**: Verifikasi instan QRIS, Virtual Account, dan E-Wallet dengan pengalihan otomatis ke halaman status pesanan sukses.
+
+### Stage 5: Retention (Retensi & Advokasi Komunitas)
+
+Pengalaman pasca-pembelian yang mengubah pembeli satu kali menjadi pendukung setia merek (_brand advocate_) dan pelanggan berulang.
+
+- **User Action:**
+  - Menerima notifikasi otomatis pembaruan resi kurir melalui WhatsApp / Email.
+  - Memeriksa halaman pelacakan mandiri (_Order Tracking_) untuk melihat lokasi paket terkini.
+  - Menerima paket produk dalam kemasan eksklusif (_custom polymailer_, stiker holografis, dan kartu ucapan ber-QR).
+  - Mencoba pakaian di depan cermin, mengambil foto OOTD (_Outfit of the Day_), dan membagikannya ke Instagram Story sambil menandai akun resmi VOID Supply.
+- **User Thought:**
+  - "Paket tiba tepat waktu, kemasannya rapi, dan bahan kaosnya benar-benar berkualitas tinggi."
+  - "Merek ini layak direkomendasikan ke teman-teman di komunitas."
+- **Feeling:**
+  - Bangga, puas, merasa dihargai sebagai bagian dari komunitas eksklusif VOID Supply.
+- **Problem:**
+  - Resi pengiriman yang tidak dapat dilacak secara mandiri menimbulkan rasa cemas dan membebani tim layanan pelanggan dengan pertanyaan berulang.
+  - Hilangnya interaksi pasca-pembelian menyebabkan tingkat pembelian berulang (_repeat order_) rendah.
+- **Solution:**
+  - **Self-Service Order Tracking**: Halaman pelacakan paket terintegrasi webhook Biteship yang menampilkan riwayat pergerakan kurir secara transparan.
+  - **Community Advocacy Program**: Kartu sisipan kemasan ber-QR yang memberikan akses awal (_early drop access_) pada rilisan koleksi terbatas berikutnya.

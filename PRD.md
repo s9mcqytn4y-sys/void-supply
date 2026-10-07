@@ -6,6 +6,7 @@
 - **Target Pasar**: Usia 18 hingga 30 tahun (komunitas streetwear, merchandise kreatif, dan generasi digital).
 - **Profil Persona Pengguna**: Terdokumentasi lengkap dalam [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md) dan [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md), mencakup Primary Buyer (Rian "The Trendsetter" Pratama) dan Secondary User (Dimas "Operations" Setyawan).
 - **Riset Kompetitor & Celah Pasar**: Analisis benchmarking terhadap Erigo, Thanksinsomnia, dan Screamous terdokumentasi dalam [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md).
+- **Arsitektur Informasi & Peta Situs**: Rancangan 7 halaman utama dan navigasi mobile terdokumentasi dalam [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md).
 - **Aksi Utama Pengguna**: Memilih produk merchandise, menentukan ukuran/varian, checkout dengan ongkir akurat, dan membayar secara instan.
 
 ---

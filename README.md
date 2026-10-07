@@ -56,8 +56,9 @@ VOID Supply/
 ├── drizzle.config.ts        # Konfigurasi Drizzle ORM PostgreSQL
 ├── next.config.ts           # Konfigurasi Next.js 16
 ├── package.json             # Konfigurasi dependensi & scripts
-├── CUSTOMER_JOURNEY_MAP.md  # Pemetaan perjalanan pelanggan Rian The Trendsetter (Homework 01.5.1)
+├── CUSTOMER_JOURNEY_MAP.md  # Pemetaan perjalanan pelanggan Rian The Trendsetter (5 Stages)
 ├── PERSONA.md               # Analisis persona pembeli merchandise & admin toko
+├── SITE-MAP.md              # Arsitektur informasi & peta situs 7 halaman utama
 ├── playwright.config.ts     # Konfigurasi E2E testing Playwright
 ├── postcss.config.mjs       # Konfigurasi PostCSS Tailwind CSS v4
 ├── tsconfig.json            # Konfigurasi TypeScript Strict
@@ -79,6 +80,7 @@ VOID Supply/
 | **Riset Kompetitor (docs/research/)**              | Ada (`docs/research/competitor-analysis.md`)            | Ada                                | Analisis gap kompetitor Erigo, Thanksinsomnia, Screamous |
 | **Persona Pengguna (PERSONA.md)**                  | Ada                                                     | Ada                                | Sinkron di kedua repositori                              |
 | **Customer Journey Map (CUSTOMER_JOURNEY_MAP.md)** | Ada                                                     | Ada                                | Sinkron di kedua repositori                              |
+| **Peta Situs (SITE-MAP.md)**                       | Ada                                                     | Ada                                | Arsitektur informasi 7 halaman utama situs web           |
 | **Basis Data PostgreSQL**                          | Berjalan di port 5432 via `pg_ctl`                      | Tidak ada server fisik             | Dikelola melalui migrasi skema Drizzle ORM               |
 | **Cache Build (\*.tsbuildinfo)**                   | Ada (`tsconfig.tsbuildinfo`)                            | Tidak ada (diabaikan `.gitignore`) | Cache kompilasi TypeScript lokal                         |
 
