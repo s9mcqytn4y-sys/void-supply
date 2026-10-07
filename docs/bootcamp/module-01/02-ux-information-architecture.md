@@ -39,7 +39,7 @@ Seluruh struktur rute navigasi disusun secara disiplin berdasarkan **The Hesitat
 +-----------------------------------------------------------------------------------+
 ```
 
-Jangan membuat route hanya karena bisa. Kategori katalog MVP dirampingkan menjadi 4 pilar (`all`, `new-drop`, `best-seller`, `archive`) untuk menghindari sindrom mega-menu Erigo pada brand yang sedang bertumbuh. Setiap route mewakili tujuan pengguna yang jelas selaras dengan [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md) dan [WIREFRAME.md](file:///c:/Projects/VOID%20Supply/WIREFRAME.md). Seluruh elemen interaktif pada rute di atas tunduk pada batas minimal sentuh 44px (_44px Tap Target_) dan kontras WCAG AA $\ge 4.5:1$.
+Jangan membuat route hanya karena bisa. Kategori katalog MVP dirampingkan menjadi 4 pilar (`all`, `new-drop`, `best-seller`, `archive`) untuk menghindari sindrom mega-menu Erigo pada brand yang sedang bertumbuh. Setiap route mewakili tujuan pengguna yang jelas selaras dengan [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md) dan [WIREFRAME.md](file:///c:/Projects/VOID%20Supply/WIREFRAME.md). Seluruh elemen interaktif pada rute di atas tunduk pada 5 Navigation Rules (2-tap to product, cart always accessible, distraction-free checkout, isolated admin, mobile thumb zone $\ge 44$px).
 
 ## 2. Primary user flow
 
@@ -47,18 +47,17 @@ Jangan membuat route hanya karena bisa. Kategori katalog MVP dirampingkan menjad
 Landing
   -> Shop
   -> Filter / browse
-  -> Product Detail
-  -> Select variant
+  -> Product Detail (8-Step Confidence Builder)
+  -> Select variant & size
   -> Add to cart
-  -> Cart
-  -> Checkout data
-  -> Shipping rates
+  -> Cart drawer / page
+  -> Checkout (Contact & Address)
+  -> Shipping rates (Biteship)
   -> Review total
   -> Create order
-  -> Midtrans payment
+  -> Midtrans Snap payment
   -> Payment confirmation
-  -> Order status
-  -> Shipment tracking
+  -> Order status & shipment tracking
 ```
 
 ## 3. Failure flow
@@ -122,16 +121,18 @@ Brand direction awal:
 
 ### Hierarchy rule
 
-Pada Product Detail Page:
+Pada Product Detail Page (Mental Model: _Apa ini? -> Apakah saya suka? -> Apakah cocok? -> Bagaimana beli?_):
 
-1. Nama produk.
-2. Harga.
-3. Variant/size availability.
-4. Primary CTA.
-5. Supporting information.
-6. Detail tambahan.
+1. **Gallery:** Multi-foto rasio 4:5 dengan foto pencahayaan alami dan makro tekstur rajutan.
+2. **Product Identity:** Nama produk, harga dalam monospace tabular, dan badge status rilis.
+3. **Social Proof:** Kuota terjual (_Sold count_) dan ulasan komunitas terverifikasi.
+4. **Variant Selection:** Pemilih varian warna dan tombol ukuran (S-XL) dengan kuota stok atomik.
+5. **Size Confidence:** Modal panduan ukuran interaktif dilengkapi tinggi/berat model riil (_178cm/68kg_).
+6. **Material Transparency:** Uraian spesifikasi katun combed 24s berbobot berat dan sablon plastisol.
+7. **Shipping Estimate:** Kalkulator cepat ongkos kirim dan hari sampai kurir Biteship.
+8. **Primary CTA:** Tombol "Tambah ke Keranjang" & "Beli Sekarang" melekat di sticky bottom bar.
 
-Jangan membuat semua elemen sama kuat.
+Jangan membuat semua elemen sama kuat. Kelola hirarki visual dengan kontras dan bobot, bukan sekadar memperbesar ukuran font.
 
 ## 6. Design tokens awal
 

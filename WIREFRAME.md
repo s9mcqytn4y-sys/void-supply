@@ -1,527 +1,653 @@
-# Perencanaan Wireframe (Wireframe Planning) : VOID Supply
+# VOID Supply Wireframe Specification
 
-Dokumen ini mendefinisikan perencanaan kawat tata letak (_Wireframe Planning_) komprehensif untuk antarmuka e-commerce VOID Supply. Rancangan ini disusun dari perspektif UI/UX Designer dan Graphic Designer Adobe XD dengan pendekatan _mobile-first_, berlandaskan riset pengguna pada [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md), 5 fase perjalanan pembeli pada [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md), analisis kompetitor di [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md), analisis celah peluang di [opportunity-gap.md](file:///c:/Projects/VOID%20Supply/docs/research/opportunity-gap.md), prinsip pengalaman pengguna di [ux-principles.md](file:///c:/Projects/VOID%20Supply/docs/research/ux-principles.md), arsitektur informasi pada [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md), serta pedoman arsitektur sistem pada [GEMINI.md](file:///c:/Projects/VOID%20Supply/GEMINI.md).
-
----
-
-## 1. Fondasi Desain & Spesifikasi Adobe XD (_Design System Foundation_)
-
-### A. Standar Artboard & Breakpoints Responsif
-
-| Platform                         | Dimensi Artboard Adobe XD          | Grid System                  | Margin Luar    | Lebar Gutter | Target Area Sentuh (_Tap Target_)           |
-| :------------------------------- | :--------------------------------- | :--------------------------- | :------------- | :----------- | :------------------------------------------ |
-| **Mobile** (Prioritas Utama 95%) | `390 px x 844 px` (iPhone 14/15)   | 4 Kolom (Fluid)              | `16 px`        | `16 px`      | Minimal `44 px x 44 px` (Zona Ramah Jempol) |
-| **Desktop**                      | `1440 px x 1024 px` (Standard Web) | 12 Kolom (Max-width 1280 px) | `80 px` / Auto | `24 px`      | Minimal `36 px x 36 px` (Cursor Target)     |
-
-### B. Sistem Spacing (Skala Grid 8pt)
-
-Semua jarak margin, padding, dan dimensi komponen dikunci pada kelipatan 8 pixel (dengan pengecualian 4 pixel untuk _micro-spacing_ label/badge):
-
-- `xxs` : `4 px` (Padding chip, label badge, ikon internal spacing)
-- `xs` : `8 px` (Jarak antar elemen teks sekunder, gap icon-to-label)
-- `sm` : `16 px` (Padding kartu produk, margin kontainer mobile)
-- `md` : `24 px` (Gap antar kartu dalam grid, jarak antar grup formulir)
-- `lg` : `32 px` (Jarak antar seksi vertikal di mobile)
-- `xl` : `48 px` (Jarak antar seksi di desktop, padding hero section)
-- `2xl` : `64 px` (Header hero desktop banner)
-
-### C. Tipografi & Hierarki Skala
-
-- **Headings (Display & H1 - H3):** Font sans-serif geometris tegas (`Outfit` / `Inter Display`), berat _SemiBold_ (600) hingga _Bold_ (700). Karakter streetwear modern dan berenergi.
-- **Body & Data UI:** Font sans-serif fungsional (`Inter`), berat _Regular_ (400) dan _Medium_ (500), rasio kontras warna terhadap latar belakang minimal 4.5:1 (Standar Aksesibilitas WCAG AA).
-
-### D. Palet Warna UI & Token Adobe XD
-
-- **Background Primer:** `#0B0B0B` (VOID Dark Black)
-- **Background Kartu / Permukaan:** `#161616` (Deep Charcoal Surface)
-- **Garis Batas / Border:** `#262626` (Subtle Divider Gray)
-- **Teks Utama:** `#FFFFFF` (Pure White, Kontras 16.5:1)
-- **Teks Sekunder / Keterangan:** `#A3A3A3` (Muted Silver, Kontras 5.2:1)
-- **Warna Aksen / Status Interaktif:** `#E2F952` (Volt Safety Neon, kontras tajam untuk tombol CTA dan badge rilis terbatas)
-- **Status Sukses / Kurir:** `#22C55E` (Emerald Green)
-- **Status Peringatan / Stok Menipis:** `#F59E0B` (Amber Orange)
-- **Status Galat / Stok Habis:** `#EF4444` (Coral Red)
+Dokumen ini mendefinisikan spesifikasi kawat tata letak (_Wireframe Specification_) tingkat rekayasa untuk platform commerce streetwear VOID Supply. Rancangan ini menggabungkan prinsip desain tingkat lanjut (`/design-taste-frontend`), pedoman antarmuka web (`/web-design-guidelines`), arsitektur informasi pada [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md), serta pemetaan persona dan perjalanan pengguna pada [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md) dan [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md).
 
 ---
 
-## 2. Rencana Wireframe Halaman 1 : Homepage (`/`)
+## 1. Fondasi Sistem Desain & Konfigurasi Baseline
 
-### A. Page Goal
+Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada konfigurasi terukur:
 
-**Convert visitor into product explorer**  
-Mengubah pengunjung pertama kali menjadi penjelajah katalog produk yang antusias dalam 3 detik pertama dengan menyajikan impresi visual streetwear eksklusif dan kemudahan akses produk tanpa distraksi.
+- **DESIGN_VARIANCE: 8** (Asimetris, editorial streetwear kontemporer, penataan ruang bernapas).
+- **MOTION_INTENSITY: 6** (Fisika pegas _spring physics_, transisi halus _layoutId_, mikro-interaksi taktil, tanpa _gimmick_ berat).
+- **VISUAL_DENSITY: 4** (Format editorial terkurasi, spasi bernapas, pemisah garis 1px tipis, anti-penumpukan kartu).
 
-### B. Content Hierarchy (Sections Flow)
+### A. Palet Warna & Kalibrasi Kontras (WCAG AA $\ge 4.5:1$)
 
-Alur konten vertikal terstruktur:
+- **Canvas Background:** `#0B0B0B` (VOID Off-Black, kanvas gelap pekat berbobot).
+- **Neutral Surface:** `#161616` (Deep Charcoal, permukaan kartu produk dan kontainer input).
+- **Borders & Dividers:** `#262626` (Subtle 1px border untuk membatasi hierarki tanpa _card overload_).
+- **Primary Text:** `#FFFFFF` (Pure White, kontras 16.5:1).
+- **Secondary / Muted Text:** `#A1A1AA` (Zinc-400 Neutral, kontras 5.8:1).
+- **Controlled Accent:** `#E2F952` (Volt Safety Neon, saturasi terarah untuk tombol CTA utama, badge drop, dan indikator aktif).
+- **Success / In-Stock:** `#22C55E` (Emerald Green).
+- **Warning / Low Stock:** `#F59E0B` (Amber Orange).
+- **Danger / Sold Out:** `#EF4444` (Coral Red).
 
-```text
-Hero
- ↓
-Featured Drop
- ↓
-Brand Story
- ↓
-Best Seller
- ↓
-Community
- ↓
-Footer
-```
+### B. Tipografi Deterministik (Anti-Slop Font Stack)
 
-1. **Hero:** Visual foto model beresolusi tinggi WebP, tajuk koleksi terbatas terkini, dan tombol aksi (_CTA_) utama "Lihat Drop Terbaru".
-2. **Featured Drop:** Sorotan artikel rilis terbatas utama lengkap dengan kuota inventaris sisa (_Stock Scarcity Meter_).
-3. **Brand Story:** Narasi ringkas filosofi subkultur VOID Supply dan jaminan kualitas material (Katun Combed Heavyweight 16s/24s).
-4. **Best Seller:** Grid artikel paling diminati untuk memandu pembeli baru ke produk terpopuler.
-5. **Community:** Galeri bukti sosial (_User-Generated Content_) dan foto OOTD komunitas media sosial (Instagram/TikTok/Discord).
-6. **Footer:** Tautan kebijakan toko, layanan bantuan, dan kanal komunikasi resmi.
+- **Display & Heading 1 - 3:** `Outfit` / `Geist` (Display SemiBold 600 hingga Bold 700, _tracking-tighter_, _leading-none_). Menghadirkan karakter _streetwear_ modern tanpa tipografi generik.
+- **Body Text & Form Labels:** `Geist` / `Outfit` (Regular 400 dan Medium 500, _leading-relaxed_, maksimal lebar kolom `65ch`).
+- **Tabular Numbers & Data Code:** `JetBrains Mono` / `Geist Mono` (_font-variant-numeric: tabular-nums_ untuk harga Rupiah, sisa stok gudang, dimensi sentimeter, dan nomor resi kurir).
 
-### C. Component Requirement
+### C. Skala Spasi (Grid 8pt) & Radius Sudut
 
-- `Organism: SiteHeader` (Logo teks VOID, Menu Navigasi, Ikon Keranjang + Notifikasi Angka).
-- `Organism: HeroBanner` (Foto WebP model streetwear, Display headline, Tombol CTA Volt Neon).
-- `Molecule: DropSpotlightCard` (Foto produk rilis terbatas, sisa stok gudang, tombol lihat detail).
-- `Molecule: BrandStoryBanner` (Teks narasi nilai subkultur dan 3 pilar kualitas material).
-- `Organism: ProductGridBestSeller` (Grid produk 2 kolom mobile / 4 kolom desktop).
-- `Organism: CommunityOOTDFeed` (Koleksi foto feed komunitas dengan tagar resmi VOID).
-- `Organism: SiteFooter` (Tautan kebijakan, FAQ, panduan retur, kontak support).
-- `Organism: MobileBottomBar` (Bilah navigasi 5 tombol yang melayang di sepertiga bawah ponsel).
+- **Spasi Grid:** `4px` (xxs), `8px` (xs), `16px` (sm), `24px` (md), `32px` (lg), `48px` (xl), `64px` (2xl).
+- **Radius Sudut:**
+  - `rounded-lg` (8px): Input text, chip kategori, tombol kontrol kuantitas.
+  - `rounded-xl` (12px): Kartu produk, kontainer ringkasan checkout.
+  - `rounded-2xl` (16px): Bottom sheet drawer, modal interaktif size guide.
+  - `rounded-full` (9999px): Badge rilis, pill status ketersediaan stok, avatar.
 
-### D. Interaction
+### D. Rekayasa Ergonomi Seluler & Aksesibilitas
 
-- **Transisi Hero:** Dukungan swipe sentuh halus antar-banner rilis di mobile.
-- **Hover Kartu Produk:** Menampilkan foto tampak belakang produk (_Alternate Angle_) saat disentuh atau disorot cursor.
-- **Sticky Mobile Navigation:** Bilah navigasi bawah tetap melayang dengan efek kaca gelap (_dark blur_) saat digulir.
-
-### E. Edge Case Evaluation
-
-- **Koneksi Seluler Lambat:** Tampilkan _Skeleton Wireframe Loader_ abu-abu berdenyut pada area hero dan grid kartu produk.
-- **Koleksi Habis Total (_Sold Out Drop_):** Ubah badge menjadi "Habis Terjual" dan sediakan formulir input WhatsApp instan untuk pengingat drop berikutnya.
-- **Galat Jaringan Server:** Tampilkan kartu fallback ramah pengguna dengan tombol "Muat Ulang Halaman".
-
-### F. Diagram Wireframe Tata Letak
-
-#### Mobile Viewport (390 px)
-
-```text
-+---------------------------------------+
-| [=] MENU      VOID SUPPLY      (3)BAG |
-+---------------------------------------+
-| 1. HERO SECTION (390x420 px)          |
-| [ Foto Model Streetwear Full-Width  ] |
-| LIMITED DROP 04 : VOID IDENTITY       |
-| [ JELAJAHI DROP SEKARANG (CTA) ]      |
-+---------------------------------------+
-| 2. FEATURED DROP                      |
-| +-----------------------------------+ |
-| | [Foto Produk Utama: Boxy Hoodie]  | |
-| | ACID WASH BOXY HOODIE - CHARCOAL  | |
-| | Status: [TERSISA 5 PCS DI GUDANG] | |
-| | Rp 489.000          [BELI INSTAN] | |
-| +-----------------------------------+ |
-+---------------------------------------+
-| 3. BRAND STORY                        |
-| "VOID Supply lahir dari subkultur     |
-| jalanan. Katun 24s gramasi berat tanpa|
-| kompromi, potongan boxy presisi."     |
-| [*] Heavy Cotton  [*] QRIS Instan     |
-+---------------------------------------+
-| 4. BEST SELLER                        |
-| +-----------------+ +---------------+ |
-| | [Foto Produk]   | | [Foto Produk] | |
-| | OVS WASH TEE    | | RAW CARGO     | |
-| | Rp 249.000      | | Rp 399.000    | |
-| +-----------------+ +---------------+ |
-+---------------------------------------+
-| 5. COMMUNITY (#VOIDStreetwear)        |
-| [Foto OOTD 1] [Foto OOTD 2] [OOTD 3] >|
-| Gabung Discord Komunitas [GABUNG]     |
-+---------------------------------------+
-| 6. FOOTER                             |
-| Kebijakan Retur | FAQ | Kontak Kami   |
-+---------------------------------------+
-| [Home*] [Shop] [Cart(3)] [Lacak] [Akun] | <- Sticky Bar
-+---------------------------------------+
-```
+- **Viewport Stability:** Semua hero section wajib menggunakan `min-h-[100dvh]` (anti layout shift pada iOS Safari).
+- **Tap Target Minimum:** Semua elemen interaktif (tombol, chip, radio button, kontrol kuantitas) wajib memiliki ukuran minimal `44px x 44px`.
+- **Thumb Zone Architecture:** Aksi konversi primer melekat di sepertiga bawah layar (_Sticky Bottom Action Bar_).
+- **Accessible States:** Seluruh kontrol memiliki indikator fokus terlihat (`focus-visible:ring-1 focus-visible:ring-[#E2F952]`), penanganan galat inline, dan skeleton loader abu-abu gelap terstruktur.
 
 ---
 
-## 3. Rencana Wireframe Halaman 2 : Shop (`/shop`)
+## 2. Spesifikasi Wireframe Halaman 1 : Homepage (`/`)
 
-### A. Page Goal
+### A. Metadata Halaman
 
-**Fast & Frictionless Catalog Exploration**  
-Memfasilitasi eksplorasi katalog produk terkurasi dalam waktu < 5 detik menggunakan taksonomi ramping 4 kategori MVP (menghindari kerumitan mega-menu massal).
+- **Page:** Homepage (`/`)
+- **Goal:** Mengubah pengunjung pertama kali menjadi penjelajah katalog produk dalam 3 detik pertama (_Convert visitor into product explorer_).
+- **Primary User:** Rian "The Trendsetter" Pratama (pengguna seluler 95%, mencari busana streetwear rilisan terbatas).
+- **Success Metric:**
+  - _Bounce Rate_ < 35%.
+  - _Click-Through Rate (CTR) Hero CTA ke Katalog_ > 25%.
+  - _Largest Contentful Paint (LCP)_ < 1.5 detik pada jaringan 4G.
 
 ### B. Content Hierarchy
 
-1. **Pencarian Cepat:** Input bar pencarian dengan toleransi kata kunci.
-2. **Kategori MVP 1-Tap:** Barisan chip horizontal (_All Products_, _New Drop_, _Best Seller_, _Archive_).
-3. **Filter Mendalam & Urutan:** Tombol buka _Bottom Sheet Filter Drawer_ (ukuran S-XXL, rentang harga, ketersediaan).
-4. **Grid Produk Responsif:** Tata letak 2 kolom di mobile dan 4 kolom di desktop.
-5. **Indikator Stok Nyata:** Lencana stok langsung di kartu produk (_In Stock_, _Low Stock_, _Sold Out_).
-6. **Pemuatan Berkelanjutan:** Tombol "Muat Lebih Banyak" yang hemat memori browser.
+#### Section 1: Editorial Hero & Limited Drop Banner
 
-### C. Component Requirement
+- **Purpose:** Membangun prestise subkultur, mengumumkan tema rilis terkini, dan mengarahkan konversi langsung ke katalog.
+- **Component & UI Anatomy:**
+  - `HeroContainer`: Full width, `min-h-[100dvh]` di mobile dan `min-h-[85vh]` di desktop.
+  - `VisualMedia`: Foto WebP model streetwear berlatar pencahayaan sinematik dengan gradien gelap bawah (_fade to #0B0B0B_).
+  - `Badge`: Pill status `[LIMITED DROP 04 : NIGHT TRANSMISSION]` dengan dot aksen Volt Neon (`#E2F952`).
+  - `Headline`: Display typography 48px mobile / 72px desktop `RAW ARCHITECTURE & HEAVYWEIGHT SILHOUETTES`.
+  - `PrimaryCTA`: Tombol 48px `[JELAJAHI DROP SEKARANG]` berwarna hitam dengan latar Volt Neon `#E2F952`, _active:scale-[0.98]_.
+  - `SecondaryLink`: Teks bertaut `[BACA NARASI KOLEKSI]` menuju `/collection`.
 
-- `Molecule: MVPCategoryChipBar` (Tombol chip: Semua, Drop Baru, Terlaris, Arsip).
-- `Organism: FilterDrawerMobile` (Laci geser bawah untuk filter ukuran dan slider harga).
-- `Organism: CatalogProductGrid` (Grid produk 2 kolom mobile / 4 kolom desktop).
-- `Molecule: ActiveFilterChips` (Tag filter aktif dengan tombol silang hapus).
+#### Section 2: Drop Spotlight & Scarcity Meter
 
-### D. Diagram Wireframe Tata Letak
+- **Purpose:** Menyorot artikel utama rilis terbaru dan menyajikan transparansi kuota stok untuk memicu keputusan cepat.
+- **Component & UI Anatomy:**
+  - `SpotlightCard`: Kontainer latar `#161616` berbingkai `border-[#262626]`.
+  - `ProductAsset`: Foto produk berasio 4:5 dengan label status `[TERSISA 5 PCS DI GUDANG]`.
+  - `InfoBlock`: Nama artikel `ACID WASH BOXY HOODIE - CHARCOAL`, harga monospace `Rp 489.000`.
+  - `QuickAction`: Tombol instan `[BELI SEKARANG]`.
 
-#### Mobile Viewport (390 px)
+#### Section 3: Brand Pillars & Material Transparency
+
+- **Purpose:** Menghilangkan keraguan kualitas bahan dengan menguraikan 3 pilar standar produksi pakaian VOID Supply.
+- **Component & UI Anatomy:**
+  - `GridPillars`: 3 kolom data terpisah garis vertikal tipis `border-[#262626]` (tanpa penumpukan kartu generik).
+  - `Pillar 1`: _100% Heavyweight Cotton 24s/16s_ (gramasi tebal, jatuh kain stabil, kerah anti melar).
+  - `Pillar 2`: _High Density Plastisol Print_ (sablon presisi tinggi, tahan cuci mesin).
+  - `Pillar 3`: _Direct-to-Community Dispatch_ (pengiriman lokal instan via Biteship dan pembayaran QRIS otomatis).
+
+#### Section 4: Best Seller Curated Grid
+
+- **Purpose:** Memandu pembeli baru ke artikel terpopuler untuk meminimalkan waktu penjelajahan.
+- **Component & UI Anatomy:**
+  - `SectionHeader`: Tajuk `ARTIKEL TERLARIS` dengan tautan `[LIHAT SEMUA (16)]`.
+  - `ProductGrid`: 2 kolom di mobile (`gap-4`), 4 kolom di desktop (`gap-6`).
+  - `ProductCard`: Thumbnail 4:5, indikator stok dot hijau/kuning, nama artikel, harga monospace tabular.
+
+#### Section 5: Community Showcase (#VOIDStreetwear)
+
+- **Purpose:** Bukti sosial autentik dari pembeli nyata di komunitas Instagram/TikTok/Discord.
+- **Component & UI Anatomy:**
+  - `CommunityFeed`: Barisan horizontal scroll 4 foto OOTD nyata berasio 1:1.
+  - `DiscordBanner`: Banner ajakan bergabung ke server komunitas VOID Supply.
+
+#### Section 6: Minimalist Footer
+
+- **Purpose:** Akses kebijakan toko, garansi penukaran ukuran, dan tautan legalitas.
+- **Component & UI Anatomy:**
+  - `FooterLinks`: Kebijakan Retur 7 Hari, Panduan Ukuran, FAQ, Kontak Bantuan WhatsApp.
+  - `Copyright`: Identitas resmi brand dan sertifikat enkripsi SSL.
+
+### C. Interaction
+
+- **Hero Swiper:** Dukungan sapuan jari halus (_touch-swipe_) antar foto editorial rilis drop.
+- **Card Hover:** Foto berganti ke sudut tampak belakang (_alternate angle_) saat kursor diarahkan atau disentuh.
+- **Tactile Feedback:** Efek tekan fisik (`active:scale-[0.98]`) pada setiap tombol aksi.
+- **Persistent Bottom Bar:** Navigasi 5 ikon melayang di bagian bawah layar ponsel dengan efek kaca gelap berbingkai halus (`backdrop-blur-md bg-[#0B0B0B]/90 border-t border-[#262626]`).
+
+### D. Responsive Behavior
+
+- **Mobile (< 768px):** Tata letak linier 1 kolom, hero layar penuh, grid produk 2 kolom rapat, bilah bawah ramah jempol.
+- **Desktop ($\ge 1024px$):** Asymmetric split hero (konten teks tebal di kiri, galeri model di kanan), grid produk 4 kolom terkurasi, header horizontal dengan dropdown mini.
+
+### E. Engineering Impact
+
+- **Next.js:** Halaman Server Component (`page.tsx`) di bawah route group `src/app/(public)`.
+- **State Management:** Tombol keranjang membaca kuantitas reaktif dari `useCartStore` Zustand.
+- **Asset Optimization:** Next.js `<Image>` dengan atribut `priority` pada Hero Banner dan `loading="lazy"` di bawah lipatan layar.
+
+### F. Diagram Wireframe Tata Letak (Mobile 390 px)
 
 ```text
-+---------------------------------------+
-| [<] KEMBALI       KATALOG      (3)BAG |
-+---------------------------------------+
-| [Cari produk streetwear...         Q] |
-+---------------------------------------+
-| [All Products*] [New Drop] [Best Seller] [Archive] >
-| [ FILTER & URUTKAN (UKURAN, HARGA) [v] ]
-+---------------------------------------+
-| MENAMPILKAN 16 PRODUK                 |
-| +-----------------+ +---------------+ |
-| | [Foto Produk]   | | [Foto Produk] | |
-| | [LOW STOCK]     | | [IN STOCK]    | |
-| | VOID ACID HOOD  | | OVS WASH TEE  | |
-| | Rp 489.000      | | Rp 249.000    | |
-| +-----------------+ +---------------+ |
-| +-----------------+ +---------------+ |
-| | [Foto Produk]   | | [Foto Produk] | |
-| | [SOLD OUT]      | | [IN STOCK]    | |
-| | ARCHIVE TEE 01  | | RAW CARGO     | |
-| | Rp 249.000      | | Rp 399.000    | |
-| +-----------------+ +---------------+ |
-+---------------------------------------+
-|       [ MUAT LEBIH BANYAK (16/32) ]   |
-+---------------------------------------+
-| [Home]  [Shop*] [Cart(3)] [Lacak] [Akun] | <- Sticky Bar
-+---------------------------------------+
++---------------------------------------------------+
+| [=] MENU            VOID SUPPLY            (3)BAG | <- Header (h-14)
++---------------------------------------------------+
+| 1. EDITORIAL HERO (min-h-[100dvh])                |
+| [ Foto Model Streetwear Pencahayaan Sinematik   ] |
+|                                                   |
+| (*) LIMITED DROP 04 : NIGHT TRANSMISSION          |
+| RAW ARCHITECTURE & HEAVYWEIGHT SILHOUETTES        |
+|                                                   |
+| [  JELAJAHI DROP SEKARANG (Rp 249k+)  ] (h-12)    |
+| [  BACA NARASI KOLEKSI ->  ]                      |
++---------------------------------------------------+
+| 2. FEATURED DROP SPOTLIGHT                        |
+| +-----------------------------------------------+ |
+| | [Foto Produk Utama Rasio 4:5]                 | |
+| | ACID WASH BOXY HOODIE - CHARCOAL              | |
+| | [!] TERSISA 5 PCS DI GUDANG                   | |
+| | Rp 489.000                     [BELI INSTAN]  | |
+| +-----------------------------------------------+ |
++---------------------------------------------------+
+| 3. PILAR KUALITAS BAHAN                           |
+| | 100% Heavy Cotton 24s | High-Density Print |   |
+| | Jahitan Rantai Presisi| Kirim Cepat Biteship |  |
++---------------------------------------------------+
+| 4. BEST SELLER (GRID 2 KOLOM)                     |
+| +---------------------+   +---------------------+ |
+| | [Foto Produk 4:5]   |   | [Foto Produk 4:5]   | |
+| | (*) IN STOCK        |   | (!) LOW STOCK       | |
+| | OVS WASH TEE        |   | RAW CARGO PANTS     | |
+| | Rp 249.000          |   | Rp 399.000          | |
+| +---------------------+   +---------------------+ |
++---------------------------------------------------+
+| 5. COMMUNITY SHOWCASE (#VOIDStreetwear)           |
+| [Foto OOTD 1] [Foto OOTD 2] [Foto OOTD 3] [ > ]   |
+| Gabung Discord Komunitas: discord.gg/voidsupply   |
++---------------------------------------------------+
+| 6. FOOTER & SUPPORT                               |
+| Kebijakan Retur 7 Hari | Panduan Ukuran | FAQ     |
+| (c) 2026 VOID Supply. All rights reserved.        |
++---------------------------------------------------+
+| [Home*]   [Shop]   [Search]   [Cart(3)]   [Akun]  | <- Bottom Bar (h-16)
++---------------------------------------------------+
 ```
 
 ---
 
-## 4. Rencana Wireframe Halaman 3 : Product Detail (`/products/[slug]`)
+## 3. Spesifikasi Wireframe Halaman 2 : Shop (`/shop`)
 
-### A. Page Goal
+### A. Metadata Halaman
 
-**Remove buying anxiety**  
-Menghapus seluruh kecemasan pembeli (keraguan ukuran pakaian, ketidakpastian ketebalan bahan, dan keraguan stok) guna memaksimalkan konversi belanja langsung.
-
-### B. Content Hierarchy (Sections Flow)
-
-Alur konten vertikal terstruktur:
-
-```text
-Gallery
- ↓
-Product Info
- ↓
-Variant
- ↓
-Size Guide
- ↓
-Material
- ↓
-Shipping
- ↓
-CTA
-```
-
-1. **Gallery:** Galeri foto multi-sudut format WebP (depan, belakang, tampak samping, dan foto makro serat kain asli tanpa filter saturasi).
-2. **Product Info:** Judul artikel lengkap, edisi drop, dan harga produk transparan.
-3. **Variant:** Pilihan tombol varian ukuran (S, M, L, XL, XXL) yang terhubung ke indikator stok aktual per varian.
-4. **Size Guide:** Tautan dan modal pop-up panduan ukuran interaktif dengan profil fisik model foto asli.
-5. **Material:** Rincian spesifikasi teknis kain (100% Katun Combed Heavyweight 16s/24s, sablon plastisol high-density, dan petunjuk pencucian).
-6. **Shipping:** Kalkulator estimasi tarif dan durasi kurir cepat via kode pos / kota tujuan.
-7. **CTA:** Tombol utama "Tambah ke Keranjang" dan "Beli Sekarang" yang selalu melayang di zona jempol bawah ponsel (_Sticky Bottom Action Bar_).
-
-### C. Component Requirement
-
-- `Organism: MediaGalleryMobile` (Carousel geser horizontal dengan indikator titik).
-- `Molecule: ProductHeaderInfo` (Judul artikel, harga, status drop).
-- `Molecule: VariantSelector` (Tombol chip ukuran dengan status stok dinamis).
-- `Molecule: InteractiveSizeGuideModal` (Modal profil model pria 178 cm / 68 kg size L dan tabel sentimeter).
-- `Organism: MaterialSpecificationAccordion` (Akordeon detail kain, sablon, dan instruksi perawatan).
-- `Molecule: QuickShippingEstimator` (Input kode pos + output kurir Biteship).
-- `Organism: StickyActionFooter` (Bilah bawah tetap melayang berisi varian terpilih dan tombol CTA belanja).
-
-### D. Diagram Wireframe Tata Letak
-
-#### Mobile Viewport (390 px)
-
-```text
-+---------------------------------------+
-| [<] KATALOG       VOID SUPPLY  (3)BAG |
-+---------------------------------------+
-| 1. GALLERY (390x400 px)               |
-| [ Foto Model Streetwear Depan       ] |
-| (o) [Foto Belakang] [Detail Serat Kain]|
-+---------------------------------------+
-| 2. PRODUCT INFO                       |
-| LIMITED DROP 04                       |
-| HEAVYWEIGHT OVERSIZED TEE - VOID BLK  |
-| Rp 249.000                            |
-+---------------------------------------+
-| 3. VARIANT & REAL-TIME STOCK          |
-| PILIH UKURAN:                         |
-| [ S ]   [ M ]   [[ L ]]   [ XL ]  [XXL] |
-| (Sisa 2) (Sisa 3) (Sisa 3) (Habis) (Habis) |
-+---------------------------------------+
-| 4. SIZE GUIDE                         |
-| [? Buka Panduan Ukuran & Profil Model]|
-| Model di foto: 178 cm / 68 kg (Size L)|
-+---------------------------------------+
-| 5. MATERIAL & CARE                    |
-| - 100% Katun Combed Heavyweight 24s   |
-| - Sablon High-Density Plastisol Gloss |
-| - Jahitan Rantai Standar Ekspor       |
-+---------------------------------------+
-| 6. SHIPPING ESTIMATOR                 |
-| [ Masukkan Kota / Kode Pos     ] [CEK]|
-| JNE Reguler: Rp 14.000 (1-2 hari tiba)|
-+---------------------------------------+
-| 7. STICKY CTA (THUMB ZONE)            |
-| Size: L | Rp 249.000   [+ TAMBAH KE BAG]
-+---------------------------------------+
-```
-
----
-
-## 5. Rencana Wireframe Halaman 4 : Cart (`/cart`)
-
-### A. Page Goal
-
-**Frictionless Order Management**  
-Menyajikan daftar item belanja transparan, memungkinkan perubahan jumlah kuantitas tanpa latensi muat ulang, dan menerapkan voucher promosi sebelum menuju checkout.
+- **Page:** Shop Catalog (`/shop`)
+- **Goal:** Eksplorasi katalog yang cepat dan tanpa friksi di bawah 5 detik (_Fast & Frictionless Catalog Exploration_).
+- **Primary User:** Pembeli yang mencari artikel tertentu berdasarkan ukuran atau status rilis.
+- **Success Metric:**
+  - Waktu ke klik produk pertama < 5 detik.
+  - _Add-to-cart conversion rate_ dari katalog > 12%.
 
 ### B. Content Hierarchy
 
-1. **Daftar Item Belanja:** Thumbnail 80x80 px, varian ukuran, harga satuan, kontrol kuantitas (+/-), dan tombol hapus.
-2. **Kupon Promosi:** Input kode voucher dengan validasi pesan instan.
-3. **Ringkasan Tagihan:** Subtotal produk, potongan voucher, dan estimasi ongkir.
-4. **Navigasi Pembayaran:** Tombol utama "Lanjut ke Checkout" dan tombol sekunder "Lanjut Belanja".
+#### Section 1: Quick Search & Pill Filters (1-Tap MVP Categories)
 
-### C. Diagram Wireframe Tata Letak
+- **Purpose:** Memungkinkan penjelajahan langsung ke 4 pilar mental model pembeli (_All Products_, _New Drop_, _Best Seller_, _Archive_).
+- **Component & UI Anatomy:**
+  - `SearchBar`: Input pencarian 44px dengan ikon kaca pembesar dan tombol bersihkan instan.
+  - `QuickChipBar`: Barisan chip horizontal dengan status aktif bergaris bawah Volt Neon (`all`, `new-drop`, `best-seller`, `archive`).
+  - `FilterDrawerTrigger`: Tombol 44px `[FILTER & URUTKAN]` untuk membuka kontrol lanjutan.
 
-#### Mobile Viewport (390 px)
+#### Section 2: Active Filter Tags & Result Count
+
+- **Purpose:** Memberikan kepastian visual terhadap parameter yang sedang diterapkan.
+- **Component & UI Anatomy:**
+  - `ResultsCounter`: Teks `MENAMPILKAN 16 ARTIKEL`.
+  - `ActiveTags`: Chip tag berikon silang pembatal filter (contoh: `[Size: L (x)]`, `[Urutkan: Termurah (x)]`).
+
+#### Section 3: Responsive Product Catalog Grid
+
+- **Purpose:** Menampilkan daftar produk terkurasi secara jelas dengan data ketersediaan stok riil.
+- **Component & UI Anatomy:**
+  - `GridContainer`: 2 kolom di mobile (`gap-4`), 4 kolom di desktop (`gap-6`).
+  - `ProductCard`:
+    - Media: Foto rasio 4:5 dengan sudut `rounded-xl`.
+    - Badges: Tag pojok kiri atas `[NEW DROP]`, `[ARCHIVE - SOLD OUT]`, atau `[LOW STOCK]`.
+    - Typography: Nama artikel (Font Display 14px), harga monospace tabular (Font Mono 14px).
+    - Sizing Chips: Mini chip ukuran yang tersedia `[S] [M] [L] [XL]`.
+
+#### Section 4: Pagination / Infinite Load Trigger
+
+- **Purpose:** Menjaga kestabilan memori seluler tanpa pemuatan data berlebih.
+- **Component & UI Anatomy:**
+  - `LoadMoreButton`: Tombol 44px `[MUAT ARTIKEL LAINNYA (16/24)]`.
+
+### C. Interaction
+
+- **Filter Drawer (Mobile):** Membuka panel laci geser dari bawah (_Bottom Sheet_) dengan transisi pegas, memuat pilihan ukuran S-XL, slider harga, dan tombol konfirmasi `[TERAPKAN FILTER (16)]`.
+- **Instant URL Synchronization:** Perubahan filter langsung menyelaraskan parameter URL search params (`?category=new-drop&size=L`) tanpa memuat ulang halaman (_shallow routing_).
+- **Card Quick View:** Menahan sentuhan kartu produk menampilkan pratinjau cepat stok ukuran yang tersedia.
+
+### D. Responsive Behavior
+
+- **Mobile (< 768px):** Barisan chip horizontal dapat digeser menyamping (_overflow-x-auto_), filter detail berada di dalam Bottom Sheet Drawer, grid 2 kolom.
+- **Desktop ($\ge 1024px$):** Sidebar filter statis di sebelah kiri (lebar 260px sticky), grid produk 4 kolom di sebelah kanan.
+
+### E. Engineering Impact
+
+- **Next.js:** Server Component yang membaca `searchParams` untuk query database Drizzle ORM PostgreSQL.
+- **Performance:** Optimasi caching TanStack Query dan _Suspense boundary_ dengan fallback skeleton card.
+
+### F. Diagram Wireframe Tata Letak (Mobile 390 px)
 
 ```text
-+---------------------------------------+
-| [<] KEMBALI      KERANJANG (2 ITEM)   |
-+---------------------------------------+
-| DAFTAR ITEM BELANJA                   |
-| +-----------------------------------+ |
-| | [Foto]  OVS TEE - VOID BLACK      | |
-| | 80x80   Size: L | Rp 249.000      | |
-| |         [-]  1  [+]      [Hapus]  | |
-| +-----------------------------------+ |
-| +-----------------------------------+ |
-| | [Foto]  BOX HOODIE - CHARCOAL     | |
-| | 80x80   Size: L | Rp 489.000      | |
-| |         [-]  1  [+]      [Hapus]  | |
-| +-----------------------------------+ |
-+---------------------------------------+
-| KODE PROMOSI / VOUCHER                |
-| [ Masukkan kode voucher...  ] [PAKAI] |
-+---------------------------------------+
-| RINGKASAN BELANJA                     |
-| Subtotal Produk           Rp 738.000  |
-| Diskon Voucher                  Rp 0  |
-| ------------------------------------- |
-| Total Sementara           Rp 738.000  |
-+---------------------------------------+
-| [ LANJUT KE CHECKOUT (Rp 738.000) ]   |
-|           [ Lanjut Belanja ]          |
-+---------------------------------------+
-| [Home]  [Shop]  [Cart(2)]  [Lacak]  [Akun] | <- Sticky Bar
-+---------------------------------------+
++---------------------------------------------------+
+| [<] BERANDA              KATALOG           (3)BAG |
++---------------------------------------------------+
+| [ Cari artikel, hoodie, kaos...                Q ]| <- Input h-11
++---------------------------------------------------+
+| [All Products*]  [New Drop]  [Best Seller] [Archive] > Quick Chips
+| [ (Filter & Urutkan: Ukuran, Harga)           [v] ]
++---------------------------------------------------+
+| MENAMPILKAN 16 ARTIKEL            [Filter Aktif: L x]
++---------------------------------------------------+
+| +---------------------+   +---------------------+ |
+| | [Foto Produk 4:5]   |   | [Foto Produk 4:5]   | |
+| | [NEW DROP]          |   | [IN STOCK]          | |
+| | VOID ACID HOODIE    |   | OVS WASH TEE        | |
+| | Rp 489.000          |   | Rp 249.000          | |
+| | [S] [M] [[L]] [XL]  |   | [S] [M] [L]         | |
+| +---------------------+   +---------------------+ |
+| +---------------------+   +---------------------+ |
+| | [Foto Produk 4:5]   |   | [Foto Produk 4:5]   | |
+| | [ARCHIVE - SOLDOUT] |   | [LOW STOCK: 2 PCS]  | |
+| | CORE TEE 2025       |   | RAW CARGO PANTS     | |
+| | Rp 249.000          |   | Rp 399.000          | |
+| | (Habis Terjual)     |   | [M] [L]             | |
+| +---------------------+   +---------------------+ |
++---------------------------------------------------+
+|         [ MUAT ARTIKEL LAINNYA (16/24) ]          |
++---------------------------------------------------+
+| [Home]   [Shop*]   [Search]   [Cart(3)]   [Akun]  | <- Bottom Bar
++---------------------------------------------------+
 ```
 
 ---
 
-## 6. Rencana Wireframe Halaman 5 : Checkout (`/checkout`)
+## 4. Spesifikasi Wireframe Halaman 3 : Product Detail (`/products/[slug]`)
 
-### A. Page Goal
+### A. Metadata Halaman
 
-**Complete purchase < 60 seconds**  
-Menuntaskan transaksi pembelian dalam waktu di bawah 60 detik tanpa syarat registrasi akun (_One-Page Guest Checkout_), menghitung tarif kurir lokal via Biteship, dan memproses pembayaran otomatis via Midtrans Snap.
+- **Page:** Product Detail Page (`/products/[slug]`)
+- **Goal:** Menghilangkan seluruh keraguan belanja online (_Zero-Hesitation Confidence Builder_) melalui transparansi ukuran, bahan, dan stok nyata.
+- **Primary User:** Pembeli yang tertarik pada artikel tertentu namun ragu apakah ukurannya pas dan bahannya sesuai ekspektasi.
+- **Success Metric:**
+  - _Add-to-Cart Conversion Rate_ > 18%.
+  - Tingkat interaksi ke modal Panduan Ukuran > 40%.
+  - Tingkat retur akibat kesalahan ukuran < 2%.
 
-### B. Content Hierarchy (Sections Flow)
+### B. Content Hierarchy (8-Step Mental Model)
 
-Alur konten vertikal terstruktur:
+Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembeli:
+
+> _Apa ini? $\rightarrow$ Apakah saya suka? $\rightarrow$ Apakah cocok? $\rightarrow$ Bagaimana beli?_
+
+#### Step 1: High-Fidelity Media Gallery (Rasio 4:5)
+
+- **Purpose:** Menyajikan visual fisik asli pakaian tanpa manipulasi filter saturasi warna.
+- **Component & UI Anatomy:**
+  - `CarouselContainer`: Galeri geser rasio 4:5 dengan indikator nomor foto (1/5).
+  - `Asset 1`: Foto model tampak depan dengan pencahayaan alami.
+  - `Asset 2`: Foto model tampak belakang (_back graphic detail_).
+  - `Asset 3`: Foto sudut samping (_silhouette & drop-shoulder cut_).
+  - `Asset 4`: Foto makro ekstrem serat kain (_fabric weave closeup_).
+  - `Asset 5`: Foto makro sablon grafis (_print texture closeup_).
+
+#### Step 2: Product Identity & Status Badge
+
+- **Purpose:** Menyajikan identitas resmi artikel dan harga transparan.
+- **Component & UI Anatomy:**
+  - `DropTag`: Pill `[LIMITED DROP 04]`.
+  - `ProductTitle`: Heading 24px `HEAVYWEIGHT OVERSIZED TEE - VOID BLACK`.
+  - `PriceTag`: Monospace tabular 20px `Rp 249.000`.
+
+#### Step 3: Social Proof & Verifikasi Komunitas
+
+- **Purpose:** Memvalidasi kepercayaan melalui bukti pembelian nyata.
+- **Component & UI Anatomy:**
+  - `SocialProofBar`: Ikon api `[Terjual 148 pcs]` dipadukan dengan bintang ulasan `[4.9 / 5.0 (38 ulasan pembeli)]`.
+
+#### Step 4: Variant & Real-Time Stock Selector
+
+- **Purpose:** Memilih varian ukuran dengan kepastian sisa stok gudang atomik.
+- **Component & UI Anatomy:**
+  - `SizeSelector`: Tombol chip ukuran (S, M, L, XL, XXL) berdimensi minimal 44px x 44px.
+  - `StockIndicator`: Label status di bawah tiap tombol (`Sisa 2`, `Sisa 3`, `Habis`). Tombol ukuran yang habis diberi tanda coret dan status _disabled_.
+
+#### Step 5: Size Confidence & Real Model Profiler (Fitur Strategis P0)
+
+- **Purpose:** Menghilangkan ketakutan salah ukuran (_Fit Anxiety_) dengan referensi tubuh nyata.
+- **Component & UI Anatomy:**
+  - `ModelBadge`: Kotak ringkas `Model di foto: Pria 178 cm / 68 kg mengenakan Size L (Oversized Fit)`.
+  - `SizeGuideModalTrigger`: Tautan garis bawah berikon pita ukur `[Buka Panduan Ukuran & Dimensi Lengkap]`.
+  - `ModalContent`:
+    - Tabel dimensi sentimeter: Lebar Dada, Panjang Badan, Panjang Lengan.
+    - Rekomendasi berdasarkan tinggi/berat badan.
+
+#### Step 6: Material & Craftsmanship Transparency
+
+- **Purpose:** Menghilangkan keraguan ketebalan dan ketahanan bahan pakaian.
+- **Component & UI Anatomy:**
+  - `MaterialAccordion`:
+    - Bahan: 100% Katun Combed Heavyweight 24s (gramasi 210-220 gsm).
+    - Cetak: Sablon High Density Plastisol tahan pecah.
+    - Pola: Boxy drop-shoulder cut dengan kerah ribbed 3cm anti-melar.
+    - Petunjuk Cuci: Cuci dingin terbalik, jangan disetrika langsung pada sablon.
+
+#### Step 7: Instant Shipping Estimator
+
+- **Purpose:** Memberikan kepastian biaya pengiriman sebelum masuk ke keranjang.
+- **Component & UI Anatomy:**
+  - `EstimatorBox`: Input nama kota/kecamatan + output tarif kurir reguler instan Biteship API.
+
+#### Step 8: Thumb-Zone Sticky Action Bar
+
+- **Purpose:** Memastikan tombol aksi beli selalu dapat ditekan satu tangan di mana pun posisi scroll layar.
+- **Component & UI Anatomy:**
+  - `StickyBar`: Melayang di dasar layar ponsel dengan latar `#0B0B0B` berbingkai atas tipis `border-[#262626]`.
+  - `Summary`: Menampilkan ukuran terpilih dan total harga.
+  - `Buttons`: Tombol primer Volt Neon `[+ KERANJANG]` dan tombol sekunder `[BELI SEKARANG]`.
+
+### C. Interaction
+
+- **Size Guide Drawer Modal:** Klik tautan memicu pembukaan modal dari bawah layar dengan transisi pegas, tombol tutup `[X]`, dan dukungan tutup via tombol _Escape_.
+- **Variant Change:** Memilih tombol ukuran secara otomatis memperbarui indikator kuota stok dan mengaktifkan tombol beli.
+- **Add-to-Cart Trigger:** Menekan tombol memicu animasi getar taktil halus, penambahan kuantitas ke badge keranjang, dan pembukaan drawer keranjang samping (_Cart Drawer Slide-in_).
+
+### D. Responsive Behavior
+
+- **Mobile (< 768px):** Galeri foto swipe horizontal, urutan 8 seksi linier bertumpuk, tombol beli sticky di dasar layar ponsel.
+- **Desktop ($\ge 1024px$):** Split layout 2 kolom: Galeri foto vertikal 2 kolom di sebelah kiri (scrollable), panel identitas produk, spesifikasi, dan tombol beli statis di sebelah kanan (_sticky right column_).
+
+### E. Engineering Impact
+
+- **Next.js:** Server Component dengan _Server Action_ untuk validasi stok atomik Drizzle ORM saat ukuran dipilih.
+- **Cart Store:** Interaksi penambahan item tersinkronisasi ke Zustand `useCartStore` dengan persistensi _LocalStorage_.
+
+### F. Diagram Wireframe Tata Letak (Mobile 390 px)
 
 ```text
-Customer Data
- ↓
-Shipping
- ↓
-Payment
- ↓
-Confirmation
-```
-
-1. **Customer Data:** Nama lengkap penerima, nomor WhatsApp aktif (untuk notifikasi pengiriman resi otomatis), dan alamat email opsional.
-2. **Shipping:** Alamat jalan lengkap, kota/kabupaten, kecamatan, kode pos, serta kartu pilihan layanan ekspedisi kurir (JNE, SiCepat, J&T) dengan tarif dan estimasi tiba real-time.
-3. **Payment:** Pemilihan metode pembayaran instan (QRIS GoPay/OVO/ShopeePay/BCA Mobile atau Virtual Account Bank).
-4. **Confirmation:** Ringkasan biaya total akhir dan tombol aksi final "Bayar Pesanan Sekarang" yang memicu jendela modal pembayaran Midtrans Snap.
-
-### C. Component Requirement
-
-- `Molecule: CustomerContactSection` (Input Nama, No. WhatsApp terverifikasi, Email).
-- `Molecule: AddressAndCourierSection` (Input alamat terstruktur + radio card kurir Biteship).
-- `Molecule: PaymentMethodSection` (Radio selector QRIS instan vs Virtual Account).
-- `Organism: OrderBillSummaryCard` (Subtotal, ongkos kirim kurir, total final).
-- `Organism: MidtransSnapTriggerButton` (Tombol bayar aman dengan status loading pencegah double-click).
-
-### D. Diagram Wireframe Tata Letak
-
-#### Mobile Viewport (390 px)
-
-```text
-+---------------------------------------+
-| [<] KERANJANG     CHECKOUT INSTAN     |
-+---------------------------------------+
-| 1. CUSTOMER DATA                      |
-| [ Nama Lengkap Penerima             ] |
-| [ No. WhatsApp (Untuk Info Resi)    ] |
-| [ Email (Opsional)                  ] |
-+---------------------------------------+
-| 2. SHIPPING & ADDRESS                 |
-| [ Alamat Lengkap & No. Rumah        ] |
-| [ Kota / Kabupaten                  ] |
-| [ Kecamatan                         ] |
-| [ Kode Pos                          ] |
-| PILIH KURIR EKSPEDISI:                |
-| (*) JNE Reguler (1-2 hari)  Rp 14.000 |
-| ( ) SiCepat BEST (1 hari)   Rp 20.000 |
-+---------------------------------------+
-| 3. PAYMENT METHOD                     |
-| [*] QRIS Instan (GoPay, OVO, Shopee)  |
-| [ ] Virtual Account (BCA, Mandiri)    |
-+---------------------------------------+
-| 4. CONFIRMATION & BILL                |
-| Subtotal (2 Produk)       Rp 738.000  |
-| Ongkir JNE Reguler         Rp 14.000  |
-| ------------------------------------- |
-| Total Tagihan Final       Rp 752.000  |
-|                                       |
-|  [ BAYAR PESANAN SEKARANG (QRIS) ]    |
-|   [*] Enkripsi SSL 256-Bit Terjamin   |
-+---------------------------------------+
++---------------------------------------------------+
+| [<] KATALOG              PRODUK            (3)BAG |
++---------------------------------------------------+
+| 1. MEDIA GALLERY (Rasio 4:5 - 390x440 px)         |
+| [ Foto Model Streetwear Pencahayaan Alami       ] |
+| (o) [Depan]  [Belakang]  [Samping]  [Serat Kain]  |
++---------------------------------------------------+
+| 2. PRODUCT IDENTITY                               |
+| [LIMITED DROP 04]                                 |
+| HEAVYWEIGHT OVERSIZED TEE - VOID BLACK            |
+| Rp 249.000 (Monospace Tabular)                    |
++---------------------------------------------------+
+| 3. SOCIAL PROOF                                   |
+| [*] Terjual 148 pcs  |  (★) 4.9 (38 Ulasan)       |
++---------------------------------------------------+
+| 4. VARIANT & REAL-TIME STOCK SELECTOR             |
+| PILIH UKURAN:                                     |
+| [ S ]      [ M ]      [[ L ]]     [ XL ]    [XXL] |
+| (Sisa 2)  (Sisa 4)   (Sisa 3)    (Habis)   (Habis)|
++---------------------------------------------------+
+| 5. SIZE CONFIDENCE (P0 FEATURE)                   |
+| +-----------------------------------------------+ |
+| | [i] Model Foto: Pria 178 cm / 68 kg (Size L)  | |
+| | [? Buka Panduan Ukuran & Dimensi Lengkap ->]  | |
+| +-----------------------------------------------+ |
++---------------------------------------------------+
+| 6. MATERIAL & CRAFTSMANSHIP                       |
+| [v] SPESIFIKASI BAHAN & PERAWATAN                 |
+| - 100% Cotton Combed Heavyweight 24s (220 GSM)    |
+| - High-Density Plastisol Print                    |
+| - Boxy Drop-Shoulder Silhouette                   |
++---------------------------------------------------+
+| 7. SHIPPING ESTIMATOR                             |
+| [ Masukkan Kota Tujuan...                 ] [CEK] |
+| Estimasi JNE Reguler: Rp 14.000 (1-2 hari tiba)   |
++---------------------------------------------------+
+| [Size: L]  Rp 249.000    [ + KERANJANG ] [ BELI ] | <- Sticky Action Bar
++---------------------------------------------------+
 ```
 
 ---
 
-## 7. Rencana Wireframe Halaman 6 : Account Portal (`/account`)
+## 5. Spesifikasi Wireframe Halaman 4 : Cart (`/cart`)
 
-### A. Page Goal
+### A. Metadata Halaman
 
-**Progressive Customer Hub**  
-Memberikan akses riwayat transaksi masa lalu dan buku alamat bagi pelanggan tanpa membebani pembuatan kata sandi di awal belanja.
+- **Page:** Shopping Cart (`/cart` & Cart Drawer)
+- **Goal:** Pengelolaan item belanjaan yang transparan dan tanpa hambatan (_Frictionless Order Management_).
+- **Primary User:** Pembeli yang ingin memeriksa kembali daftar belanjaan, menyesuaikan jumlah barang, dan memasukkan kode promosi sebelum membayar.
+- **Success Metric:**
+  - Rasio konversi Cart ke Checkout > 70%.
+  - Waktu di halaman keranjang < 30 detik.
 
 ### B. Content Hierarchy
 
-1. **Ringkasan Profil Pengguna:** Avatar, nama pembeli, email, tier status loyalitas rilis terbatas.
-2. **Tab Navigasi Akun:** Riwayat Pesanan, Wishlist, Buku Alamat.
-3. **Kartu Riwayat Pesanan:** Nomor faktur, tanggal, rincian barang, total belanja, dan tombol instan lacak pengiriman.
-4. **Keluar Akun:** Tombol keluar dari sesi.
+#### Section 1: Cart Items List
 
-### C. Diagram Wireframe Tata Letak (Mobile 390 px)
+- **Purpose:** Memungkinkan verifikasi artikel dan penyesuaian kuantitas secara langsung.
+- **Component & UI Anatomy:**
+  - `ItemCard`: Latar `#161616` berbingkai `border-[#262626]`.
+  - `Thumbnail`: Foto produk berukuran 80px x 100px.
+  - `ItemDetails`: Nama artikel, varian ukuran terpilih (Size L), dan harga satuan monospace tabular.
+  - `QuantityControls`: Kontrol kuantitas 44px `[-]` `[Jumlah]` `[+]` dengan batas stok gudang.
+  - `RemoveAction`: Tombol ikon tempat sampah dengan konfirmasi instan.
+
+#### Section 2: Promo Code Input
+
+- **Purpose:** Menerapkan kode kupon diskon komunitas atau rilis khusus.
+- **Component & UI Anatomy:**
+  - `PromoBox`: Input kode 44px + tombol `[TERAPKAN]`. Umpan balik status validasi langsung (warna hijau jika valid, merah jika kedaluwarsa).
+
+#### Section 3: Cost Summary Breakdown
+
+- **Purpose:** Transparansi rincian biaya tanpa biaya tersembunyi.
+- **Component & UI Anatomy:**
+  - `SummaryBlock`:
+    - Subtotal Produk: `Rp 738.000`.
+    - Potongan Diskon Promo: `- Rp 50.000`.
+    - Estimasi Ongkir: Dihitung saat checkout.
+    - Total Sementara: `Rp 688.000` (ditekankan dalam font tebal 18px).
+
+#### Section 4: Primary Checkout Action
+
+- **Purpose:** Mengarahkan pembeli langsung ke halaman transaksi pengiriman.
+- **Component & UI Anatomy:**
+  - `CheckoutCTA`: Tombol lebar penuh 48px berlatar Volt Neon `#E2F952` `[LANJUT KE CHECKOUT (Rp 688.000)]`.
+  - `ContinueShopping`: Tombol sekunder bertaut `[Lanjut Belanja]`.
+
+### C. Interaction
+
+- **Live Quantity Mutation:** Mengubah tombol `[+]` atau `[-]` langsung memperbarui subtotal secara atomik tanpa memuat ulang halaman (_zero page reload_).
+- **Empty Cart State:** Jika item dihapus seluruhnya, tampilkan ilustrasi editorial bertema gelap dengan pesan `Keranjang Anda masih kosong` dan tombol CTA `[JELAJAHI DROP TERBARU]`.
+
+### D. Responsive Behavior
+
+- **Mobile (< 768px):** Tampil sebagai halaman vertikal penuh atau drawer samping kanan (_slide-over drawer_).
+- **Desktop ($\ge 1024px$):** Layout 2 kolom: Daftar belanjaan di kolom kiri (lebar 65%), ringkasan tagihan sticky di kolom kanan (lebar 35%).
+
+### E. Engineering Impact
+
+- **State Management:** Terhubung penuh ke Zustand `useCartStore`.
+- **Stock Guard:** Kuantitas maksimal pada tombol `[+]` dikunci oleh sisa inventaris riil dari PostgreSQL.
+
+### F. Diagram Wireframe Tata Letak (Mobile 390 px)
 
 ```text
-+---------------------------------------+
-| [=] MENU        AKUN SAYA      (0)BAG |
-+---------------------------------------+
-| [AVATAR]  RIAN PRATAMA                |
-|           Status: [VOID DROP MEMBER]  |
-+---------------------------------------+
-| [ PESANAN (3)* ] [ WISHLIST ] [ ALAMAT]|
-+---------------------------------------+
-| PESANAN TERBARU                       |
-| +-----------------------------------+ |
-| | No. Faktur : #VOID-2026-8821      | |
-| | Status     : [SEDANG DIKIRIM]     | |
-| | 1x Oversized Heavyweight Tee (L)  | |
-| | Total Tagihan : Rp 752.000        | |
-| | [ LACAK PENGIRIMAN ]  [RINCIAN]   | |
-| +-----------------------------------+ |
-+---------------------------------------+
-| [ Keluar Dari Akun ]                  |
-+---------------------------------------+
-| [Home]  [Shop]  [Cart]  [Lacak]  [Akun*]| <- Sticky Bar
-+---------------------------------------+
++---------------------------------------------------+
+| [<] KEMBALI              KERANJANG (2)            |
++---------------------------------------------------+
+| DAFTAR ITEM BELANJA                               |
+| +-----------------------------------------------+ |
+| | [Foto]  HEAVYWEIGHT OVS TEE - BLACK           | |
+| | 80x100  Size: L | Rp 249.000                  | |
+| |         [-]   1   [+]            [ Hapus (x) ]| |
+| +-----------------------------------------------+ |
+| +-----------------------------------------------+ |
+| | [Foto]  ACID WASH BOXY HOODIE                 | |
+| | 80x100  Size: L | Rp 489.000                  | |
+| |         [-]   1   [+]            [ Hapus (x) ]| |
+| +-----------------------------------------------+ |
++---------------------------------------------------+
+| KODE VOUCHER / DISKON                             |
+| [ Masukkan kode voucher...             ] [PAKAI]  |
++---------------------------------------------------+
+| RINGKASAN BELANJA                                 |
+| Subtotal Produk                        Rp 738.000 |
+| Diskon Promo (VOIDDROP)              - Rp  50.000 |
+| Estimasi Ongkos Kirim            (Dihitung nanti) |
+| ------------------------------------------------- |
+| Total Sementara                        Rp 688.000 |
++---------------------------------------------------+
+|   [ LANJUT KE CHECKOUT (Rp 688.000) ] (h-12 CTA)  |
+|               [ < Lanjut Belanja ]                |
++---------------------------------------------------+
+| [Home]   [Shop]   [Search]   [Cart(2)*]   [Akun]  | <- Bottom Bar
++---------------------------------------------------+
 ```
 
 ---
 
-## 8. Rencana Wireframe Halaman 7 : Order Tracking (`/track/[orderId]`)
+## 6. Spesifikasi Wireframe Halaman 5 : Checkout (`/checkout`)
 
-### A. Page Goal
+### A. Metadata Halaman
 
-**Self-Service Logistics Tracking**  
-Menyajikan status pergerakan paket kurir secara real-time dan mandiri berbasis webhook Biteship, meniadakan beban komplain pengiriman ke tim operasional toko.
+- **Page:** One-Page Guest Checkout (`/checkout`)
+- **Goal:** Menuntaskan transaksi pembelian dalam waktu di bawah 60 detik tanpa friksi registrasi (_Complete purchase < 60 seconds_).
+- **Primary User:** Pembeli yang ingin segera mengamankan barang edisi terbatas dan membayarnya via QRIS atau transfer instan.
+- **Success Metric:**
+  - _Checkout Abandonment Rate_ < 20%.
+  - _Payment Success Rate_ > 85%.
+  - Waktu penyelesaian checkout rata-rata < 60 detik.
 
-### B. Content Hierarchy
+### B. Content Hierarchy (Distraction-Free Architecture)
 
-1. **Header Status Pesanan:** Nomor faktur, status aktif kurir, estimasi tanggal tiba.
-2. **Data Ekspedisi Logistik:** Nama kurir, nomor resi waybill resmi, dan tombol salin resi 1-tap.
-3. **Garis Waktu Perjalanan Kurir:** Diagram garis vertikal dengan riwayat transit dan stempel waktu aktual.
-4. **Rincian Alamat Penerima:** Alamat pengantaran dan nomor kontak penerima.
-5. **Dukungan Layanan Pelanggan:** Tombol pintas hubungi WhatsApp jika terjadi kendala pengiriman.
+Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checkout** (bilah menu utama, banner promosi, dan bottom bar dihilangkan agar fokus pembeli 100% terarah pada penyelesaian transaksi).
 
-### C. Diagram Wireframe Tata Letak (Mobile 390 px)
+#### Section 1: Contact & Address (Bukan Istilah Kaku "Customer Data")
+
+- **Purpose:** Mengumpulkan data esensial untuk pengiriman barang fisik dan pengiriman nomor resi otomatis.
+- **Component & UI Anatomy:**
+  - `ContactBlock`:
+    - Nama Lengkap Penerima.
+    - Nomor WhatsApp Aktif (untuk notifikasi status kurir otomatis).
+    - Alamat Email (untuk bukti faktur tagihan).
+  - `AddressBlock`:
+    - Alamat Jalan & Nomor Rumah.
+    - Kota / Kabupaten & Kecamatan (auto-complete terintegrasi Biteship API).
+    - Kode Pos (5 digit numerik).
+
+#### Section 2: Shipping Method & Courier Selection
+
+- **Purpose:** Memilih kurir pengiriman lokal dengan tarif dan durasi kedatangan transparan.
+- **Component & UI Anatomy:**
+  - `CourierRadioGroup`: Kartu radio 44px dengan logo kurir, nama layanan, estimasi hari tiba, dan harga.
+    - Opsi 1: JNE Reguler (1-2 hari) - Rp 14.000.
+    - Opsi 2: SiCepat BEST (1 hari) - Rp 20.000.
+    - Opsi 3: J&T Express (2-3 hari) - Rp 13.000.
+
+#### Section 3: Payment Method Selection
+
+- **Purpose:** Memilih kanal pembayaran digital instan lokal terintegrasi Midtrans Snap.
+- **Component & UI Anatomy:**
+  - `PaymentSelector`:
+    - Opsi 1: QRIS Instan (GoPay, OVO, ShopeePay, BCA Mobile) - Verifikasi otomatis detik itu juga.
+    - Opsi 2: Virtual Account Bank (BCA, Mandiri, BNI, BRI).
+
+#### Section 4: Final Order Bill & Execution
+
+- **Purpose:** Meninjau angka tagihan akhir dan mengeksekusi pembayaran secara aman.
+- **Component & UI Anatomy:**
+  - `FinalBillCard`:
+    - Subtotal Produk: `Rp 688.000`.
+    - Ongkos Kirim (JNE Reguler): `Rp 14.000`.
+    - Kode Unik / Biaya Layanan: `Rp 0`.
+    - **Total Tagihan Akhir:** `Rp 702.000`.
+  - `SecurityBadge`: Ikon gembok hijau `[Enkripsi SSL 256-Bit & Pembayaran Aman Midtrans]`.
+  - `ExecutionButton`: Tombol lebar penuh 48px `[BAYAR SEKARANG (Rp 702.000)]`.
+
+### C. Interaction
+
+- **City & District Autocomplete:** Mengetik nama kecamatan langsung memunculkan saran resmi database Biteship untuk menghindari kesalahan ongkir.
+- **Selection State:** Memilih opsi kurir secara otomatis memperbarui nilai total tagihan akhir dengan transisi angka halus.
+- **Payment Modal Launch:** Menekan tombol "Bayar Sekarang" mengubah tombol menjadi status berputar (_Spinner loading state_) guna mencegah _double submit_, lalu membuka modal resmi Midtrans Snap.
+
+### D. Responsive Behavior
+
+- **Mobile (< 768px):** Formulir bertumpuk linier 1 kolom, fokus satu arah ke bawah, tombol bayar sticky di dasar layar.
+- **Desktop ($\ge 1024px$):** Layout 2 kolom: Formulir Kontak, Alamat, dan Pilihan Kurir di sebelah kiri (lebar 60%), Panel Ringkasan Pesanan dan Tombol Bayar sticky di sebelah kanan (lebar 40%).
+
+### E. Engineering Impact
+
+- **Next.js:** Server Action `buatPesanan()` dengan validasi Zod schema `checkoutSkema` dan mutasi transaksi atomik Drizzle ORM.
+- **Integration:** Pemanggilan server-to-server API Biteship untuk rate check dan Midtrans Core API untuk pembuatan transaksi Snap token.
+
+### F. Diagram Wireframe Tata Letak (Mobile 390 px)
 
 ```text
-+---------------------------------------+
-| [<] BERANDA       STATUS PESANAN      |
-+---------------------------------------+
-| FAKTUR: #VOID-2026-8821               |
-| STATUS: [*] SEDANG DIKIRIM KURIR      |
-| Estimasi Tiba: Besok, 08 Okt 2026     |
-+---------------------------------------+
-| EKSPEDISI LOGISTIK                    |
-| Kurir      : JNE Reguler              |
-| No. Resi   : JNE882199021234          |
-|              [ SALIN NOMOR RESI ]     |
-+---------------------------------------+
-| GARIS WAKTU PENGIRIMAN (REAL-TIME)    |
-| (o) 07 Okt 18:30 - JAKARTA PUSAT      |
-|  |  Paket sedang dibawa kurir ke      |
-|  |  alamat tujuan penerima            |
-| (o) 07 Okt 09:15 - HUB LOGISTIK JKT   |
-|  |  Paket tiba di fasilitas sortir    |
-| (o) 06 Okt 21:00 - GUDANG VOID SUPPLY |
-|     Paket diserahkan ke kurir JNE     |
-+---------------------------------------+
-| [ BUTUH BANTUAN DENGAN PENGIRIMAN? ]  |
-+---------------------------------------+
-| [Home]  [Shop]  [Cart]  [Lacak*] [Akun] | <- Sticky Bar
-+---------------------------------------+
++---------------------------------------------------+
+| [<] KERANJANG            CHECKOUT AMAN     [Gembok]| <- Distraction-Free Header
++---------------------------------------------------+
+| 1. KONTAK & ALAMAT PENGIRIMAN                     |
+| [ Nama Lengkap Penerima                         ] |
+| [ No. WhatsApp (Untuk Notifikasi Resi)          ] |
+| [ Email Penerima (Invoice Digital)              ] |
+| [ Alamat Lengkap, No. Rumah, Patokan            ] |
+| [ Kota / Kecamatan (Auto-complete Biteship)     ] |
+| [ Kode Pos                                      ] |
++---------------------------------------------------+
+| 2. PILIHAN KURIR PENGIRIMAN                       |
+| (*) JNE Reguler (1-2 hari)             Rp 14.000  |
+| ( ) SiCepat BEST (1 hari)              Rp 20.000  |
+| ( ) J&T Express (2-3 hari)             Rp 13.000  |
++---------------------------------------------------+
+| 3. METODE PEMBAYARAN                              |
+| (*) QRIS Instan (GoPay, OVO, ShopeePay, BCA)      |
+| ( ) Virtual Account (BCA, Mandiri, BNI)           |
++---------------------------------------------------+
+| 4. RINGKASAN TAGIHAN                              |
+| Subtotal (2 Produk)                    Rp 688.000 |
+| Ongkir (JNE Reguler)                   Rp  14.000 |
+| ------------------------------------------------- |
+| Total Pembayaran                       Rp 702.000 |
+|                                                   |
+|    [ BAYAR SEKARANG (Rp 702.000) ] (h-12 CTA)     |
+|       [*] Transaksi Diamankan oleh Midtrans       |
++---------------------------------------------------+
+(Bilah Menu & Navigasi Bawah Ditiadakan Demi Fokus Konversi)
 ```
 
 ---
 
-## 9. Matriks Komparasi Tata Letak (Mobile vs Desktop)
+## 7. Matriks Komparasi Tata Letak Global (Mobile vs Desktop)
 
-| Halaman Situs                           | Karakteristik Mobile (390 px Viewport)                                               | Karakteristik Desktop (1440 px Viewport)                                                    |
-| :-------------------------------------- | :----------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------ |
-| **Homepage (`/`)**                      | Hero 1 Kolom Full-Width, 6 Seksi Linear, Grid Produk 2 Kolom, Sticky Bottom Bar      | Hero 12 Kolom Split Layout (Teks Kiri, Model Kanan), Grid Produk 4 Kolom, Header Horizontal |
-| **Shop (`/shop`)**                      | Chip Kategori MVP 1-Tap, Filter via Bottom Sheet Drawer, Grid 2 Kolom                | Sidebar Filter Kolom Kiri Sticky, Grid 4 Kolom, Chip Kategori di Atas Grid                  |
-| **Product Detail (`/products/[slug]`)** | Galeri Swipe Horizontal, 7 Seksi Linear, Sticky Bottom Action Bar di Thumb Zone      | Galeri Foto Vertikal 2 Kolom di Kiri, Panel Beli dan Spesifikasi Sticky di Kanan            |
-| **Cart (`/cart`)**                      | Daftar Item Vertikal 1 Kolom, Ringkasan Belanja di Bawah, Tombol CTA Mengikuti Layar | Layout 2 Kolom (Daftar Belanja Kiri 8-Kolom, Ringkasan Tagihan Sticky Kanan 4-Kolom)        |
-| **Checkout (`/checkout`)**              | Alur Linear Vertikal Satu Layar (4 Seksi), Modal Snap Pop-up                         | Layout 2 Kolom (Formulir Data Kiri 7-Kolom, Ringkasan Tagihan & Rincian Kanan 5-Kolom)      |
-| **Account (`/account`)**                | Kartu Riwayat Bertumpuk Vertikal, Tombol Lacak Lebar Penuh                           | Dasbor Tabular dengan Navigasi Menu Samping dan Tabel Riwayat Pembelian Lengkap             |
-| **Order Tracking (`/track/[orderId]`)** | Garis Waktu Vertikal Ramping, Tombol Salin Resi Lebar Ramah Jempol                   | Garis Waktu Horizontal/Vertikal Berdampingan dengan Peta Lokasi Ekspedisi Logistik          |
+| Halaman                                 | Mobile Viewport (390 px)                                                 | Desktop Viewport (1440 px)                                                           |
+| :-------------------------------------- | :----------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
+| **Homepage (`/`)**                      | Hero 1 kolom full-width, 6 seksi linier, grid 2 kolom, sticky bottom bar | Split hero (teks kiri, model kanan), grid produk 4 kolom, header navigasi horizontal |
+| **Shop (`/shop`)**                      | Chip bar horizontal geser, filter via Bottom Sheet Drawer, grid 2 kolom  | Sidebar filter statis di kiri (260px), grid produk 4 kolom di kanan                  |
+| **Product Detail (`/products/[slug]`)** | Galeri swipe horizontal, 8 seksi linier mental model, sticky action bar  | Galeri 2 kolom vertikal di kiri, panel beli dan spesifikasi sticky di kanan          |
+| **Cart (`/cart`)**                      | Daftar vertikal 1 kolom, ringkasan di bawah, tombol belanja melayang     | Layout 2 kolom (Daftar belanja kiri 65%, ringkasan tagihan kanan 35% sticky)         |
+| **Checkout (`/checkout`)**              | Formulir linier 1 kolom bebas distraksi, tombol bayar bawah              | Layout 2 kolom (Formulir pengiriman kiri 60%, ringkasan dan bayar kanan 40%)         |
+| **Account (`/account`)**                | Kartu riwayat pesanan bertumpuk vertikal, tombol lacak lebar             | Dasbor akun dengan menu navigasi samping dan tabel riwayat belanja lengkap           |
+| **Order Tracking (`/track/[orderId]`)** | Garis waktu kurir vertikal, tombol salin resi ramah jempol               | Garis waktu vertikal berdampingan dengan kartu rincian paket dan alamat              |
 
 ---
 
-## 10. Panduan Alih Serah Desain ke Pengembang (_Handoff Guidelines_)
+## 8. Panduan Alih Serah Desain ke Pengembang (Developer Handoff)
 
-1. **Penggunaan Utilitas Tailwind CSS v4:** Seluruh nilai jarak wajib mengacu pada token Tailwind resmi (`p-2`, `p-4`, `p-6`, `p-8`) selaras dengan skala grid 8pt.
-2. **Kesesuaian Target Sentuh:** Semua elemen tombol interaktif, chip filter, dan kontrol kuantitas wajib memiliki dimensi minimal `h-11` (44 pixel) untuk menjamin kenyamanan navigasi satu tangan.
-3. **Pemberian Aksesibilitas ARIA:** Seluruh dialog modal (Panduan Ukuran, Drawer Filter, dan Snap Modal) wajib memiliki atribut `aria-modal="true"`, `role="dialog"`, dan kemampuan ditutup dengan tombol `Escape`.
-4. **Optimasi Aset Gambar:** Semua aset visual wireframe dalam produksi diimplementasikan menggunakan format `.webp` dengan atribut `sizes` responsif untuk memastikan waktu muat di bawah 1.5 detik pada koneksi 4G seluler.
+1. **Implementasi Tailwind CSS v4:** Gunakan nilai utilitas baku sesuai skala grid 8pt (`p-2`, `p-4`, `p-6`, `p-8`) dan palet warna semantik (`bg-[#0B0B0B]`, `bg-[#161616]`, `border-[#262626]`, `text-[#E2F952]`).
+2. **Kepatuhan Aksesibilitas Target Sentuh:** Semua kontrol interaktif (tombol, chip varian, input radio, kontrol kuantitas) wajib memiliki tinggi dan lebar minimal `44px` (`h-11`).
+3. **Motion & Fisika Pegas:** Hindari animasi linear yang lambat. Gunakan fisika pegas (`type: "spring", stiffness: 100, damping: 20`) dan manfaatkan atribut `layoutId` untuk perpindahan indikator aktif.
+4. **Optimasi Media:** Gunakan WebP untuk seluruh foto katalog dengan rasio aspek terkunci `4:5` untuk mencegah pergeseran tata letak kumulatif (_Cumulative Layout Shift / CLS_).
