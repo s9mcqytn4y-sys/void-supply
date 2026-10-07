@@ -4,6 +4,7 @@
 
 - **Tujuan Utama**: Menjual merchandise eksklusif secara online dengan pengalaman belanja yang cepat, responsif, dan terpercaya.
 - **Target Pasar**: Usia 18 hingga 30 tahun (komunitas streetwear, merchandise kreatif, dan generasi digital).
+- **Profil Persona Pengguna**: Terdokumentasi lengkap dalam [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md), mencakup Primary Buyer (Rian "The Trendsetter" Pratama) dan Secondary User (Dimas "Operations" Setyawan).
 - **Aksi Utama Pengguna**: Memilih produk merchandise, menentukan ukuran/varian, checkout dengan ongkir akurat, dan membayar secara instan.
 
 ---
@@ -68,3 +69,16 @@
 - Wajib mobile-first dengan batas minimum tombol 44px tap target dan tanpa overflow horizontal.
 - Rasio kontras teks wajib memenuhi standar WCAG AA (4.5:1 untuk teks normal).
 - Menampilkan data dan status secara jujur tanpa testimoni atau metrik fiktif.
+
+---
+
+## 6. Diferensiasi Lingkungan Repositori (Actual Local vs. GitHub Remote)
+
+1. **Repositori Aktual (Lokal)**:
+   - Berkas rahasia `.env` terkonfigurasi untuk integrasi lokal (Midtrans Sandbox, Biteship Test, RajaOngkir).
+   - Berkas konfigurasi agen `.agents/` aktif lokal untuk orkestrasi panduan AI.
+   - Basis data fisik PostgreSQL 18 berjalan lokal di port 5432.
+2. **Repositori GitHub (`origin/main`)**:
+   - Berkas `.env` dan `.agents/` diabaikan oleh `.gitignore` demi keamanan dan kebersihan repositori publik.
+   - Berkas templat konfigurasi publik `.env.example` disediakan untuk kolaborator.
+   - Berkas dokumentasi kurikulum bootcamp tersimpan di direktori `docs/bootcamp/module-01/`.

@@ -4,7 +4,7 @@
 > **Agen Utama**: Antigravity (Google DeepMind) / Gemini CLI (`agy`)  
 > **Status GitHub Copilot**: Dinonaktifkan Permanen (Disabled)  
 > **Bahasa Konvensi Penamaan**: Bahasa Indonesia (Domain & Business Logic)  
-> **Mode Anti-Slop**: Mode 1 (DURING) — Diterapkan secara ketat sejak awal penulisan kode
+> **Mode Anti-Slop**: Mode 1 (DURING) : Diterapkan secara ketat sejak awal penulisan kode
 
 ---
 
@@ -94,9 +94,9 @@ Sesuai aturan `/antislop`, `/antislop-code`, `/antislop-copywriting`, `/antislop
 
 ### C. Liveliness & Visual Dials (`/antislop-ui`)
 
-- **ENERGY**: Dial 2 (Balanced) — modern streetwear aesthetic.
-- **RHYTHM**: Dial 2 (Consistent with deliberate accents) — komposisi produk teratur dengan ritme visual menarik.
-- **MOTION**: Dial 1–2 (Subtle micro-animations) — transisi hover halus dan responsif.
+- **ENERGY**: Dial 2 (Balanced) : modern streetwear aesthetic.
+- **RHYTHM**: Dial 2 (Consistent with deliberate accents) : komposisi produk teratur dengan ritme visual menarik.
+- **MOTION**: Dial 1–2 (Subtle micro-animations) : transisi hover halus dan responsif.
 - Batasi palet aktif: maksimal 2–3 warna utama + 1 warna aksen terarah.
 
 ---
@@ -126,3 +126,42 @@ Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indon
 
 - **Folder `src/`**: Direktori yang ada saat ini (`app`, `components`, `features`, `lib`, `types`, `data`) tidak boleh ditambahkan file dummy sebelum instruksi development resmi dimulai. File `products.ts` tetap 0 byte sebagai placeholder awal.
 - **Kredensial**: Dilarang melakukan commit terhadap secret atau API key asli ke Git. Selalu gunakan file template `.env.example`.
+
+---
+
+## 8. Status Repositori (Actual Local vs. GitHub Remote) & Evaluasi Berkas Root
+
+### A. Komparasi Repositori
+
+1. **Repositori Aktual (Lokal di `c:\Projects\VOID Supply`)**:
+   - Memiliki berkas `.env` aktif yang berisi kredensial sandbox lokal (Midtrans, Biteship, RajaOngkir).
+   - Memiliki direktori konfigurasi `.agents/rules/` (`antislop.md`, `typescript-expert.md`) untuk panduan agen AI lokal (Antigravity dan Gemini CLI `agy`). Direktori ini sengaja dikecualikan di `.gitignore` agar tidak masuk repositori publik.
+   - Menggunakan database PostgreSQL lokal aktif pada port 5432 (`void_supply`).
+   - Menyimpan cache build seperti `tsconfig.tsbuildinfo` yang diabaikan oleh `.gitignore`.
+   - Memuat dokumen persona pengguna `PERSONA.md` di root proyek.
+
+2. **Repositori GitHub (`origin/main` : `s9mcqytn4y-sys/void-supply`)**:
+   - Berkas rahasia `.env` tidak ada (dilindungi oleh `.gitignore`), hanya menyertakan `.env.example`.
+   - Menyimpan dokumen riset produk dan arsitektur resmi di `docs/bootcamp/module-01/`.
+   - Direktori `.agents/` tidak dipublikasikan ke remote.
+
+### B. Evaluasi Berkas Root Proyek
+
+- `.editorconfig`: Standarisasi indentasi (2 spasi), charset UTF-8, dan newline LF/CRLF.
+- `.env`: Berkas rahasia lokal, terverifikasi aman dan tidak terlacak ke Git.
+- `.env.example`: Templat publik variabel lingkungan untuk dokumentasi setup tim.
+- `.gitignore`: Mengabaikan dependencies, build artifacts, `.env`, `.agents/`, dan test reports.
+- `.prettierrc`: Konfigurasi formatting kode (single quote, trailing comma, semi).
+- `drizzle.config.ts`: Konfigurasi Drizzle ORM PostgreSQL 18.
+- `eslint.config.mjs`: Konfigurasi ESLint flat config dengan aturan Next.js dan TypeScript.
+- `next.config.ts`: Konfigurasi Next.js 16 App Router.
+- `package.json`: Definisi dependensi Next.js 16, React 19, Tailwind v4, Drizzle, Vitest.
+- `playwright.config.ts`: Pengujian end-to-end browser Playwright.
+- `postcss.config.mjs`: Integrasi Tailwind CSS PostCSS plugin.
+- `tsconfig.json`: TypeScript strict mode dan path aliases (`@/*`).
+- `vercel.json`: Konfigurasi deployment hosting serverless Vercel.
+- `vite.config.ts`: Runner pengujian unit Vitest terintegrasi Tailwind v4.
+- `GEMINI.md`: Aturan arsitektur, panduan sistem, konvensi penamaan, dan batasan implementasi.
+- `PRD.md`: Spesifikasi kebutuhan produk dan modul fitur e-commerce.
+- `README.md`: Panduan utama proyek, instalasi, dan struktur folder.
+- `PERSONA.md`: Profil persona pembeli merchandise dan persona admin toko.

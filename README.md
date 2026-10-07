@@ -26,7 +26,7 @@ Platform e-commerce modern untuk penjualan merchandise eksklusif dengan target p
 
 ```text
 VOID Supply/
-├── .agents/                 # Workspace rules untuk Antigravity / Gemini CLI
+├── .agents/                 # Workspace rules untuk Antigravity / Gemini CLI (lokal)
 │   └── rules/
 │       ├── antislop.md      # Aturan Anti-Slop Mode 1 (DURING)
 │       └── typescript-expert.md # Aturan strict typing & inference
@@ -36,6 +36,9 @@ VOID Supply/
 │   ├── launch.json          # Debugging Google Chrome, Next.js Server & Vitest
 │   ├── tasks.json           # Task otomatisasi npm dev, build, test, drizzle studio
 │   └── nextjs.code-snippets # Kumpulan snippet Next.js 16, Zod, Drizzle, Vitest
+├── docs/                    # Dokumentasi kurikulum bootcamp VOID Supply
+│   └── bootcamp/
+│       └── module-01/       # Modul 01: Riset Produk, Keputusan Rekayasa & Arsitektur
 ├── src/
 │   ├── app/                 # Halaman App Router & Route Handlers
 │   ├── components/          # UI primitives & komponen reusable
@@ -46,17 +49,33 @@ VOID Supply/
 │       └── products.ts      # Data produk merchandise awal (0 byte placeholder)
 ├── .editorconfig            # Standarisasi indentasi & format berkas
 ├── .env.example             # Template variabel lingkungan
-├── .env                     # File env lokal development
+├── .env                     # File env lokal development (diabaikan Git)
 ├── .gitignore               # Aturan pengabaian file Git
 ├── drizzle.config.ts        # Konfigurasi Drizzle ORM PostgreSQL
 ├── next.config.ts           # Konfigurasi Next.js 16
 ├── package.json             # Konfigurasi dependensi & scripts
+├── PERSONA.md               # Analisis persona pembeli merchandise & admin toko
+├── playwright.config.ts     # Konfigurasi E2E testing Playwright
+├── postcss.config.mjs       # Konfigurasi PostCSS Tailwind CSS v4
 ├── tsconfig.json            # Konfigurasi TypeScript Strict
 ├── vercel.json              # Konfigurasi deployment Vercel
 ├── vite.config.ts           # Konfigurasi Vite 6, Tailwind v4 Vite plugin & Vitest
 ├── GEMINI.md                # Aturan sistem, konvensi penamaan Bahasa Indonesia & constraints
 └── PRD.md                   # Spesifikasi kebutuhan produk VOID Supply
 ```
+
+---
+
+## Komparasi Repositori: Actual Local vs. GitHub Remote
+
+| Komponen / Berkas                 | Repositori Aktual (Lokal)                               | Repositori GitHub (`origin/main`)  | Keterangan & Proteksi                            |
+| :-------------------------------- | :------------------------------------------------------ | :--------------------------------- | :----------------------------------------------- |
+| **Berkas Lingkungan (.env)**      | Ada (`.env` lokal dengan kredensial sandbox)            | Tidak ada (diabaikan `.gitignore`) | Menjaga keamanan API key dan password basis data |
+| **Aturan Agen (.agents/)**        | Ada (`rules/antislop.md`, `rules/typescript-expert.md`) | Tidak ada (diabaikan `.gitignore`) | Konfigurasi internal agen AI lokal               |
+| **Dokumentasi Bootcamp (docs/)**  | Ada (`docs/bootcamp/module-01/*`)                       | Ada (`docs/bootcamp/module-01/*`)  | Sinkron hasil merge PR #1 di GitHub              |
+| **Persona Pengguna (PERSONA.md)** | Ada                                                     | Ada                                | Sinkron di kedua repositori                      |
+| **Basis Data PostgreSQL**         | Berjalan di port 5432 via `pg_ctl`                      | Tidak ada server fisik             | Dikelola melalui migrasi skema Drizzle ORM       |
+| **Cache Build (\*.tsbuildinfo)**  | Ada (`tsconfig.tsbuildinfo`)                            | Tidak ada (diabaikan `.gitignore`) | Cache kompilasi TypeScript lokal                 |
 
 ---
 
