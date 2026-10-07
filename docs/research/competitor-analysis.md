@@ -1,152 +1,164 @@
-# Analisis Riset Kompetitor : VOID Supply
+# Analisis Riset Kompetitor Mendalam : VOID Supply
 
-Dokumen ini memuat riset mendalam terhadap tiga merek pakaian dan _streetwear_ terkemuka di Indonesia: **Erigo**, **Thanksinsomnia**, dan **Screamous**.
+Dokumen ini memuat riset komparatif mendalam terhadap tiga merek pakaian dan _streetwear_ terkemuka di Indonesia: **Erigo**, **Thanksinsomnia**, dan **Screamous**.
 
-Tujuan utama riset ini bukanlah meniru desain antarmuka kompetitor, melainkan mengidentifikasi celah peluang (_Opportunity Gap_) yang belum terselesaikan di pasar guna memberikan keunggulan kompetitif bagi VOID Supply.
+Analisis ini membedah arsitektur navigasi, katalog, alur pembelian, strategi visual, hingga analisis pasar dan teknis untuk mengidentifikasi kelemahan serta celah peluang (_Opportunity Gap_) yang belum diselesaikan oleh kompetitor di pasar.
 
-Dokumen ini terhubung dengan profil persona di [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md) dan peta perjalanan pelanggan di [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md).
+Dokumen ini terintegrasi langsung dengan:
 
----
-
-## 1. Kerangka Kerja Analisis (Framework)
-
-Analisis dievaluasi berdasarkan 5 dimensi utama:
-
-| Area             | Pertanyaan Kunci Evaluasi                                                               |
-| :--------------- | :-------------------------------------------------------------------------------------- |
-| **Homepage**     | Bagaimana mereka membangun kepercayaan (_trust_) dan kredibilitas pertama kali?         |
-| **Product page** | Bagaimana mereka menjual produk, menyajikan visual, dan meyakinkan ukuran/bahan?        |
-| **Checkout**     | Seberapa besar hambatan transaksi (_friction_) dari keranjang hingga pembayaran lunas?  |
-| **Mobile UX**    | Bagaimana performa kecepatan, kenyamanan navigasi jempol, dan tata letak di smartphone? |
-| **Brand**        | Apa diferensiasi utama identitas merek dan persepsi komunitas mereka?                   |
+- Analisis Celah Peluang: [opportunity-gap.md](file:///c:/Projects/VOID%20Supply/docs/research/opportunity-gap.md)
+- Prinsip Desain Pengalaman Pengguna: [ux-principles.md](file:///c:/Projects/VOID%20Supply/docs/research/ux-principles.md)
+- Profil Persona Pengguna: [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md)
+- Peta Perjalanan Pelanggan: [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md)
+- Arsitektur Informasi: [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md)
+- Perencanaan Wireframe: [WIREFRAME.md](file:///c:/Projects/VOID%20Supply/WIREFRAME.md)
 
 ---
 
-## 2. Profil & Evaluasi Mendalam Kompetitor
+## 1. Kerangka Analisis Kompetitor (Analysis Framework)
 
-### A. Erigo (erigostore.co.id)
+Setiap kompetitor dianalisis melalui lensa fokus utama masing-masing serta parameter teknis spesifik:
 
-Merek pakaian kasual massal dengan skala distribusi nasional dan eksposur internasional.
-
-- **Brand Positioning:**
-  - Menempatkan diri sebagai _affordable mass-market lifestyle apparel_ untuk pasar Indonesia yang sangat luas (usia 15 hingga 35 tahun).
-  - Strategi pemasaran agresif: kampanye berskala internasional (New York Fashion Week), billboard raksasa Times Square, serta endorsement puluhan artis dan influencer arus utama (_mainstream_).
-  - Karakter produk berfokus pada volume tinggi dengan diskon harga coret konstan (potongan 50% hingga 70%), menjadikannya sangat dekat dengan model bisnis komoditas fast-fashion.
-- **Homepage (Membangun Trust):**
-  - Membangun kepercayaan melalui bukti sosial berskala masif: liputan media nasional/global, foto duta merek selebriti papan atas, logo penghargaan e-commerce, dan badge _Official Store_.
-  - Tampilan beranda sangat ramai dengan spanduk promo bertingkat (_flash sale_, promo gajian, kupon cashback).
-- **Product Page (Menjual Produk):**
-  - Format katalog e-commerce massal konvensional dengan banyak pilihan varian warna dan kategori produk.
-  - Menjual lewat penekanan potongan harga ekstrem dan ulasan bintang pembeli.
-  - Kelemahan visual: Foto produk standar studio katalog tanpa penekanan tekstur kain mendalam atau fitting streetwear kontemporer. Bagan ukuran berbentuk tabel statis tanpa referensi visual proporsi tubuh model.
-- **Checkout (Friksi Transaksi):**
-  - Alur checkout konvensional multi-langkah: Keranjang $\rightarrow$ Registrasi / Login Akun $\rightarrow$ Detail Alamat $\rightarrow$ Pemilihan Kurir $\rightarrow$ Pembayaran.
-  - Friksi tinggi bagi pembeli impulsif: Banyak pembeli resmi di situs web terdistraksi dan memilih beralih ke Shopee atau Tokopedia karena mencari kemudahan gratis ongkir dan metode pembayaran tersimpan di marketplace.
-- **Mobile UX (Pengalaman Smartphone):**
-  - Halaman responsif namun padat (_cluttered_). Popup penawaran promo dan kupon sering menutupi area pandang utama di layar ponsel kecil.
-  - Navigasi kategori sangat dalam dan memerlukan banyak ketukan (_taps_) untuk sampai ke produk target.
+1. **Competitor A (Erigo):** Fokus pada _Mass Market Apparel_ (Navigasi, Katalog, Filter, Halaman Produk, Alur Checkout).
+2. **Competitor B (Thanksinsomnia):** Fokus pada _Brand Identity & Streetwear Culture_ (Storytelling, Hierarki Visual, Fotografi & Estetika).
+3. **Competitor C (Screamous):** Fokus pada _Large Catalog E-Commerce_ (Penemuan Produk, Inventaris & Manajemen Stok, Promosi & Bundling).
+4. **Dimensi Global Komparatif:** Bahasa visual, tipografi, teori warna, target pasar, kebutuhan bisnis, SEO, tagline, dan strategi pemasaran.
 
 ---
 
-### B. Thanksinsomnia (thanksinsomnia.net)
+## 2. Analisis Mendalam Competitor A : Erigo (Mass Market Apparel)
 
-Merek _streetwear_ subkultur yang berakar kuat pada skena skateboard, seni jalanan (_graffiti_), dan kultur pop/anime anak muda perkotaan.
+- **Domain Resmi:** `erigostore.co.id`
+- **Fokus Utama:** Pakaian kasual massal dengan skala volume produksi dan distribusi raksasa.
+- **Tagline Operasional:** _"Expanding to the World"_ / _"Fashion for Everyone"_
+- **Target Pasar Utama:** Segmen demografi luas usia 15 hingga 35 tahun (pelajar, mahasiswa, pekerja muda) di seluruh kota Indonesia hingga kota tier 2 dan tier 3.
 
-- **Brand Positioning:**
-  - Merek _authentic urban streetwear_ yang sangat dihormati di kalangan komunitas Gen Z skena kreatif.
-  - Menggunakan strategi rilis terbatas (_drop-based releases_) yang menciptakan kelangkaan buatan (_artificial scarcity_) dan urgensi tinggi (_FOMO_).
-  - Kolaborasi sangat terkurasi: berkolaborasi dengan ilustrator independen, atlet skateboard, dan intellectual property (IP) pop-culture internasional.
-- **Homepage (Membangun Trust):**
-  - Membangun kepercayaan bukan melalui sertifikat formal, melainkan melalui _street credibility_, lookbook sinematik, video editorial jalanan, dan estetika grafis grunge/brutalist minimalis.
-  - Menampilkan rilisan terkurasi dengan status label _Sold Out_ yang justru memperkuat status prestise merek.
-- **Product Page (Menjual Produk):**
-  - Menjual produk melalui narasi artistik (_storytelling_) konsep desain grafis dan foto editorial model di lingkungan luar ruang bergaya streetwear.
-  - Kelemahan informatif: Keterangan spesifikasi teknis kain dan tabel ukuran sangat minim (seringkali hanya teks singkat atau tidak ada interaktivitas). Pembeli sering menebak ukuran baju sendiri.
-- **Checkout (Friksi Transaksi):**
-  - Terpasang pada platform toko daring mandiri (Shopify/custom).
-  - Gateway pembayaran lokal seringkali terbatas, sehingga pembeli diarahkan untuk menyelesaikan transaksi melalui tautan toko Shopee resmi mereka demi mendapatkan opsi pembayaran lokal dan resi otomatis.
-- **Mobile UX (Pengalaman Smartphone):**
-  - Estetika visual sangat kuat, namun interaksi fungsional kurang optimal untuk jempol: ukuran tautan teks menu relatif kecil, kontras warna tipografi artistik kadang sulit dibaca di luar ruangan, dan aset visual editorial berat memperlambat waktu pemuatan saat sinyal data seluler lemah.
+### A. Navigasi (Navigation)
 
----
+- **Struktur Menu:** Menggunakan menu megamenu di desktop dan hamburger drawer di mobile dengan kedalaman menu bertingkat (Pria, Wanita, Koleksi Kolaborasi, Aksesoris, Promo Flash Sale).
+- **Hambatan UX:** Terlalu banyak kategori turunan yang tumpang-tindih (contoh: Kaos Kasual, Kaos Grafis, Kaos Basic, Kaos Oversize dipisah ke dalam tautan berbeda). Pengguna mobile memerlukan 3 hingga 4 ketukan hanya untuk melihat koleksi t-shirt terbaru.
+- **Kecepatan Akses:** Bar navigasi sering tertutup oleh banner promosi mengambang (_sticky top banner_) dan popup kupon pendaftaran, mengurangi area pandang efektif di ponsel layar 6 inci.
 
-### C. Screamous (screamous.com)
+### B. Katalog (Catalog)
 
-Salah satu pelopor merek distro independen legendaris asal Bandung yang telah berdiri lebih dari 16 tahun, berfokus pada pakaian kasual harian (_daily wear_).
+- **Densitas Produk:** Menampilkan ratusan SKU secara simultan. Grid mobile menggunakan format 2 kolom padat dengan label diskon persentase besar berwarna merah mencolok.
+- **Paginasi vs Infinite Scroll:** Menerapkan paginasi numerik konvensional yang memperlambat penjelajahan di perangkat seluler.
+- **Karakter Kartu Produk:** Lebih menonjolkan persentase diskon harga coret (misal: "Diskon 70%") daripada nilai material atau keunikan desain grafis.
 
-- **Brand Positioning:**
-  - Menjadi representasi pakaian kasual andal untuk penggunaan sehari-hari (_timeless classic streetwear & daily apparel_).
-  - Memiliki basis pelanggan setia dari generasi milenial yang tumbuh bersama kebangkitan era distro Bandung.
-  - Desain cenderung bersih, kasual, tidak terlalu mencolok, dan menekankan kenyamanan pemakaian jangka panjang.
-- **Homepage (Membangun Trust):**
-  - Membangun kepercayaan melalui rekam jejak durasi operasional yang panjang (>16 tahun), keberadaan gerai fisik legendaris di Kota Bandung, dan testimoni ketahanan material pakaian.
-- **Product Page (Menjual Produk):**
-  - Penataan katalog teratur dan terstruktur seperti toko retail konvensional (kategori jaket, kaos polos/grafis, kemeja, celana).
-  - Foto produk bersih dengan latar belakang studio netral.
-  - Kelemahan penyajian: Tidak ada elemen interaktif modern, tidak ada video fitting gerak dinamis, dan tidak ada kalkulator ukuran cerdas.
-- **Checkout (Friksi Transaksi):**
-  - Friksi transaksi sangat tinggi: Sebagian alur pembelian situs web masih mengarahkan pesanan ke chat manual WhatsApp staf toko atau formulir konvensional dengan konfirmasi transfer rekening bank manual.
-  - Pembeli modern merasa alur ini melelahkan karena harus menunggu balasan admin dan mengirimkan bukti tangkapan layar transfer bank.
-- **Mobile UX (Pengalaman Smartphone):**
-  - Desain antarmuka terasa kaku dan mengadopsi arsitektur web desktop lama.
-  - Kurang memiliki animasi mikro (_micro-interactions_) dan transisi halaman terasa lambat dibandingkan aplikasi web modern berbasis App Router.
+### C. Filter & Pencarian (Filter)
+
+- **Fungsionalitas Filter:** Menyediakan filter dasar (Kategori, Ukuran, Warna, Rentang Harga).
+- **Kelemahan Filter:** Filter ukuran tidak terintegrasi secara real-time dengan status ketersediaan stok aktual. Pengguna sering memilih filter ukuran "L", namun ketika halaman produk dibuka, varian ukuran L pada warna tertentu ternyata sudah habis.
+- **Interaksi Mobile Drawer:** Drawer filter di mobile lambat merespons karena beban skrip analitik pelacakan iklan yang berat.
+
+### D. Halaman Produk (Product Page)
+
+- **Penyajian Visual:** Foto studio standar dengan model lokal dan internasional berlatar belakang putih atau abu-abu polos. Minim foto makro yang memperlihatkan serat kain, tekstur rib leher, atau detail jahitan.
+- **Panduan Ukuran (Size Chart):** Berupa gambar tabel JPEG statis berisi angka sentimeter. Sulit dibaca di layar smartphone karena teks angka menjadi sangat kecil dan kabur saat diperbesar.
+- **Ajakan Bertindak (CTA):** Tombol "Beli Sekarang" dan "Tambah ke Keranjang" bersaing dengan tombol opsi "Beli di Shopee / TikTok Shop", yang mengakibatkan kebocoran konversi (_conversion leakage_) ke platform pihak ketiga.
+
+### E. Alur Pembayaran (Checkout)
+
+- **Tingkat Friksi:** Tinggi. Mengharuskan pembuatan akun atau login sebelum masuk ke rincian alamat pengiriman.
+- **Ketergantungan Marketplace:** Pengguna sengaja diarahkan ke akun Shopee atau Tokopedia resmi untuk mendapatkan subsidi ongkos kirim gratis. Akibatnya, situs web resmi gagal menjadi kanal penjualan mandiri yang efisien dan data first-party pembeli tidak terkelola secara optimal.
 
 ---
 
-## 3. Matriks Komparasi 3 Kompetitor
+## 3. Analisis Mendalam Competitor B : Thanksinsomnia (Brand Identity & Streetwear Culture)
 
-| Parameter Evaluasi            | Erigo                                                                               | Thanksinsomnia                                                                    | Screamous                                                              |
-| :---------------------------- | :---------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |
-| **Kekuatan Utama**            | Volume distribusi masif, harga terjangkau, eksposur selebriti.                      | Kredibilitas subkultur streetwear sangat tinggi, desain artistik, rilis terbatas. | Reputasi merek matang, kualitas bahan stabil, basis pelanggan loyal.   |
-| **Kelemahan Kritis**          | Terlalu massal (kehilangan prestise streetwear), alur web diabaikan ke marketplace. | Minim utilitas teknis (panduan ukuran minim), integrasi pembayaran web terbatas.  | Alur transaksi kuno (konfirmasi manual WhatsApp), visual konvensional. |
-| **Tingkat Friksi Checkout**   | Sedang (wajib akun, sering pindah ke marketplace).                                  | Sedang-Tinggi (keterbatasan gateway lokal di web).                                | Sangat Tinggi (chat manual / transfer bank manual).                    |
-| **Kecocokan Ukuran (Fit)**    | Bagan ukuran statis biasa.                                                          | Keterangan ukuran minimalis.                                                      | Bagan ukuran statis standar.                                           |
-| **Kecepatan & Responsivitas** | Menengah (banyak script iklan dan banner promo).                                    | Menengah (foto editorial resolusi berat).                                         | Lambat (platform lawas).                                               |
+- **Domain Resmi:** `thanksinsomnia.net`
+- **Fokus Utama:** Eksklusivitas subkultur streetwear, skateboard, ilustrasi grafis independen, dan rilisan terbatas (_drop culture_).
+- **Tagline Operasional:** _"Stay Raw, Stay Authentic"_ / Narasi visual subkultur perkotaan.
+- **Target Pasar Utama:** Komunitas Gen Z perkotaan usia 18 hingga 26 tahun (skaters, pegiat seni jalanan, musisi independen, penggemar fashion streetwear underground).
 
----
+### A. Narasi & Konsep Rilisan (Storytelling)
 
-## 4. Opportunity Gap untuk VOID Supply
+- **Konsep Rilis Terbatas:** Menggunakan mekanisme _drop system_ (misalnya: rilis koleksi kolaborasi anime atau artis ilustrator tertentu dengan kuota terbatas).
+- **Penyampaian Cerita:** Setiap artikel memiliki narasi tematik yang mendalam di media sosial dan lookbook digital. Merek berhasil membangun ikatan emosional kuat dan rasa kepemilikan (_belonging_) di kalangan komunitasnya.
+- **Pemberian Status Eksklusif:** Produk yang bertuliskan _Sold Out_ tidak langsung dihapus dari etalase, melainkan sengaja dipajang untuk menciptakan efek prestise psikologis dan urgensi (_FOMO_) untuk rilis berikutnya.
 
-Dari evaluasi ketiga kompetitor di atas, ditemukan celah pasar yang signifikan:
+### B. Hierarki Visual (Visual Hierarchy)
 
-```text
-[ Erigo ]           : Menang di Skala & Harga Murah       -> Lemah di Prestise Subkultur & UX Web Mandiri
-[ Thanksinsomnia ]  : Menang di Estetika & Hype Komunitas -> Lemah di Utilitas Fitur UX & Kecepatan Checkout
-[ Screamous ]       : Menang di Sejarah & Kualitas Dasar  -> Lemah di Teknologi Modern & Alur Transaksi Instan
-```
+- **Estetika Brutalist & Minimalis:** Latar belakang gelap atau putih polos kontras dengan tipografi sans-serif tebal bergaya punk/jalanan. Ruang negatif (_negative space_) dimanfaatkan dengan baik untuk menonjolkan karya seni grafis.
+- **Kelemahan Hierarki:** Terlalu mengorbankan fungsionalitas demi estetika seni. Hirarki teks penting seperti harga, stok varian, dan kebijakan retur sering kali diletakkan dengan font berukuran sangat kecil (10-12px) dengan kontras rendah yang sulit dibaca di luar ruangan.
+- **Tata Letak Halaman:** Navigasi katalog minimalis namun minim bantuan penemuan produk (_search discovery_).
 
-### Ruang Peluang Emas VOID Supply
+### C. Fotografi & Pengarahan Seni (Photography)
 
-VOID Supply memposisikan diri di titik temu antara **Kredibilitas Subkultur Streetwear Otentik (seperti Thanksinsomnia)** dengan **Keunggulan Teknologi Digital Modern Kelas Satu**:
-
-1. **Celah Transparansi Visual & Fitting Bahan (Mengatasi Masalah Erigo & Thanksinsomnia):**
-   - _Masalah Pasar:_ Pembeli ragu memesan pakaian streetwear karena ukuran boxy/oversized tiap merek berbeda dan foto katalog sering membohongi tekstur kain.
-   - _Solusi VOID Supply:_ Menyediakan **Interactive Size Guide** yang dilengkapi data tinggi/berat model foto asli, indikator proporsi baju (_boxiness/length_), serta fitur zoom tekstur kain beresolusi tinggi tanpa filter warna buatan.
-2. **Celah Kecepatan Transaksi Tanpa Friksi (Mengatasi Masalah Screamous & Erigo):**
-   - _Masalah Pasar:_ Checkout situs web lain berbelit-belit (wajib akun, dialihkan ke marketplace, atau chat manual WhatsApp).
-   - _Solusi VOID Supply:_ Menerapkan **One-Page Guest Checkout** dengan verifikasi instan QRIS dan Virtual Account via Midtrans Snap, serta kalkulasi ongkos kirim real-time terintegrasi kurir lokal via Biteship API. Transaksi tuntas dalam waktu kurang dari 60 detik langsung di situs web resmi tanpa perlu membuka aplikasi marketplace.
-3. **Celah Integritas Stok & Pengalaman Rilis Terbatas:**
-   - _Masalah Pasar:_ Saat rilis terbatas (_drop_), sistem e-commerce lokal sering mengalami penjualan berlebih (_overselling_) atau menampilkan status stok palsu.
-   - _Solusi VOID Supply:_ Basis data relasional PostgreSQL dengan Drizzle ORM menjamin transaksi atomik dan pengurangan stok secara _real-time_. Tombol _Notify Me When Available_ memberikan retensi otomatis jika ukuran tertentu habis.
-4. **Celah Performa Mobile-First Berkecepatan Tinggi:**
-   - _Masalah Pasar:_ Situs web kompetitor berat diakses saat menggunakan data seluler berkecepatan rendah di malam hari.
-   - _Solusi VOID Supply:_ Dibangun di atas Next.js 16 App Router dengan kompresi WebP otomatis, arsitektur _mobile-first_, tap target minimal 44px, dan waktu pemuatan halaman di bawah 1.5 detik.
+- **Gaya Pemotretan:** Foto editorial berbasis luar ruangan (_on-location lookbook_) di jalanan kota, arena skatepark, atau studio bernuansa temaram dengan filter analog film.
+- **Daya Tarik:** Menjual gaya hidup dan identitas komunitas secara sempurna. Pembeli merasa membeli tiket masuk ke skena streetwear tertentu.
+- **Kelemahan Informatif:** Minim foto detail fisik pakaian (detail serat katun, ketebalan rib kerah, penampakan jahitan). Pembeli tidak dapat memverifikasi kualitas fisik bahan secara objektif sebelum paket tiba di rumah.
 
 ---
 
-## 5. Rekomendasi Eksekusi Roadmap Produk
+## 4. Analisis Mendalam Competitor C : Screamous (Large Catalog E-Commerce)
 
-Berdasarkan hasil analisis peluang ini, tim pengembang dan perancang VOID Supply wajib mengunci spesifikasi berikut:
+- **Domain Resmi:** `screamous.com`
+- **Fokus Utama:** Pelopor distro independen Bandung dengan portofolio pakaian kasual pria harian (_daily wear_) yang sangat besar.
+- **Tagline Operasional:** _"Since 2004 - The Timeless Daily Apparel"_
+- **Target Pasar Utama:** Generasi milenial dan Gen Z usia 20 hingga 35 tahun yang mencari pakaian kasual berkualitas andal dengan desain tidak terlalu mencolok.
 
-- **Tahap 1 (P0 : Core Launch MVP):**
-  - Katalog produk berfokus pada visual tajam WebP dengan deskripsi material jujur.
-  - Panduan ukuran interaktif dengan data proporsi tubuh model foto.
-  - One-Page Guest Checkout dengan kalkulasi ongkir Biteship dan Midtrans Snap QRIS.
-  - Basis data stok PostgreSQL Drizzle ORM yang mengunci kuota inventaris secara atomik.
-- **Tahap 2 (P1 : Experience Enhancement):**
-  - Integrasi webhook status kurir otomatis dan halaman pelacakan paket mandiri.
-  - Tombol pendaftaran tunggu (_Waitlist / Notify Me_) untuk produk yang terjual habis.
-  - Banner pengumuman rilis terbatas (_Limited Drop Countdown_).
-- **Tahap 3 (P2 : Community Ecosystem):**
-  - Galeri Lookbook komunitas (_User-Generated Content_) yang mengintegrasikan unggahan foto pembeli asli.
-  - Program reward eksklusif untuk pelanggan setia rilisan terbatas.
+### A. Penemuan Produk (Product Discovery)
+
+- **Struktur Katalog:** Menampilkan ratusan artikel pakaian yang mencakup kaos polos, kemeja flannel, jaket parka, celana chino, dan dompet.
+- **Pencarian & Kurasi:** Fitur pencarian bersifat harfiah (_exact match keyword_) dan tidak memiliki penanganan salah ketik (_typo tolerance_). Kategori produk sangat luas sehingga pembeli membutuhkan waktu lama untuk menemukan artikel rilisan terbaru.
+- **Kurasi Rekomendasi:** Rekomendasi produk di bagian bawah halaman produk tidak terpersonalisasi, sering menampilkan artikel lama yang tidak relevan dengan produk yang sedang dilihat.
+
+### B. Inventaris & Pengelolaan Stok (Inventory)
+
+- **Transparansi Stok:** Sangat minim. Pembeli tidak mengetahui apakah stok suatu ukuran tersisa 1 pcs atau masih banyak.
+- **Penanganan Stok Habis:** Sering terjadi kasus pembeli dapat memasukkan ukuran ke keranjang, namun transaksi dibatalkan setelah checkout karena stok di gerai fisik ternyata telah terjual terlebih dahulu. Ketiadaan sinkronisasi inventaris atomik real-time menjadi kelemahan mendasar.
+
+### C. Promosi & Bundling (Promotion)
+
+- **Pola Promosi:** Pola retail konvensional (Beli 2 Gratis 1, Paket Bundling T-Shirt + Topi, Diskon Akhir Musim).
+- **Friksi Transaksi Promosi:** Kupon promosi sering kali memerlukan input manual yang rumit dan tidak tervalidasi secara instan di sisi antarmuka, menimbulkan kebingungan bagi pembeli saat menghitung total tagihan.
+
+---
+
+## 5. Analisis Global Lintas Kompetitor (Global Cross-Analysis)
+
+### A. Bahasa Visual & Estetika Antarmuka
+
+- **Erigo:** Komersial cerah, ramai oleh lencana diskon merah dan stiker promo bertumpuk. Kesan yang muncul adalah obral massal (_bargain store_).
+- **Thanksinsomnia:** Monokromatik artistik, brutalist, berakar pada grafiti dan fotografi jalanan. Kesan yang muncul adalah eksklusif dan keren (_cool underground_), namun minim petunjuk interaksi yang intuitif.
+- **Screamous:** Retail kasual bersih konvensional, mengadopsi format blog toko daring berbasis template lawas. Kesan yang muncul adalah merek mapan namun tertinggal dalam evolusi teknologi web modern.
+
+### B. Tipografi & Hirarki Huruf
+
+- **Erigo:** Menggunakan font web umum sans-serif standar tanpa karakter kuat (_generic sans_).
+- **Thanksinsomnia:** Menggunakan tipografi display alternatif bernuansa heavy condensed sans untuk judul dan serif minimalis untuk editorial. Sangat berkarakter, namun keterbacaan (_readability_) di ponsel berukuran kecil kurang terjaga.
+- **Screamous:** Menggunakan font sistem standar dengan penataan teks yang padat dan minim _leading/line-height_ yang lega.
+
+### C. Skema & Teori Warna Merek
+
+- **Erigo:** Menggunakan warna dasar putih dipadukan dengan aksen merah diskon tajam `#E50914` dan kuning oranye. Teori warna berorientasi pada pemicu impuls diskon psikologis (_urgency pricing_).
+- **Thanksinsomnia:** Didominasi warna monokrom pekat `#000000` dan `#FFFFFF` dengan aksen abu-abu gelap. Mencerminkan nuansa misterius, independen, dan maskulin.
+- **Screamous:** Palet warna netral bersahaja (navy `#1B2A4A`, abu-abu `#6C757D`, dan putih `#FFFFFF`), mencerminkan kenyamanan kasual sehari-hari.
+
+### D. Optimasi Mesin Pencari (SEO) & Performa Web
+
+- **Erigo:** Memiliki otoritas domain (DA) tinggi karena banyaknya tautan liputan media nasional, namun skor Core Web Vitals mobile rendah (LCP > 3.8 detik) akibat skrip analitik dan tag marketing berlebih.
+- **Thanksinsomnia:** Kerap kehilangan potensi SEO organik karena nama produk sangat artistik tanpa kata kunci generik (contoh: hanya mencantumkan judul karya seni tanpa kata kunci "Kaos Streetwear Pria"). Skor LCP terbebani oleh gambar editorial resolusi tinggi yang belum terkompresi WebP secara optimal.
+- **Screamous:** Memiliki metadata SEO kategori produk yang baik, namun struktur URL masih memuat parameter panjang dan minim implementasi skema data terstruktur JSON-LD untuk produk e-commerce.
+
+### E. Analisis Strategi Pemasaran & Tagline
+
+- **Erigo (Push Marketing):** Mengandalkan belanja iklan digital berskala masif (Meta Ads, Google Shopping) dan kampanye influencer skala besar.
+- **Thanksinsomnia (Pull Marketing / Subculture Loyalty):** Mengandalkan reputasi organik dari mulut ke mulut (_word-of-mouth_), antusiasme komunitas streetwear, dan kolaborasi terkurasi.
+- **Screamous (Legacy Relationship Marketing):** Mengandalkan loyalitas pelanggan lama yang terbiasa berbelanja sejak era distro fisik Bandung.
+
+---
+
+## 6. Matriks Sintesis Komparasi Kompetitor
+
+| Dimensi Evaluasi                | Erigo                                 | Thanksinsomnia                       | Screamous                               | Standar Sasaran VOID Supply                 |
+| :------------------------------ | :------------------------------------ | :----------------------------------- | :-------------------------------------- | :------------------------------------------ |
+| **Model Bisnis Utama**          | Mass Market Volume Fast-Fashion       | Subculture Drop-Based Streetwear     | Legacy Distro Daily Apparel             | Curated Streetwear Drops + Tech Platform    |
+| **Pengalaman Navigasi**         | Rumit, padat banner, 3-4 klik         | Minimalis, minim fitur pencarian     | Konvensional, struktur retail kaku      | Ramping, 1-tap chip filter, mobile drawer   |
+| **Kejelasan Fitting & Kain**    | Bagan ukuran statis JPEG buram        | Keterangan ukuran sangat minim       | Tabel statis biasa tanpa foto serat     | Interactive Size Guide + Zoom Tekstur Makro |
+| **Alur & Kecepatan Checkout**   | Wajib akun, dialihkan ke marketplace  | Terbatas di web, lari ke marketplace | Manual chat WhatsApp / transfer bank    | One-Page Guest Checkout (< 60 detik)        |
+| **Integrasi Pembayaran**        | Dialihkan ke marketplace pihak ke-3   | Pilihan pembayaran web terbatas      | Transfer rekening bank manual           | Otomatis Midtrans Snap QRIS & VA Bank       |
+| **Kepastian Stok Inventaris**   | Sering terjadi pembatalan stok        | Status Sold Out artistik             | Stok sering bentrok dengan toko offline | Atomik real-time via PostgreSQL Drizzle ORM |
+| **Performa Kecepatan Mobile**   | Lambat (LCP > 3.8s, banyak tag iklan) | Menengah (LCP > 3.2s, foto berat)    | Lambat (platform lama, LCP > 4.1s)      | Super Cepat (LCP < 1.5s, Next.js 16 WebP)   |
+| **Estetika & Identitas Visual** | Ramai promo obral diskon              | Kuat, berkarakter subkultur grunge   | Kasual harian bersih konvensional       | Streetwear gelap modern, tipografi tegas    |

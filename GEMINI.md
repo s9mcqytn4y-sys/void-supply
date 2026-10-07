@@ -142,7 +142,7 @@ Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indon
 
 2. **Repositori GitHub (`origin/main` : `s9mcqytn4y-sys/void-supply`)**:
    - Berkas rahasia `.env` tidak ada (dilindungi oleh `.gitignore`), hanya menyertakan `.env.example`.
-   - Menyimpan dokumen riset produk dan arsitektur resmi di `docs/bootcamp/module-01/`.
+   - Menyimpan dokumen riset produk dan arsitektur resmi di `docs/bootcamp/module-01/` serta dokumen riset kompetitor, opportunity gap, dan prinsip UX di `docs/research/`.
    - Direktori `.agents/` tidak dipublikasikan ke remote.
 
 ### B. Evaluasi Berkas Root Proyek

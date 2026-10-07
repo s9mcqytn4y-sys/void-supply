@@ -40,7 +40,9 @@ VOID Supply/
 │   ├── bootcamp/
 │   │   └── module-01/       # Modul 01: Riset Produk, Keputusan Rekayasa & Arsitektur
 │   └── research/
-│       └── competitor-analysis.md # Analisis kompetitor (Erigo, Thanksinsomnia, Screamous)
+│       ├── competitor-analysis.md # Analisis kompetitor mendalam (Erigo, Thanksinsomnia, Screamous)
+│       ├── opportunity-gap.md     # Analisis celah peluang desain yang belum diselesaikan kompetitor
+│       └── ux-principles.md       # Enam prinsip desain pengalaman pengguna inti VOID Supply
 ├── src/
 │   ├── app/                 # Halaman App Router & Route Handlers
 │   ├── components/          # UI primitives & komponen reusable

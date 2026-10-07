@@ -7,7 +7,9 @@ Perjalanan ini dibagi ke dalam 5 fase strategis: **Awareness $\rightarrow$ Consi
 Dokumen terkait:
 
 - Profil Persona: [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md)
-- Riset Kompetitor & Opportunity Gap: [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md)
+- Riset Kompetitor Mendalam: [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md)
+- Analisis Celah Peluang Desain: [opportunity-gap.md](file:///c:/Projects/VOID%20Supply/docs/research/opportunity-gap.md)
+- Prinsip Desain Pengalaman Pengguna: [ux-principles.md](file:///c:/Projects/VOID%20Supply/docs/research/ux-principles.md)
 - Arsitektur Informasi: [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md)
 - Perencanaan Wireframe Antarmuka: [WIREFRAME.md](file:///c:/Projects/VOID%20Supply/WIREFRAME.md)
 
