@@ -36,9 +36,11 @@ VOID Supply/
 │   ├── launch.json          # Debugging Google Chrome, Next.js Server & Vitest
 │   ├── tasks.json           # Task otomatisasi npm dev, build, test, drizzle studio
 │   └── nextjs.code-snippets # Kumpulan snippet Next.js 16, Zod, Drizzle, Vitest
-├── docs/                    # Dokumentasi kurikulum bootcamp VOID Supply
-│   └── bootcamp/
-│       └── module-01/       # Modul 01: Riset Produk, Keputusan Rekayasa & Arsitektur
+├── docs/                    # Dokumentasi kurikulum bootcamp & riset VOID Supply
+│   ├── bootcamp/
+│   │   └── module-01/       # Modul 01: Riset Produk, Keputusan Rekayasa & Arsitektur
+│   └── research/
+│       └── competitor-analysis.md # Analisis kompetitor (Erigo, Thanksinsomnia, Screamous)
 ├── src/
 │   ├── app/                 # Halaman App Router & Route Handlers
 │   ├── components/          # UI primitives & komponen reusable
@@ -69,15 +71,16 @@ VOID Supply/
 
 ## Komparasi Repositori: Actual Local vs. GitHub Remote
 
-| Komponen / Berkas                                  | Repositori Aktual (Lokal)                               | Repositori GitHub (`origin/main`)  | Keterangan & Proteksi                            |
-| :------------------------------------------------- | :------------------------------------------------------ | :--------------------------------- | :----------------------------------------------- |
-| **Berkas Lingkungan (.env)**                       | Ada (`.env` lokal dengan kredensial sandbox)            | Tidak ada (diabaikan `.gitignore`) | Menjaga keamanan API key dan password basis data |
-| **Aturan Agen (.agents/)**                         | Ada (`rules/antislop.md`, `rules/typescript-expert.md`) | Tidak ada (diabaikan `.gitignore`) | Konfigurasi internal agen AI lokal               |
-| **Dokumentasi Bootcamp (docs/)**                   | Ada (`docs/bootcamp/module-01/*`)                       | Ada (`docs/bootcamp/module-01/*`)  | Sinkron hasil merge PR #1 di GitHub              |
-| **Persona Pengguna (PERSONA.md)**                  | Ada                                                     | Ada                                | Sinkron di kedua repositori                      |
-| **Customer Journey Map (CUSTOMER_JOURNEY_MAP.md)** | Ada                                                     | Ada                                | Sinkron di kedua repositori                      |
-| **Basis Data PostgreSQL**                          | Berjalan di port 5432 via `pg_ctl`                      | Tidak ada server fisik             | Dikelola melalui migrasi skema Drizzle ORM       |
-| **Cache Build (\*.tsbuildinfo)**                   | Ada (`tsconfig.tsbuildinfo`)                            | Tidak ada (diabaikan `.gitignore`) | Cache kompilasi TypeScript lokal                 |
+| Komponen / Berkas                                  | Repositori Aktual (Lokal)                               | Repositori GitHub (`origin/main`)  | Keterangan & Proteksi                                    |
+| :------------------------------------------------- | :------------------------------------------------------ | :--------------------------------- | :------------------------------------------------------- |
+| **Berkas Lingkungan (.env)**                       | Ada (`.env` lokal dengan kredensial sandbox)            | Tidak ada (diabaikan `.gitignore`) | Menjaga keamanan API key dan password basis data         |
+| **Aturan Agen (.agents/)**                         | Ada (`rules/antislop.md`, `rules/typescript-expert.md`) | Tidak ada (diabaikan `.gitignore`) | Konfigurasi internal agen AI lokal                       |
+| **Dokumentasi Bootcamp (docs/)**                   | Ada (`docs/bootcamp/module-01/*`)                       | Ada (`docs/bootcamp/module-01/*`)  | Sinkron hasil merge PR #1 di GitHub                      |
+| **Riset Kompetitor (docs/research/)**              | Ada (`docs/research/competitor-analysis.md`)            | Ada                                | Analisis gap kompetitor Erigo, Thanksinsomnia, Screamous |
+| **Persona Pengguna (PERSONA.md)**                  | Ada                                                     | Ada                                | Sinkron di kedua repositori                              |
+| **Customer Journey Map (CUSTOMER_JOURNEY_MAP.md)** | Ada                                                     | Ada                                | Sinkron di kedua repositori                              |
+| **Basis Data PostgreSQL**                          | Berjalan di port 5432 via `pg_ctl`                      | Tidak ada server fisik             | Dikelola melalui migrasi skema Drizzle ORM               |
+| **Cache Build (\*.tsbuildinfo)**                   | Ada (`tsconfig.tsbuildinfo`)                            | Tidak ada (diabaikan `.gitignore`) | Cache kompilasi TypeScript lokal                         |
 
 ---
 

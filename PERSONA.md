@@ -3,12 +3,13 @@
 Dokumen ini memuat analisis persona pengguna untuk situs web VOID Supply berdasarkan riset kompetitor utama (_Erigo_, _Thanksinsomnia_, dan _Screamous_). Dokumen ini dilengkapi dengan pemetaan _Context of Use_, _Emotional Driver_, _Buying Journey_, _User Need Layer_, dan _Priority Matrix_.
 
 Dokumen turunan perjalanan pengguna dapat dilihat pada [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md).
+Dokumen riset kompetitor terkait dapat dilihat pada [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md).
 
 ---
 
 ## 1. Primary Buyer (Pembeli Merchandise)
 
-### Profil Dasar
+### Profil Dasar Pembeli
 
 - **Persona Name:** Rian "The Trendsetter" Pratama
 - **Age:** 21 tahun
@@ -23,7 +24,7 @@ Dokumen turunan perjalanan pengguna dapat dilihat pada [CUSTOMER_JOURNEY_MAP.md]
   - Memperhatikan detail visual produk, kepresisian potong pakaian (_fit_), dan reputasi merek di kalangan komunitas _streetwear_.
   - Menyukai kemudahan belanja tanpa perlu membuat akun (_guest checkout_).
 
-### Context of Use (Kapan dan Di Mana Masalah Terjadi)
+### Context of Use Pembeli (Kapan dan Di Mana Masalah Terjadi)
 
 - **Waktu Penggunaan:** Malam hari antara pukul 20.00 hingga 23.00 WIB (waktu bersantai setelah aktivitas harian) atau saat perjalanan pulang kuliah (pukul 16.30 hingga 18.00 WIB).
 - **Lokasi Penggunaan:** Dalam transportasi umum (KRL, bus komuter), kamar tidur, atau kafe tempat berkumpul bersama teman sebaya.
@@ -33,14 +34,14 @@ Dokumen turunan perjalanan pengguna dapat dilihat pada [CUSTOMER_JOURNEY_MAP.md]
   - Area sentuh (_tap target_) tombol aksi minimal 44px agar nyaman dioperasikan dengan satu tangan.
   - Kontras visual jelas dan mendukung kenyamanan mata saat diakses dalam pencahayaan redup di malam hari.
 
-### Emotional Goals & Drivers
+### Emotional Goals & Drivers Pembeli
 
 - **Kebutuhan Emosional:** Identitas (_Identity_), rasa memiliki (_Belonging_), ekspresi diri (_Expression_), status komunitas (_Status_), dan pengakuan (_Community_).
 - **Pernyataan Emosional Utama:**
   > "Saya ingin mengenakan pakaian dari merek yang membuat saya merasa bangga menjadi bagian dari komunitas streetwear modern dan percaya diri menunjukkan karakter otentik saya di hadapan lingkaran pertemanan."
 - **Motivasi Tersembunyi:** Ketakutan tertinggal tren (_Fear of Missing Out / FOMO_) terhadap produk edisi terbatas (_limited drop_) yang memiliki nilai prestise di mata komunitas.
 
-### Buying Journey
+### Buying Journey Pembeli
 
 1. **Trigger (Pemicu):** Melihat unggahan reels TikTok atau Instagram dari kreator konten streetwear yang mengenakan kaos VOID Supply edisi terbatas.
 2. **Research (Riset Awal):** Mengeklik tautan di bio media sosial, masuk ke halaman katalog produk, lalu menelusuri galeri foto dan detail visual bahan kain.
@@ -48,7 +49,7 @@ Dokumen turunan perjalanan pengguna dapat dilihat pada [CUSTOMER_JOURNEY_MAP.md]
 4. **Purchase (Pembelian):** Memilih ukuran, menekan tombol beli langsung (_express checkout_), memilih metode bayar QRIS atau e-wallet, lalu menyelesaikan pembayaran dalam hitungan detik.
 5. **Share (Advokasi):** Menerima paket produk dalam kemasan eksklusif, mengambil foto unboxing / OOTD, lalu mengunggahnya ke Instagram Story atau TikTok dengan menyebutkan akun merek VOID Supply.
 
-### User Need Layer (Problem ke Feature)
+### User Need Layer Pembeli (Problem ke Feature)
 
 | Problem                                                                               | User Need                                                                                  | UX Principle                           | Feature Needed                                                                                           |
 | :------------------------------------------------------------------------------------ | :----------------------------------------------------------------------------------------- | :------------------------------------- | :------------------------------------------------------------------------------------------------------- |
@@ -71,7 +72,7 @@ Dokumen turunan perjalanan pengguna dapat dilihat pada [CUSTOMER_JOURNEY_MAP.md]
 
 ## 2. Secondary User (Admin / Owner VOID Supply)
 
-### Profil Dasar
+### Profil Dasar Admin
 
 - **Persona Name:** Dimas "Operations" Setyawan
 - **Age:** 29 tahun
@@ -84,7 +85,7 @@ Dokumen turunan perjalanan pengguna dapat dilihat pada [CUSTOMER_JOURNEY_MAP.md]
   - Memilih platform e-commerce yang efisien, berbiaya terjangkau, dan mudah dikelola tanpa memerlukan kode rumit setiap pembaruan.
   - Mengutamakan sistem yang terhubung langsung dengan gerbang pembayaran dan agregator logistik otomatis.
 
-### Context of Use (Kapan dan Di Mana Masalah Terjadi)
+### Context of Use Admin (Kapan dan Di Mana Masalah Terjadi)
 
 - **Waktu Penggunaan:** Pukul 09.00 hingga 17.00 WIB (jam kerja operasional pemrosesan pesanan dan kurir _pick-up_) serta pukul 21.00 hingga 23.00 WIB (evaluasi penjualan harian dan pembaruan stok saat peluncuran _drop_ baru).
 - **Lokasi Penggunaan:** Kantor studio VOID Supply, gudang penyimpanan stok pakaian, atau saat bepergian via smartphone.
@@ -94,13 +95,13 @@ Dokumen turunan perjalanan pengguna dapat dilihat pada [CUSTOMER_JOURNEY_MAP.md]
   - Tindakan massal (_bulk action_) untuk pencetakan label resi dan pengubahan status pesanan.
   - Indikator peringatan stok menipis (_low stock badge_) yang mencolok agar tidak terjadi penjualan berlebih (_overselling_).
 
-### Emotional Goals & Drivers
+### Emotional Goals & Drivers Admin
 
 - **Kebutuhan Emosional:** Ketenangan pikiran (_Peace of Mind_), kendali operasional (_Operational Control_), efisiensi waktu, dan kebanggaan terhadap pertumbuhan merek.
 - **Pernyataan Emosional Utama:**
   > "Saya ingin memiliki sistem operasional yang berjalan otomatis dan dapat diandalkan, sehingga pesanan pelanggan tertangani dengan rapi tanpa drama salah stok atau keterlambatan pengiriman."
 
-### Buying & Management Journey
+### Buying & Management Journey Admin
 
 1. **Trigger:** Lonjakan volume pesanan harian dari media sosial yang tidak lagi mampu ditangani melalui pencatatan manual atau chat WhatsApp admin.
 2. **Setup & Input:** Mendaftarkan data produk, menentukan varian ukuran, mengunggah foto produk, dan mengisi kuota inventaris awal ke dalam basis data.
@@ -108,7 +109,7 @@ Dokumen turunan perjalanan pengguna dapat dilihat pada [CUSTOMER_JOURNEY_MAP.md]
 4. **Fulfillment:** Mengenerate resi otomatis via integrasi Biteship, mencetak label pengiriman, dan menyerahkan paket ke kurir logistik.
 5. **Evaluation & Retargeting:** Melihat laporan analitik tingkat konversi penjualan, mengevaluasi produk paling diminati, dan menyiapkan promosi diskon berikutnya.
 
-### User Need Layer (Problem ke Feature)
+### User Need Layer Admin (Problem ke Feature)
 
 | Problem                                                                                                | User Need                                                                                    | UX Principle                              | Feature Needed                                                                               |
 | :----------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------- | :---------------------------------------- | :------------------------------------------------------------------------------------------- |

@@ -3,6 +3,7 @@
 Dokumen ini memetakan perjalanan pengalaman pelanggan (_Customer Journey Map_) untuk situs web VOID Supply berdasarkan persona utama Rian "The Trendsetter" Pratama. Pemetaan ini merinci tindakan, pikiran, emosi, kendala, peluang, serta kebutuhan fitur pada setiap fase interaksi.
 
 Tautan persona lengkap: [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md)
+Tautan riset kompetitor: [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md)
 
 ---
 
