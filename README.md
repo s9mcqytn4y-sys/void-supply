@@ -38,7 +38,8 @@ VOID Supply/
 │   └── nextjs.code-snippets # Kumpulan snippet Next.js 16, Zod, Drizzle, Vitest
 ├── docs/                    # Dokumentasi kurikulum bootcamp & riset VOID Supply
 │   ├── bootcamp/
-│   │   └── module-01/       # Modul 01: Riset Produk, Keputusan Rekayasa & Arsitektur
+│   │   ├── module-01/       # Modul 01: Riset Produk, Keputusan Rekayasa & Arsitektur
+│   │   └── module-02/       # Modul 02: Fondasi Rekayasa Frontend (Architecture, Env, State, API)
 │   └── research/
 │       ├── competitor-analysis.md # Analisis kompetitor mendalam (Erigo, Thanksinsomnia, Screamous)
 │       ├── opportunity-gap.md     # Analisis celah peluang desain yang belum diselesaikan kompetitor
@@ -79,7 +80,7 @@ VOID Supply/
 | :------------------------------------------------- | :------------------------------------------------------ | :--------------------------------- | :------------------------------------------------------- |
 | **Berkas Lingkungan (.env)**                       | Ada (`.env` lokal dengan kredensial sandbox)            | Tidak ada (diabaikan `.gitignore`) | Menjaga keamanan API key dan password basis data         |
 | **Aturan Agen (.agents/)**                         | Ada (`rules/antislop.md`, `rules/typescript-expert.md`) | Tidak ada (diabaikan `.gitignore`) | Konfigurasi internal agen AI lokal                       |
-| **Dokumentasi Bootcamp (docs/)**                   | Ada (`docs/bootcamp/module-01/*`)                       | Ada (`docs/bootcamp/module-01/*`)  | Sinkron hasil merge PR #1 di GitHub                      |
+| **Dokumentasi Bootcamp (docs/)**                   | Ada (`module-01/*`, `module-02/*`)                      | Ada (`module-01/*`)                | Modul 02 menambahkan arsitektur rekayasa frontend        |
 | **Riset Kompetitor (docs/research/)**              | Ada (`docs/research/competitor-analysis.md`)            | Ada                                | Analisis gap kompetitor Erigo, Thanksinsomnia, Screamous |
 | **Persona Pengguna (PERSONA.md)**                  | Ada                                                     | Ada                                | Sinkron di kedua repositori                              |
 | **Customer Journey Map (CUSTOMER_JOURNEY_MAP.md)** | Ada                                                     | Ada                                | Sinkron di kedua repositori                              |

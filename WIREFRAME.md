@@ -631,23 +631,321 @@ Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checko
 
 ---
 
-## 7. Matriks Komparasi Tata Letak Global (Mobile vs Desktop)
+## 7. Spesifikasi Wireframe Halaman 6 : Akun & Portal Pelanggan (`/account`)
+
+### A. Metadata Halaman
+
+- **Page:** Customer Portal (`/account`)
+- **Goal:** Memudahkan pelanggan memantau riwayat pesanan edisi terbatas, melacak status pengiriman paket, dan mengelola alamat tanpa beban registrasi password konvensional.
+- **Primary User:** Pembeli setia yang ingin memastikan pesanan rilis terbarunya sudah diproses dan dikirim oleh gudang VOID Supply.
+- **Success Metric:**
+  - Waktu akses status pesanan terkini < 3 detik.
+  - Penurunan tiket pertanyaan status pesanan di WhatsApp hingga 40%.
+
+### B. Content Hierarchy
+
+#### Section 1: Customer Profile Header (Hybrid Guest-First)
+
+- **Purpose:** Menampilkan identitas pembeli aktif, nomor kontak, dan status keanggotaan komunitas.
+- **Component & UI Anatomy:**
+  - `ProfileBadge`: Avatar monokrom dengan inisial nama, nama penerima terdaftar, dan nomor WhatsApp (+62 812-xxxx-xxxx).
+  - `CommunityPill`: Tag keanggotaan `[VOID INSIDER : ACTIVE DROP]`.
+  - `QuickActions`: Tombol pintas `[Kelola Alamat]` dan `[Keluar Sesi]`.
+
+#### Section 2: Order Status Segmented Tabs
+
+- **Purpose:** Menyaring riwayat transaksi berdasarkan tahap pemrosesan gudang dan kurir.
+- **Component & UI Anatomy:**
+  - `StatusTabs`: Barisan tab tersegmentasi horizontal (`Semua`, `Menunggu Pembayaran`, `Diproses`, `Dikirim`, `Selesai`).
+  - `ActiveIndicator`: Garis bawah aktif Volt Neon (`#E2F952`) dengan transisi halus.
+
+#### Section 3: Order History Card List
+
+- **Purpose:** Menyajikan ringkasan setiap transaksi dengan nomor referensi dan status pengiriman riil.
+- **Component & UI Anatomy:**
+  - `OrderCard`: Kontainer latar `#161616` berbingkai `border-[#262626] rounded-xl`.
+  - `CardHeader`: Nomor pesanan monospace tabular `VOID-20261008-0042`, tanggal transaksi, dan badge status kurir (`[DIKIRIM : JNE REGULER]`).
+  - `CardItems`: Barisan ringkas thumbnail foto artikel 4:5, nama kaos/hoodie, ukuran terpilih, kuantitas, dan total tagihan.
+  - `CardFooter`: Tombol aksi 44px `[LACAK PENGIRIMAN]` berlatar Volt Neon dan tombol sekunder `[LIHAT FAKTUR RESMI]`.
+
+#### Section 4: Saved Address Book
+
+- **Purpose:** Menyimpan alamat rumah utama untuk mempercepat transaksi pada drop berikutnya.
+- **Component & UI Anatomy:**
+  - `AddressCard`: Nama penerima, nomor WhatsApp, alamat jalan lengkap, kota, kecamatan, dan kode pos.
+  - `ActionButtons`: Tombol `[Ubah Alamat]` dan `[+ Tambah Alamat Baru]`.
+
+### C. Interaction & Responsive Behavior
+
+- **Tab Switching:** Berpindah tab menyaring daftar transaksi secara instan di sisi klien tanpa memuat ulang halaman.
+- **Mobile (< 768px):** Kartu pesanan bertumpuk linier 1 kolom, tab horizontal dapat digeser menyamping.
+- **Desktop (>= 1024px):** Layout 2 kolom: Sidebar navigasi profil di kiri (lebar 280px), daftar pesanan dan rincian transaksi di kanan.
+
+### D. Diagram Wireframe Tata Letak (Mobile 390 px)
+
+```text
++---------------------------------------------------+
+| [<] BERANDA                 AKUN SAYA       (3)BAG|
++---------------------------------------------------+
+| 1. PROFIL PELANGGAN (HYBRID GUEST-FIRST)          |
+| [ (RP) Rian Pratama | +62 812-8821-xxxx         ] |
+| [*] STATUS KOMUNITAS: VOID INSIDER DROP 04        |
++---------------------------------------------------+
+| 2. TAB STATUS PESANAN                             |
+| [Semua*]  [Menunggu Bayar]  [Diproses]  [Dikirim] |
++---------------------------------------------------+
+| 3. DAFTAR PESANAN TERAKHIR                        |
+| +-----------------------------------------------+ |
+| | Order: #VOID-20261008-0042        [DIKIRIM]   | |
+| | Tanggal: 08 Okt 2026, 01:15 WIB               | |
+| | --------------------------------------------- | |
+| | [Foto] HEAVYWEIGHT OVS TEE - BLACK            | |
+| |        Size: L (1 pcs)           Rp 249.000   | |
+| | Total Tagihan (Termasuk Ongkir): Rp 263.000   | |
+| |                                               | |
+| | [ LACAK RESI KURIR -> ] (h-11)   [Faktur PDF] | |
+| +-----------------------------------------------+ |
++---------------------------------------------------+
+| 4. BUKU ALAMAT UTAMA                              |
+| +-----------------------------------------------+ |
+| | Rian Pratama (Rumah Utama)                    | |
+| | Jl. Kaliurang KM 5, Gang Pandega Marta No. 12 | |
+| | Sleman, D.I. Yogyakarta 55281                 | |
+| | [Ubah Alamat]               [+ Alamat Baru]   | |
+| +-----------------------------------------------+ |
++---------------------------------------------------+
+| [Home]   [Shop]   [Search]   [Cart(3)]   [Akun*]  | <- Bottom Bar
++---------------------------------------------------+
+```
+
+---
+
+## 8. Spesifikasi Wireframe Halaman 7 : Pelacakan Pengiriman Kurir (`/track/[orderId]`)
+
+### A. Metadata Halaman
+
+- **Page:** Public Courier Order Tracking (`/track/[orderId]`)
+- **Goal:** Menghadirkan transparansi perjalanan paket kurir secara real-time dari gudang VOID Supply di Sleman ke pintu rumah pembeli tanpa perlu login.
+- **Primary User:** Pembeli yang menerima tautan resi via notifikasi otomatis WhatsApp dan ingin mengecek posisi paket pakaian.
+- **Success Metric:**
+  - Waktu muat status resi < 1.5 detik.
+  - Akurasi data status kurir 100% tersinkronisasi via Biteship Tracking API.
+
+### B. Content Hierarchy
+
+#### Section 1: Tracking Header & Courier Info
+
+- **Purpose:** Menampilkan nomor resi resmi dan estimasi tanggal barang tiba.
+- **Component & UI Anatomy:**
+  - `CourierHeader`: Logo kurir rekanan (JNE / SiCepat / J&T), jenis layanan (Reguler / BEST / EZ).
+  - `TrackingCodeBlock`: Nomor resi monospace tabular `JNE-88291048201` dilengkapi tombol 44px `[SALIN NOMOR RESI]`.
+  - `EstimatedArrival`: Label kepastian `Estimasi Tiba: Besok, 09 Okt 2026 (Sore Hari)`.
+
+#### Section 2: Interactive Vertical Timeline
+
+- **Purpose:** Memvisualisasikan setiap pos pemeriksaan perjalanan paket fisik secara kronologis.
+- **Component & UI Anatomy:**
+  - `TimelineContainer`: Garis vertikal kontras dengan penanda titik lingkar status.
+  - `Checkpoint 1 (Aktif)`: `[08 Okt 14:30] Paket telah tiba di Sorting Hub Yogyakarta`.
+  - `Checkpoint 2`: `[08 Okt 10:15] Paket diserahkan ke kurir JNE Express`.
+  - `Checkpoint 3`: `[08 Okt 08:00] Pesanan dikemas dan diberi label oleh Gudang VOID Sleman`.
+  - `Checkpoint 4`: `[07 Okt 23:45] Pembayaran pesanan terverifikasi otomatis via Midtrans`.
+
+#### Section 3: Destination & Item Summary
+
+- **Purpose:** Memastikan kecocokan barang pesanan dan alamat tujuan.
+- **Component & UI Anatomy:**
+  - `PackageOverview`: Daftar 2 artikel pakaian dalam paket berasio 4:5.
+  - `MaskedAddress`: Alamat penerima dengan enkripsi privasi sebagian (Rian P***, Sleman, D.I. Yogyakarta).
+
+#### Section 4: Direct Support Action
+
+- **Purpose:** Saluran bantuan cepat jika paket mengalami keterlambatan operasional kurir.
+- **Component & UI Anatomy:**
+  - `HelpBanner`: Tombol 44px `[HUBUNGI CS VIA WHATSAPP]` untuk bantuan investigasi kurir.
+
+### C. Diagram Wireframe Tata Letak (Mobile 390 px)
+
+```text
++---------------------------------------------------+
+| [<] KEMBALI           PELACAKAN PAKET       [Bantuan]
++---------------------------------------------------+
+| 1. INFORMASI KURIR & RESI RESMI                   |
+| JNE EXPRESS (Layanan Reguler 1-2 Hari)            |
+| No. Resi: JNE-88291048201       [SALIN RESI (x)]  |
+| Status Terkini: DALAM PERJALANAN (ON PROCESS)     |
+| Estimasi Tiba: Jumat, 09 Okt 2026                 |
++---------------------------------------------------+
+| 2. LINIMASA PERJALANAN PAKET (TIMELINE VERTIKAL)  |
+| (*) 08 Okt 14:30 | Tiba di Sorting Hub Maguwoharjo|
+|  |                 Paket diteruskan ke Hub Tujuan |
+| (o) 08 Okt 10:15 | Diterima Agen JNE Cabang Sleman|
+|  |                 Paket dipindai kurir penjemput |
+| (o) 08 Okt 08:00 | Pesanan dikemas Warehouse VOID |
+|  |                 Label resi dicetak             |
+| (o) 07 Okt 23:45 | Pembayaran Terkonfirmasi       |
++---------------------------------------------------+
+| 3. RINGKASAN ISI PAKET                            |
+| +-----------------------------------------------+ |
+| | [Foto] ACID WASH BOXY HOODIE - Size L         | |
+| | Tujuan: Rian P***, Sleman, DI Yogyakarta      | |
+| +-----------------------------------------------+ |
++---------------------------------------------------+
+| 4. BANTUAN KENDALA PENGIRIMAN                     |
+| [ Butuh Bantuan? Tanya Tim Gudang di WhatsApp ]   |
++---------------------------------------------------+
+| [Home]   [Shop]   [Search]   [Cart(3)]   [Akun]   | <- Bottom Bar
++---------------------------------------------------+
+```
+
+---
+
+## 9. Spesifikasi Komponen Global & Primitif Antarmuka Terpadu
+
+Bagian ini mendefinisikan rancangan 9 komponen antarmuka yang digunakan secara konsisten di seluruh platform VOID Supply. Seluruh komponen dirancang memenuhi standar Anti-Slop, Mobile-First, serta aksesibilitas WCAG AA (tap target minimum 44px, kontras tinggi, navigasi keyboard).
+
+### 9.1. Komponen Cart Slide-Over Drawer
+
+- **Fungsi:** Komponen laci keranjang belanja melayang yang terbuka secara otomatis saat pengguna menekan tombol `[+ KERANJANG]` pada halaman detail produk atau katalog.
+- **Anatomi UI:**
+  - `BackdropOverlay`: Lapisan gelap semi-transparan berlatar `bg-black/80 backdrop-blur-sm` dengan transisi opacity 200ms.
+  - `DrawerPanel`: Lebar 380px di desktop (geser dari sisi kanan layar), lebar 100% di mobile (slide-in bottom sheet).
+  - `DrawerHeader`: Judul `Keranjang Belanja (N)` font Display 18px, tombol tutup ikon silang 44px `[X]`.
+  - `DrawerBody (Scrollable)`:
+    - Daftar kartu produk ringkas: Thumbnail 80px x 100px, nama artikel, varian ukuran, harga tabular monospace.
+    - Kontrol kuantitas 44px `[-]` `[Qty]` `[+]` dengan proteksi batas sisa stok riil.
+    - Tombol hapus instan `[Hapus]`.
+    - Empty state editorial jika keranjang kosong: Pesan `Keranjang Anda masih kosong` + tombol `[Jelajahi Rilis Terbaru]`.
+  - `DrawerFooter (Sticky Bottom)`:
+    - Baris rincian subtotal produk dan estimasi diskon.
+    - Tombol CTA utama 48px berlatar Volt Neon `#E2F952` bertuliskan `[LANJUT KE CHECKOUT (Rp xxx.xxx)]`.
+    - Tombol sekunder `[Lanjut Belanja]` untuk menutup laci.
+- **Aksesibilitas & Interaksi:**
+  - Menutup otomatis saat menekan tombol `Escape` keyboard atau mengetuk area backdrop.
+  - Penguncian gulir layar latar (`overflow-hidden` pada `<body>`) saat drawer terbuka.
+
+### 9.2. Komponen Toast Notification System
+
+- **Fungsi:** Memberikan umpan balik instan non-intrusif atas aksi pengguna (contoh: berhasil tambah ke keranjang, kode kupon tersalin, stok menipis, atau transaksi gagal).
+- **Arsitektur:** Terkelola via Zustand store (`useToastStore`) terintegrasi dengan styling utilitas Tailwind CSS v4 tanpa dependensi pihak ketiga baru.
+- **Posisi Layar:**
+  - Mobile (< 768px): Bagian atas layar (`top-4 left-4 right-4`), aman dari jangkauan jempol dan tidak menghalangi bilah navigasi bawah.
+  - Desktop (>= 1024px): Sudut kanan bawah layar (`bottom-6 right-6 max-w-sm`).
+- **4 Varian Toast Semantik:**
+  - `Success`: Bingkai kiri hijau emerald (`border-l-4 border-[#22C55E] bg-[#161616]`), ikon centang tebal, contoh: `Artikel berhasil ditambahkan ke keranjang`.
+  - `Warning`: Bingkai kiri amber orange (`border-l-4 border-[#F59E0B] bg-[#161616]`), ikon peringatan, contoh: `Sisa stok ukuran L tersisa 2 pcs di gudang`.
+  - `Error`: Bingkai kiri coral red (`border-l-4 border-[#EF4444] bg-[#161616]`), ikon silang, contoh: `Koneksi gagal. Silakan coba kembali`.
+  - `Info`: Bingkai kiri volt neon (`border-l-4 border-[#E2F952] bg-[#161616]`), ikon informasi, contoh: `Kode kupon VOIDDROP berhasil diterapkan`.
+- **Anatomi & Durasi:**
+  - Ikon status (20px), judul singkat, deskripsi pesan, dan tombol silang tutup 44px `[X]`.
+  - Timer penghilangan otomatis (_auto-dismiss_) 3000ms dengan visual bar durasi menipis.
+  - Aksesibilitas ARIA: `role="status"`, `aria-live="polite"`.
+
+### 9.3. Komponen Mobile Navigation Drawer (Hamburger Menu)
+
+- **Fungsi:** Panel navigasi laci komprehensif pada tampilan seluler saat pengguna menekan ikon menu `[=]` di header utama.
+- **Anatomi UI:**
+  - Lebar drawer: `w-[320px] max-w-[85vw]` dengan latar `#0B0B0B` berbingkai kanan tipis `border-[#262626]`.
+  - Header: Identitas teks `VOID SUPPLY` dan tombol tutup 44px `[X]`.
+  - Bilah Pencarian Cepat: Input pencarian artikel langsung di dalam drawer.
+  - Tautan Navigasi Editorial:
+    - `KATALOG UTAMA (/shop)`
+    - `RILIS TERBARU (/shop?category=new-drop)`
+    - `NARASI KOLEKSI (/collection)`
+    - `TENTANG VOID (/about)`
+    - `PANDUAN BELANJA & UKURAN (/faq)`
+  - Saluran Komunitas: Tautan resmi Discord VOID Streetwear, Instagram, TikTok.
+  - Footer Drawer: Tombol akses profil akun pelanggan dan tombol bantuan cepat WhatsApp.
+
+### 9.4. Komponen Profile & Authentication Modal (Hybrid Guest-First)
+
+- **Fungsi:** Modal interaktif untuk mengakses data pelanggan tanpa membebankan kata sandi rumit bagi calon pembeli.
+- **Alur 2 Langkah (2-Step Authentication Flow):**
+  - Langkah 1: Pengguna memasukkan nomor WhatsApp aktif (awalan +62) atau alamat email. Menekan tombol `[KIRIM KODE AKSES KILAT]`.
+  - Langkah 2: Muncul 6 kotak sel kode OTP verifikasi otomatis. Setelah 6 digit terisi lengkap, sistem memvalidasi dan langsung mengarahkan ke halaman akun pengguna.
+- **State Pengguna Terotentikasi:**
+  - Menampilkan ringkasan pesanan aktif, alamat tersimpan, dan opsi keluar sesi dengan aman.
+
+### 9.5. Komponen Modal Dialog & Pop-up
+
+- **Fungsi:** Dialog jendela terfokus untuk menampilkan konten esensial tanpa meninggalkan konteks halaman belanja saat ini.
+- **Varian Modal 1: Size Guide & Body Dimensions Modal:**
+  - Terbuka saat menekan tautan `[Buka Panduan Ukuran]` pada halaman detail produk.
+  - Berisi tabel ukuran metrik sentimeter (Lebar Dada, Panjang Baju, Panjang Lengan) untuk ukuran S, M, L, XL, XXL.
+  - Disertai sketsa ilustrasi petunjuk pengukuran pakaian di atas permukaan rata.
+- **Varian Modal 2: Confirmation Dialog:**
+  - Digunakan saat menghapus item belanjaan dari keranjang atau membatalkan pesanan.
+  - Memuat judul pertanyaan konfirmasi, teks penjelasan singkat, tombol batal `[Kembali]`, dan tombol aksi bahaya `[Ya, Hapus]`.
+- **Aksesibilitas Modal:**
+  - Peran ARIA `role="dialog"` dan `aria-modal="true"`.
+  - Penguncian fokus keyboard (_Focus Trap_) di dalam modal, tombol tutup terlihat jelas, dan penutupan via tombol Escape.
+
+### 9.6. Komponen Form Controls & Validation States
+
+- **Fungsi:** Kontrol masukan data formulir yang dirancang ramah jempol seluler dan bebas kebingungan.
+- **Spesifikasi Standar Input:**
+  - Tinggi minimum input: `48px` (`h-12`).
+  - Latar input: `#161616`, bingkai `border border-[#262626] rounded-lg`, warna teks `#FFFFFF`.
+  - Label: Display 14px di atas input, warna zinc netral `#A1A1AA`.
+  - Pesan Bantuan / Galat: Teks 12px di bawah input.
+- **4 Status Visual Formulir:**
+  1. `Default`: Bingkai netral `border-[#262626]`.
+  2. `Focus Active`: Cincin fokus aksen Volt Neon `focus-visible:ring-1 focus-visible:ring-[#E2F952] border-[#E2F952]`.
+  3. `Validation Error`: Bingkai merah terang `border-[#EF4444]`, pesan galat teks merah di bawah input, ikon peringatan mini.
+  4. `Disabled`: Opasitas rendah `opacity-50 cursor-not-allowed bg-[#111111]`.
+- **Kontrol Khusus:**
+  - Input Nomor WhatsApp: Prefix kaku `+62` di sisi kiri input dengan pemisah garis 1px.
+  - Auto-complete Lokasi Biteship: Input teks terhubung dengan daftar rekomendasi kelurahan/kecamatan melayang.
+
+### 9.7. Komponen Dropdown & Selection Menu
+
+- **Fungsi:** Menu seleksi opsi mengambang untuk pengurutan katalog produk dan pemilihan opsi kurir.
+- **Anatomi UI:**
+  - Tombol Pemicu: Kontainer 44px dengan teks opsi terpilih dan ikon panah chevron `[v]`.
+  - Panel Menu Melayang: Latar `#161616` berbingkai `border-[#262626] rounded-xl shadow-2xl`, elevasi tinggi di atas elemen lain.
+  - Opsi Item: Daftar baris 44px dengan teks putih, efek sorot latar saat diarahkan (`hover:bg-[#262626]`), dan tanda centang aksen pada opsi aktif.
+  - Navigasi Keyboard: Mendukung navigasi panah atas/bawah, pemilihan via tombol Enter, dan penutupan via tombol Escape.
+
+### 9.8. Komponen Segmented Tabs
+
+- **Fungsi:** Navigasi berganti konten dalam satu halaman tanpa memicu perpindahan URL atau muat ulang browser.
+- **Penerapan Utama:**
+  - Tabs Filter Katalog Shop: `[All Products]`, `[New Drop]`, `[Best Seller]`, `[Archive]`.
+  - Tabs Status Pesanan Akun: `[Semua]`, `[Menunggu Bayar]`, `[Diproses]`, `[Dikirim]`, `[Selesai]`.
+  - Tabs Informasi Produk: `[Spesifikasi Bahan]`, `[Panduan Ukuran]`, `[Ulasan Pembeli]`.
+- **Perilaku Visual:**
+  - Tab aktif ditandai dengan garis bawah tebal 2px berwarna Volt Neon `#E2F952` dan teks putih terang.
+  - Tab tidak aktif menggunakan warna zinc sekunder `#A1A1AA` dengan efek transisi warna saat hover.
+
+### 9.9. Standar Motion & Fisika Transisi Tailwind CSS v4
+
+- **Filosofi Gerak:** Halus, taktil, dan cepat. Menghindari animasi dekoratif lambat yang menghambat keputusan pembelian pengguna.
+- **Spesifikasi Transisi Antarmuka:**
+  - Durasi Mikro-Interaksi: `duration-150` sampai `duration-200` dengan kurva percepatan keluar (`ease-out`).
+  - Umpan Balik Tombol Sentuh: `active:scale-[0.98] transition-transform duration-100` pada seluruh tombol aksi utama.
+  - Transisi Slide-In Drawer / Modal: Animasi berbasis akselerasi GPU (`transform-gpu`) untuk menjamin 60 frame per detik tanpa jeda patah pada smartphone.
+  - Pemuatan Skeleton: Animasi pulsa halus warna abu-abu gelap terstruktur (`bg-zinc-800/60 animate-pulse rounded-lg`) yang memetakan persis bentuk komponen akhir.
+
+---
+
+## 10. Matriks Komparasi Tata Letak Global (Mobile vs Desktop)
 
 | Halaman                                 | Mobile Viewport (390 px)                                                 | Desktop Viewport (1440 px)                                                           |
 | :-------------------------------------- | :----------------------------------------------------------------------- | :----------------------------------------------------------------------------------- |
 | **Homepage (`/`)**                      | Hero 1 kolom full-width, 6 seksi linier, grid 2 kolom, sticky bottom bar | Split hero (teks kiri, model kanan), grid produk 4 kolom, header navigasi horizontal |
 | **Shop (`/shop`)**                      | Chip bar horizontal geser, filter via Bottom Sheet Drawer, grid 2 kolom  | Sidebar filter statis di kiri (260px), grid produk 4 kolom di kanan                  |
 | **Product Detail (`/products/[slug]`)** | Galeri swipe horizontal, 8 seksi linier mental model, sticky action bar  | Galeri 2 kolom vertikal di kiri, panel beli dan spesifikasi sticky di kanan          |
-| **Cart (`/cart`)**                      | Daftar vertikal 1 kolom, ringkasan di bawah, tombol belanja melayang     | Layout 2 kolom (Daftar belanja kiri 65%, ringkasan tagihan kanan 35% sticky)         |
+| **Cart (`/cart` & Drawer)**             | Bottom sheet drawer instan, rincian vertikal 1 kolom                     | Slide-over drawer kanan (380px), layout halaman 2 kolom (65% item, 35% ringkasan)    |
 | **Checkout (`/checkout`)**              | Formulir linier 1 kolom bebas distraksi, tombol bayar bawah              | Layout 2 kolom (Formulir pengiriman kiri 60%, ringkasan dan bayar kanan 40%)         |
-| **Account (`/account`)**                | Kartu riwayat pesanan bertumpuk vertikal, tombol lacak lebar             | Dasbor akun dengan menu navigasi samping dan tabel riwayat belanja lengkap           |
-| **Order Tracking (`/track/[orderId]`)** | Garis waktu kurir vertikal, tombol salin resi ramah jempol               | Garis waktu vertikal berdampingan dengan kartu rincian paket dan alamat              |
+| **Account (`/account`)**                | Kartu riwayat pesanan bertumpuk vertikal, segmented tabs geser           | Layout 2 kolom: Sidebar profil di kiri (280px), daftar pesanan dan tabel di kanan    |
+| **Order Tracking (`/track/[orderId]`)** | Garis waktu kurir vertikal, tombol salin resi ramah jempol               | Garis waktu vertikal berdampingan dengan kartu rincian paket dan alamat tujuan       |
 
 ---
 
-## 8. Panduan Alih Serah Desain ke Pengembang (Developer Handoff)
+## 11. Panduan Alih Serah Desain ke Pengembang (Developer Handoff)
 
 1. **Implementasi Tailwind CSS v4:** Gunakan nilai utilitas baku sesuai skala grid 8pt (`p-2`, `p-4`, `p-6`, `p-8`) dan palet warna semantik (`bg-[#0B0B0B]`, `bg-[#161616]`, `border-[#262626]`, `text-[#E2F952]`).
-2. **Kepatuhan Aksesibilitas Target Sentuh:** Semua kontrol interaktif (tombol, chip varian, input radio, kontrol kuantitas) wajib memiliki tinggi dan lebar minimal `44px` (`h-11`).
-3. **Motion & Fisika Pegas:** Hindari animasi linear yang lambat. Gunakan fisika pegas (`type: "spring", stiffness: 100, damping: 20`) dan manfaatkan atribut `layoutId` untuk perpindahan indikator aktif.
-4. **Optimasi Media:** Gunakan WebP untuk seluruh foto katalog dengan rasio aspek terkunci `4:5` untuk mencegah pergeseran tata letak kumulatif (_Cumulative Layout Shift / CLS_).
+2. **Kepatuhan Aksesibilitas Target Sentuh:** Semua kontrol interaktif (tombol, chip varian, input radio, kontrol kuantitas) wajib memiliki tinggi dan lebar minimal `44px` (`h-11` atau `h-12`).
+3. **Motion & Fisika Pegas Native:** Gunakan transisi CSS performa tinggi tanpa overhead bundle (`duration-200 ease-out transform-gpu`) dan hindari animasi dekoratif linear lambat.
+4. **Optimasi Media:** Gunakan format WebP untuk seluruh foto katalog dengan rasio aspek terkunci `4:5` untuk mencegah pergeseran tata letak kumulatif (_Cumulative Layout Shift / CLS_).
+5. **State Antarmuka Menyeluruh:** Setiap komponen yang terhubung ke data wajib menyediakan 3 status utama: _Loading State_ (skeleton loader abu-abu gelap), _Empty State_ (ilustrasi minimalis bertema gelap), dan _Error State_ (pesan galat jelas dengan tombol coba lagi).
