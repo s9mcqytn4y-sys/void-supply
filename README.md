@@ -54,6 +54,7 @@ VOID Supply/
 ├── drizzle.config.ts        # Konfigurasi Drizzle ORM PostgreSQL
 ├── next.config.ts           # Konfigurasi Next.js 16
 ├── package.json             # Konfigurasi dependensi & scripts
+├── CUSTOMER_JOURNEY_MAP.md  # Pemetaan perjalanan pelanggan Rian The Trendsetter (Homework 01.5.1)
 ├── PERSONA.md               # Analisis persona pembeli merchandise & admin toko
 ├── playwright.config.ts     # Konfigurasi E2E testing Playwright
 ├── postcss.config.mjs       # Konfigurasi PostCSS Tailwind CSS v4
@@ -68,14 +69,15 @@ VOID Supply/
 
 ## Komparasi Repositori: Actual Local vs. GitHub Remote
 
-| Komponen / Berkas                 | Repositori Aktual (Lokal)                               | Repositori GitHub (`origin/main`)  | Keterangan & Proteksi                            |
-| :-------------------------------- | :------------------------------------------------------ | :--------------------------------- | :----------------------------------------------- |
-| **Berkas Lingkungan (.env)**      | Ada (`.env` lokal dengan kredensial sandbox)            | Tidak ada (diabaikan `.gitignore`) | Menjaga keamanan API key dan password basis data |
-| **Aturan Agen (.agents/)**        | Ada (`rules/antislop.md`, `rules/typescript-expert.md`) | Tidak ada (diabaikan `.gitignore`) | Konfigurasi internal agen AI lokal               |
-| **Dokumentasi Bootcamp (docs/)**  | Ada (`docs/bootcamp/module-01/*`)                       | Ada (`docs/bootcamp/module-01/*`)  | Sinkron hasil merge PR #1 di GitHub              |
-| **Persona Pengguna (PERSONA.md)** | Ada                                                     | Ada                                | Sinkron di kedua repositori                      |
-| **Basis Data PostgreSQL**         | Berjalan di port 5432 via `pg_ctl`                      | Tidak ada server fisik             | Dikelola melalui migrasi skema Drizzle ORM       |
-| **Cache Build (\*.tsbuildinfo)**  | Ada (`tsconfig.tsbuildinfo`)                            | Tidak ada (diabaikan `.gitignore`) | Cache kompilasi TypeScript lokal                 |
+| Komponen / Berkas                                  | Repositori Aktual (Lokal)                               | Repositori GitHub (`origin/main`)  | Keterangan & Proteksi                            |
+| :------------------------------------------------- | :------------------------------------------------------ | :--------------------------------- | :----------------------------------------------- |
+| **Berkas Lingkungan (.env)**                       | Ada (`.env` lokal dengan kredensial sandbox)            | Tidak ada (diabaikan `.gitignore`) | Menjaga keamanan API key dan password basis data |
+| **Aturan Agen (.agents/)**                         | Ada (`rules/antislop.md`, `rules/typescript-expert.md`) | Tidak ada (diabaikan `.gitignore`) | Konfigurasi internal agen AI lokal               |
+| **Dokumentasi Bootcamp (docs/)**                   | Ada (`docs/bootcamp/module-01/*`)                       | Ada (`docs/bootcamp/module-01/*`)  | Sinkron hasil merge PR #1 di GitHub              |
+| **Persona Pengguna (PERSONA.md)**                  | Ada                                                     | Ada                                | Sinkron di kedua repositori                      |
+| **Customer Journey Map (CUSTOMER_JOURNEY_MAP.md)** | Ada                                                     | Ada                                | Sinkron di kedua repositori                      |
+| **Basis Data PostgreSQL**                          | Berjalan di port 5432 via `pg_ctl`                      | Tidak ada server fisik             | Dikelola melalui migrasi skema Drizzle ORM       |
+| **Cache Build (\*.tsbuildinfo)**                   | Ada (`tsconfig.tsbuildinfo`)                            | Tidak ada (diabaikan `.gitignore`) | Cache kompilasi TypeScript lokal                 |
 
 ---
 

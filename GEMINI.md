@@ -165,3 +165,4 @@ Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indon
 - `PRD.md`: Spesifikasi kebutuhan produk dan modul fitur e-commerce.
 - `README.md`: Panduan utama proyek, instalasi, dan struktur folder.
 - `PERSONA.md`: Profil persona pembeli merchandise dan persona admin toko.
+- `CUSTOMER_JOURNEY_MAP.md`: Peta perjalanan pengguna Rian The Trendsetter (4 stage: Awareness, Consideration, Purchase, Post Purchase).
