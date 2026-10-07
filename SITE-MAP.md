@@ -1,6 +1,6 @@
 # Arsitektur Informasi & Peta Situs (Information Architecture & Site Map) : VOID Supply
 
-Dokumen ini mendefinisikan rancangan Arsitektur Informasi (_Information Architecture_) dan Peta Situs (_Site Map_) untuk situs web VOID Supply. Rancangan ini disusun berdasarkan riset kebutuhan persona Rian "The Trendsetter" Pratama di [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md), 5 fase di [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md), serta analisis celah kompetitor di [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md).
+Dokumen ini mendefinisikan rancangan Arsitektur Informasi (_Information Architecture_) dan Peta Situs (_Site Map_) untuk situs web VOID Supply. Rancangan ini disusun berdasarkan riset kebutuhan persona Rian "The Trendsetter" Pratama di [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md), 5 fase di [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md), analisis celah kompetitor di [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md), serta diterjemahkan ke dalam tata letak kawat pada [WIREFRAME.md](file:///c:/Projects/VOID%20Supply/WIREFRAME.md).
 
 ---
 

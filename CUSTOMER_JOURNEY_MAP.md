@@ -9,6 +9,7 @@ Dokumen terkait:
 - Profil Persona: [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md)
 - Riset Kompetitor & Opportunity Gap: [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md)
 - Arsitektur Informasi: [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md)
+- Perencanaan Wireframe Antarmuka: [WIREFRAME.md](file:///c:/Projects/VOID%20Supply/WIREFRAME.md)
 
 ---
 

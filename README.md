@@ -59,6 +59,7 @@ VOID Supply/
 ├── CUSTOMER_JOURNEY_MAP.md  # Pemetaan perjalanan pelanggan Rian The Trendsetter (5 Stages)
 ├── PERSONA.md               # Analisis persona pembeli merchandise & admin toko
 ├── SITE-MAP.md              # Arsitektur informasi & peta situs 7 halaman utama
+├── WIREFRAME.md             # Perencanaan wireframe, hierarki konten, komponen & interaksi Adobe XD
 ├── playwright.config.ts     # Konfigurasi E2E testing Playwright
 ├── postcss.config.mjs       # Konfigurasi PostCSS Tailwind CSS v4
 ├── tsconfig.json            # Konfigurasi TypeScript Strict

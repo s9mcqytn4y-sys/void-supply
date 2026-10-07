@@ -167,3 +167,4 @@ Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indon
 - `PERSONA.md`: Profil persona pembeli merchandise dan persona admin toko.
 - `CUSTOMER_JOURNEY_MAP.md`: Peta perjalanan pengguna Rian The Trendsetter (5 stage: Awareness, Consideration, Decision, Purchase, Retention).
 - `SITE-MAP.md`: Arsitektur informasi dan peta situs 7 halaman utama antarmuka toko.
+- `WIREFRAME.md`: Perencanaan wireframe, hierarki konten, komponen antarmuka, interaksi, dan spesifikasi Adobe XD.
