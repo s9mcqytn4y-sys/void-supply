@@ -2,30 +2,44 @@
 
 ## 1. Sitemap MVP
 
-```text
-/
-├── /shop
-│   ├── ?category= (all | new-drop | best-seller | archive)
-│   ├── ?size=
-│   ├── ?sort=
-│   └── /products/[slug]
-├── /collection
-├── /about
-├── /faq
-├── /contact
-├── /cart
-├── /checkout
-├── /order/[orderId]
-└── /track/[orderId]
+### North Star Alignment
 
-├── /account
-├── /account/orders
-├── /account/wishlist
-├── /account/address
-└── /admin (Dashboard, Products, Inventory, Orders, Customers, Promotions)
+> **"VOID Supply adalah platform commerce streetwear yang menghilangkan keraguan pembelian online melalui pengalaman visual yang kuat, informasi produk yang transparan, dan checkout langsung yang cepat."**
+
+Seluruh struktur rute navigasi disusun secara disiplin berdasarkan **The Hesitation Test** dan pembagian prioritas rilis fitur ([opportunity-gap.md](file:///c:/Projects/VOID%20Supply/docs/research/opportunity-gap.md)):
+
+```text
++-----------------------------------------------------------------------------------+
+| RUTE MVP BERDASARKAN FEATURE PRIORITY MATRIX                                     |
++-----------------------------------------------------------------------------------+
+| P0 : Core Commerce Experience (Wajib Rilis Awal MVP)                              |
+| /                                 -> Homepage editorial drop & brand hero         |
+| ├── /shop                         -> Katalog terkurasi 4 filter pilar             |
+| │   ├── ?category=                -> (all | new-drop | best-seller | archive)     |
+| │   ├── ?size=                    -> Filter ukuran instan (S | M | L | XL)        |
+| │   ├── ?sort=                    -> Pengurutan (latest | price-asc | price-desc) |
+| │   └── /products/[slug]          -> PDP Confidence Builder (Model & macro fotos) |
+| ├── /cart                         -> Drawer / ringkasan keranjang instan          |
+| ├── /checkout                     -> One-page guest checkout (Midtrans & Biteship)|
+| ├── /order/[orderId]              -> Konfirmasi pembayaran & ringkasan invoice    |
+| └── /track/[orderId]              -> Pelacakan status kurir publik mandiri        |
++-----------------------------------------------------------------------------------+
+| P1 : Brand Differentiation (Setelah Fondasi Transaksi Stabil)                     |
+| ├── /collection                   -> Narasi editorial drop & lookbook styling     |
+| ├── /about                        -> Filosofi subkultur VOID Supply               |
+| ├── /faq                          -> Panduan belanja, garansi bahan, kebijakan    |
+| └── /contact                      -> Kanal kontak resmi & bantuan cepat           |
++-----------------------------------------------------------------------------------+
+| P2 : User Retention & Backoffice (Fase Lanjutan)                                  |
+| ├── /account                      -> Profil pelanggan (opsional login)            |
+| ├── /account/orders               -> Riwayat transaksi akun terdaftar             |
+| ├── /account/wishlist             -> Daftar keinginan item                        |
+| ├── /account/address              -> Buku alamat tersimpan                        |
+| └── /admin                        -> Panel manajemen produk, pesanan, dan stok    |
++-----------------------------------------------------------------------------------+
 ```
 
-Jangan membuat route hanya karena bisa. Kategori katalog MVP dirampingkan menjadi 4 pilar (`all`, `new-drop`, `best-seller`, `archive`) untuk menghindari sindrom mega-menu Erigo pada brand yang sedang bertumbuh. Setiap route mewakili tujuan pengguna yang jelas selaras dengan [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md).
+Jangan membuat route hanya karena bisa. Kategori katalog MVP dirampingkan menjadi 4 pilar (`all`, `new-drop`, `best-seller`, `archive`) untuk menghindari sindrom mega-menu Erigo pada brand yang sedang bertumbuh. Setiap route mewakili tujuan pengguna yang jelas selaras dengan [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md) dan [WIREFRAME.md](file:///c:/Projects/VOID%20Supply/WIREFRAME.md). Seluruh elemen interaktif pada rute di atas tunduk pada batas minimal sentuh 44px (_44px Tap Target_) dan kontras WCAG AA $\ge 4.5:1$.
 
 ## 2. Primary user flow
 
