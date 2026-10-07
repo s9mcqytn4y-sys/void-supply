@@ -143,16 +143,16 @@ Pertanyaan:
 
 Untuk setiap kompetitor, isi tabel berikut saat research manual:
 
-| Area | Temuan | Bagus karena | Friction | Pelajaran untuk VOID |
-| --- | --- | --- | --- | --- |
-| Homepage |  |  |  |  |
-| Navigation |  |  |  |  |
-| PLP |  |  |  |  |
-| PDP |  |  |  |  |
-| Cart |  |  |  |  |
-| Checkout |  |  |  |  |
-| Mobile |  |  |  |  |
-| Accessibility |  |  |  |  |
+| Area          | Temuan | Bagus karena | Friction | Pelajaran untuk VOID |
+| ------------- | ------ | ------------ | -------- | -------------------- |
+| Homepage      |        |              |          |                      |
+| Navigation    |        |              |          |                      |
+| PLP           |        |              |          |                      |
+| PDP           |        |              |          |                      |
+| Cart          |        |              |          |                      |
+| Checkout      |        |              |          |                      |
+| Mobile        |        |              |          |                      |
+| Accessibility |        |              |          |                      |
 
 Jangan menulis "bagus" tanpa alasan. Kaitkan dengan discoverability, clarity, trust, speed, accessibility, atau conversion.
 

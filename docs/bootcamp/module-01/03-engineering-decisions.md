@@ -69,19 +69,19 @@ Contoh domain:
 
 ```ts
 type Product = {
-  id: string
-  slug: string
-  name: string
-}
+  id: string;
+  slug: string;
+  name: string;
+};
 
 type ProductVariant = {
-  id: string
-  productId: string
-  size: string
-  color: string
-  stock: number
-  price: number
-}
+  id: string;
+  productId: string;
+  size: string;
+  color: string;
+  stock: number;
+  price: number;
+};
 ```
 
 ### PostgreSQL + Drizzle
@@ -92,13 +92,13 @@ Kita memilih relational modelling sebelum optimasi abstrak.
 
 ## 3. State decision matrix
 
-| Jenis state | Contoh | Tempat awal |
-| --- | --- | --- |
-| Local UI state | modal terbuka, quantity sementara | React state |
-| URL state | filter category, sort | search params |
-| Shared client state | cart drawer/cart lokal | React Context atau Zustand bila kompleks |
-| Server state | products, orders, shipping rates | Server Component atau query layer sesuai kebutuhan |
-| Durable business state | order, payment, stock | Database |
+| Jenis state            | Contoh                            | Tempat awal                                        |
+| ---------------------- | --------------------------------- | -------------------------------------------------- |
+| Local UI state         | modal terbuka, quantity sementara | React state                                        |
+| URL state              | filter category, sort             | search params                                      |
+| Shared client state    | cart drawer/cart lokal            | React Context atau Zustand bila kompleks           |
+| Server state           | products, orders, shipping rates  | Server Component atau query layer sesuai kebutuhan |
+| Durable business state | order, payment, stock             | Database                                           |
 
 Aturan: jangan memindahkan state ke global store hanya karena dipakai dua component.
 

@@ -2,24 +2,24 @@
 
 ## 1. Feature matrix
 
-| Feature | MVP | Later | Notes |
-| --- | :---: | :---: | --- |
-| Home | Yes |  | Editorial discovery |
-| Shop/catalog | Yes |  | Filter minimum viable |
-| Product detail | Yes |  | Variant + stock |
-| Cart | Yes |  | Quantity + remove |
-| Guest checkout | Candidate |  | Final decision after business rule |
-| Account |  | Yes | Jangan menghambat MVP |
-| Address input | Yes |  | Validation required |
-| Biteship rates | Yes |  | Server-side |
-| Midtrans Sandbox | Yes |  | Sebelum production |
-| Payment webhook | Yes |  | Source of truth |
-| Shipment tracking | Yes |  | Webhook/update |
-| Coupon |  | Yes | Hindari scope creep |
-| Wishlist |  | Yes | Tidak kritikal |
-| Reviews |  | Yes | Tidak pakai review fiktif |
-| Admin basic | Yes |  | Product/order/inventory minimum |
-| Loyalty |  | Yes | Post-MVP |
+| Feature           |    MVP    | Later | Notes                              |
+| ----------------- | :-------: | :---: | ---------------------------------- |
+| Home              |    Yes    |       | Editorial discovery                |
+| Shop/catalog      |    Yes    |       | Filter minimum viable              |
+| Product detail    |    Yes    |       | Variant + stock                    |
+| Cart              |    Yes    |       | Quantity + remove                  |
+| Guest checkout    | Candidate |       | Final decision after business rule |
+| Account           |           |  Yes  | Jangan menghambat MVP              |
+| Address input     |    Yes    |       | Validation required                |
+| Biteship rates    |    Yes    |       | Server-side                        |
+| Midtrans Sandbox  |    Yes    |       | Sebelum production                 |
+| Payment webhook   |    Yes    |       | Source of truth                    |
+| Shipment tracking |    Yes    |       | Webhook/update                     |
+| Coupon            |           |  Yes  | Hindari scope creep                |
+| Wishlist          |           |  Yes  | Tidak kritikal                     |
+| Reviews           |           |  Yes  | Tidak pakai review fiktif          |
+| Admin basic       |    Yes    |       | Product/order/inventory minimum    |
+| Loyalty           |           |  Yes  | Post-MVP                           |
 
 ## 2. Milestone
 

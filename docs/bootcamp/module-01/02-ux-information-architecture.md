@@ -5,22 +5,27 @@
 ```text
 /
 ├── /shop
-│   ├── ?category=
+│   ├── ?category= (all | new-drop | best-seller | archive)
 │   ├── ?size=
 │   ├── ?sort=
-│   └── /product/[slug]
+│   └── /products/[slug]
+├── /collection
+├── /about
+├── /faq
+├── /contact
 ├── /cart
 ├── /checkout
 ├── /order/[orderId]
 └── /track/[orderId]
 
-Later:
 ├── /account
 ├── /account/orders
-└── /admin
+├── /account/wishlist
+├── /account/address
+└── /admin (Dashboard, Products, Inventory, Orders, Customers, Promotions)
 ```
 
-Jangan membuat route hanya karena bisa. Setiap route harus mewakili tujuan pengguna atau domain yang jelas.
+Jangan membuat route hanya karena bisa. Kategori katalog MVP dirampingkan menjadi 4 pilar (`all`, `new-drop`, `best-seller`, `archive`) untuk menghindari sindrom mega-menu Erigo pada brand yang sedang bertumbuh. Setiap route mewakili tujuan pengguna yang jelas selaras dengan [SITE-MAP.md](file:///c:/Projects/VOID%20Supply/SITE-MAP.md).
 
 ## 2. Primary user flow
 

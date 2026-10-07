@@ -1,177 +1,166 @@
-# Arsitektur Informasi & Peta Situs (Information Architecture & Site Map) : VOID Supply
+# Arsitektur Informasi & Peta Situs (Information Architecture & Site Map V1) : VOID Supply
 
-Dokumen ini mendefinisikan rancangan Arsitektur Informasi (_Information Architecture_) dan Peta Situs (_Site Map_) untuk situs web VOID Supply. Rancangan ini disusun berdasarkan riset kebutuhan persona Rian "The Trendsetter" Pratama di [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md), 5 fase di [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md), analisis kompetitor di [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md), analisis celah peluang di [opportunity-gap.md](file:///c:/Projects/VOID%20Supply/docs/research/opportunity-gap.md), prinsip UX di [ux-principles.md](file:///c:/Projects/VOID%20Supply/docs/research/ux-principles.md), serta diterjemahkan ke dalam tata letak kawat pada [WIREFRAME.md](file:///c:/Projects/VOID%20Supply/WIREFRAME.md).
+Dokumen ini mendefinisikan rancangan Arsitektur Informasi (_Information Architecture_) dan Peta Situs versi 1 (_Site Map V1_) untuk situs web VOID Supply. Rancangan ini disusun berdasarkan riset kebutuhan persona pembeli dan admin pada [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md), 5 fase perjalanan pada [CUSTOMER_JOURNEY_MAP.md](file:///c:/Projects/VOID%20Supply/CUSTOMER_JOURNEY_MAP.md), analisis kompetitor pada [competitor-analysis.md](file:///c:/Projects/VOID%20Supply/docs/research/competitor-analysis.md), analisis celah peluang pada [opportunity-gap.md](file:///c:/Projects/VOID%20Supply/docs/research/opportunity-gap.md), prinsip pengalaman pengguna pada [ux-principles.md](file:///c:/Projects/VOID%20Supply/docs/research/ux-principles.md), serta diterjemahkan ke dalam tata letak kawat pada [WIREFRAME.md](file:///c:/Projects/VOID%20Supply/WIREFRAME.md).
 
 ---
 
-## 1. Diagram Pohon Arsitektur Informasi
+## 1. Diagram Pohon Arsitektur Informasi (Site Map V1)
 
-Struktur navigasi utama situs web VOID Supply:
+Struktur navigasi situs web VOID Supply dibagi ke dalam 4 domain utama: **Public**, **Transaction**, **Customer**, dan **Admin**:
 
 ```text
-Home (/)
-├── Shop (/shop)
-│   ├── ?category=[kategori]
-│   ├── ?size=[ukuran]
-│   └── ?sort=[urutan]
-├── Product Detail (/products/[slug])
-├── Cart (/cart)
-├── Checkout (/checkout)
-├── Account (/account)
-│   ├── /account/orders (Riwayat Pesanan)
-│   └── /account/profile (Pengaturan Profil & Alamat)
-└── Order Tracking (/track/[orderId])
+VOID Supply Website (/)
+│
+├── [PUBLIC DOMAIN]
+│   ├── Home (/)
+│   ├── Shop (/shop)
+│   │   ├── All Products (/shop?category=all)
+│   │   ├── New Drop (/shop?category=new-drop)
+│   │   ├── Best Seller (/shop?category=best-seller)
+│   │   └── Archive (/shop?category=archive)
+│   ├── Product Detail (/products/[slug])
+│   ├── Collection (/collection)
+│   ├── About VOID (/about)
+│   ├── FAQ (/faq)
+│   └── Contact (/contact)
+│
+├── [TRANSACTION DOMAIN]
+│   ├── Cart (/cart)
+│   ├── Checkout (/checkout)
+│   ├── Payment Result (/order/[orderId])
+│   └── Order Tracking (/track/[orderId])
+│
+├── [CUSTOMER DOMAIN]
+│   ├── Account Portal (/account)
+│   ├── Order History (/account/orders)
+│   ├── Wishlist (/account/wishlist)
+│   └── Address Book (/account/address)
+│
+└── [ADMIN DOMAIN] (Operations - Persona Dimas Setyawan)
+    ├── Dashboard (/admin)
+    ├── Products (/admin/products)
+    ├── Inventory (/admin/inventory)
+    ├── Orders (/admin/orders)
+    ├── Customers (/admin/customers)
+    └── Promotions (/admin/promotions)
 ```
 
 ---
 
-## 2. Pemetaan Halaman dengan 5 Stage Customer Journey
+## 2. Rasionalisasi Desain Kategori MVP (Anti-Mega Menu)
 
-| Halaman Situs      | Rute URL           | Fase Perjalanan Pelanggan | Tujuan Utama Pengguna (_User Goal_)                                                                                     |
-| :----------------- | :----------------- | :------------------------ | :---------------------------------------------------------------------------------------------------------------------- |
-| **Home**           | `/`                | Awareness                 | Membangun impresi visual pertama, memvalidasi reputasi merek, dan menyorot rilis terbatas (_limited drop_).             |
-| **Shop**           | `/shop`            | Consideration             | Eksplorasi katalog merchandise lengkap dengan penyaringan kategori, ukuran, dan rentang harga yang cepat.               |
-| **Product Detail** | `/products/[slug]` | Consideration & Decision  | Menghapus keraguan ukuran (_size confidence_), memeriksa tekstur bahan asli, dan mengecek ketersediaan stok real-time.  |
-| **Cart**           | `/cart`            | Decision                  | Mengelola item belanja, memeriksa estimasi subtotal, dan menerapkan kupon promosi.                                      |
-| **Checkout**       | `/checkout`        | Purchase                  | Menyelesaikan transaksi instan tanpa wajib registrasi (_One-Page Guest Checkout_), memilih kurir, dan bayar via QRIS.   |
-| **Order Tracking** | `/track/[orderId]` | Retention                 | Memantau posisi kurir paket secara mandiri (_self-service tracking_) dari nomor resi pengiriman.                        |
-| **Account**        | `/account`         | Retention                 | Mengakses arsip riwayat belanja (_order history_), menyimpan alamat favorit, dan mendapatkan akses awal rilis terbatas. |
+### Keputusan Arsitektur Kategori Katalog
 
----
+Alih-alih membuat puluhan kategori produk yang rumit (seperti T-Shirts, Longsleeves, Hoodies, Zip-Hoodies, Cargo Pants, Caps, Socks), VOID Supply merampingkan taksonomi MVP menjadi 4 pilar kurasi:
 
-## 3. Spesifikasi Rinci Setiap Halaman
+1. **All Products:** Menampilkan seluruh katalog merchandise yang aktif.
+2. **New Drop:** Menyorot koleksi rilisan edisi terbatas terbaru (_Drop Culture_).
+3. **Best Seller:** Menampilkan artikel paling diminati untuk mempercepat konversi pembeli baru.
+4. **Archive:** Menampilkan arsip artikel edisi terbatas masa lalu (sebagian berstatus _Sold Out_) untuk memperkuat prestise, reputasi sejarah, dan eksklusivitas merek.
 
-### A. Home (`/`)
+### Mengapa Pendekatan Ini Dipilih?
 
-- **Peran Halaman:** Pintu gerbang utama visual toko (_Storefront Landing_).
-- **Jenis Komponen:** Next.js 16 Server Component (RSC) dengan _Streaming SSR_.
-- **Tujuan Pengguna:** Memahami identitas merek VOID Supply dalam waktu 3 detik pertama dan menemukan koleksi rilis terbaru tanpa hambatan.
-- **Blok & Komponen Antarmuka Kunci:**
-  1. _Header & Navigasi_: Logo merek, tautan katalog (_Shop_), tautan pelacakan pesanan (_Track_), ikon keranjang belanja (_Cart Badge_), dan ikon akun.
-  2. _Hero Section_: Banner visual resolusi tinggi format WebP berkarakter streetwear dengan tipografi tegas, judul rilis terbatas (_Limited Drop Title_), dan tombol aksi (_CTA_) "Lihat Koleksi Terbaru".
-  3. _Limited Drop Spotlight_: Panel penyorot koleksi edisi terbatas yang dilengkapi status kuota inventaris dan label ketersediaan.
-  4. _Featured Product Grid_: Kartu produk terpopuler (foto tampak depan, harga, label stok, dan efek transisi hover halus).
-  5. _Brand Value Highlights_: Tiga pilar jaminan belanja (Kualitas Katun Gramasi Tinggi, Transaksi QRIS Otomatis, Pengiriman Terlacak Real-Time).
-  6. _Footer_: Navigasi kebijakan privasi, syarat ketentuan, kontak layanan pelanggan, dan tautan komunitas media sosial (Instagram, TikTok, Discord).
-- **Kebutuhan State UI:**
-  - _Loading_: Kerangka animasi abu-abu (_Skeleton Loader_) untuk kartu produk.
-  - _Error_: Tampilan fallback ramah pengguna dengan tombol muat ulang data.
+- **Menghindari Sindrom "Mega Menu Erigo":** Merek e-commerce massal sering membanjiri pengguna dengan 10+ kategori turunan yang membingungkan di layar ponsel dan membutuhkan 3 hingga 4 ketukan.
+- **Sesuai Skala Brand Bertumbuh:** VOID Supply adalah merek independen dengan volume artikel terkurasi. Struktur yang ramping memungkinkan pengguna menjelajahi seluruh produk dalam hitungan detik.
+- **Ergonomi Filter Cepat di Smartphone:** Keempat kategori ini dapat disajikan dalam barisan chip horizontal 1-tap (_Quick Chip Bar_) yang ramah jangkauan jempol.
 
 ---
 
-### B. Shop (`/shop`)
+## 3. Pemetaan Halaman dengan 5 Stage Customer Journey
 
-- **Peran Halaman:** Katalog eksplorasi seluruh produk merchandise (_Product Listing Page_).
-- **Jenis Komponen:** RSC untuk _data fetching_ awal dipadukan dengan Client Component untuk interaktivitas filter URL parameters.
-- **Tujuan Pengguna:** Menemukan produk yang cocok berdasarkan kategori spesifik (T-Shirt, Hoodie, Pants, Accessories), varian ukuran yang tersedia, dan rentang harga.
-- **Blok & Komponen Antarmuka Kunci:**
-  1. _Sticky Filter & Sort Bar_: Filter kategori produk, filter ukuran baju (S, M, L, XL, XXL), dan pengurutan (_Terbaru, Harga Terendah, Harga Tertinggi, Paling Populer_). Pada tampilan mobile, filter disajikan dalam laci geser (_bottom sheet / drawer_).
-  2. _Active Filter Chips_: Indikator tag filter yang aktif dengan tombol hapus cepat per kriteria.
-  3. _Product Grid Responsive_: Tata letak grid 2 kolom di smartphone dan 4 kolom di desktop. Setiap kartu produk memuat foto WebP tajam, judul produk, varian warna, harga retail, dan badge ketersediaan (_In Stock / Low Stock / Sold Out_).
-  4. _Pagination / Infinite Scroll_: Tombol "Muat Lebih Banyak" (_Load More_) yang efisien tanpa membebani memori peramban ponsel.
-- **Kebutuhan State UI:**
-  - _Empty State_: Ditampilkan jika kombinasi filter tidak menghasilkan produk, dilengkapi tombol "Reset Semua Filter".
-  - _Loading State_: Skeleton grid produk yang mempertahankan dimensi tata letak asli untuk mencegah lonjakan pergeseran tata letak (_Cumulative Layout Shift / CLS_).
-
----
-
-### C. Product Detail (`/products/[slug]`)
-
-- **Peran Halaman:** Halaman keputusan konversi penjualan produk (_Product Detail Page_).
-- **Jenis Komponen:** RSC untuk _Search Engine Optimization (SEO)_ dinamis dan metadata OpenGraph, dipadukan dengan Client Component untuk pemilih varian dan keranjang.
-- **Tujuan Pengguna:** Memvalidasi kecocokan potongan pakaian (_fit_), memeriksa detail bahan, dan memilih varian ukuran dengan kepastian stok.
-- **Blok & Komponen Antarmuka Kunci:**
-  1. _Product Media Gallery_: Galeri foto resolusi tinggi multi-sudut (depan, belakang, tampak samping, serta foto makro serat kain dan detail sablon). Dilengkapi kemampuan pembesaran (_zoom-in viewer_) tanpa filter saturasi berlebih.
-  2. _Header Produk_: Judul produk lengkap, seri rilis edisi, dan harga produk transparan.
-  3. _Interactive Size Guide_: Modal panduan ukuran interaktif yang menyertakan data fisik model foto (contoh: _Model Pria: 175 cm, 65 kg memakai ukuran L_) dan tabel dimensi sentimeter (panjang baju, lebar dada, panjang lengan).
-  4. _Variant Selector_: Tombol pemilihan ukuran dan warna dengan indikator status stok real-time (_Real-Time Stock Badge_ per varian). Varian yang habis ditandai garis coret non-aktif.
-  5. _Quick Shipping Estimator_: Input kode pos atau kota tujuan cepat untuk melihat estimasi tarif kurir sebelum masuk keranjang.
-  6. _Action CTA Buttons_: Tombol primer "Tambah ke Keranjang" (_Add to Cart_) dan tombol sekunder "Beli Sekarang" (_Direct Checkout_). Jika stok habis, tombol bertransformasi menjadi "Beri Tahu Saya Saat Tersedia" (_Notify Me_).
-  7. _Product Technical Accordion_: Deskripsi spesifikasi material (gramasi katun 16s/24s, jenis tinta sablon, instruksi pencucian agar sablon awet).
-- **Kebutuhan State UI:**
-  - _Out of Stock State_: Formulir pendaftaran minat via WhatsApp atau email untuk restock.
-  - _Variant Selected State_: Pembaruan harga dan kuota stok otomatis saat ukuran diubah.
+| Domain          | Halaman Situs          | Rute URL                | Fase Perjalanan Pelanggan | Tujuan Pengguna (_User Goal_)                                                                              |
+| :-------------- | :--------------------- | :---------------------- | :------------------------ | :--------------------------------------------------------------------------------------------------------- |
+| **Public**      | **Home**               | `/`                     | Awareness                 | Memahami identitas merek dalam 3 detik pertama dan menemukan rilis terbaru.                                |
+| **Public**      | **Shop**               | `/shop`                 | Consideration             | Eksplorasi katalog terkurasi dengan filter 1-tap (All, New Drop, Best Seller, Archive).                    |
+| **Public**      | **Product Detail**     | `/products/[slug]`      | Consideration & Decision  | Menghilangkan keraguan ukuran (_Size Confidence_), melihat tekstur kain asli, dan mengecek stok real-time. |
+| **Public**      | **Collection**         | `/collection`           | Awareness & Consideration | Menikmati narasi konsep visual lookbook dan cerita tema rilisan terbatas.                                  |
+| **Public**      | **About VOID**         | `/about`                | Awareness & Trust         | Memvalidasi filosofi merek dan standar kualitas material katun gramasi berat.                              |
+| **Public**      | **FAQ & Contact**      | `/faq`, `/contact`      | Decision & Support        | Mengetahui panduan retur ukuran, estimasi kurir, dan saluran bantuan cepat.                                |
+| **Transaction** | **Cart**               | `/cart`                 | Decision                  | Mengelola item belanjaan, menerapkan voucher diskon, dan meninjau subtotal.                                |
+| **Transaction** | **Checkout**           | `/checkout`             | Purchase                  | Menyelesaikan transaksi instan tanpa wajib registrasi akun (< 60 detik).                                   |
+| **Transaction** | **Payment Result**     | `/order/[orderId]`      | Purchase                  | Memverifikasi pembayaran lunas otomatis dari Midtrans Snap dan nomor faktur.                               |
+| **Transaction** | **Order Tracking**     | `/track/[orderId]`      | Retention                 | Memantau pergerakan kurir secara mandiri (_self-service_) berbasis webhook Biteship.                       |
+| **Customer**    | **Account & Orders**   | `/account`, `/orders`   | Retention                 | Mengakses riwayat belanja masa lalu dan mengunduh bukti invoice transaksi.                                 |
+| **Customer**    | **Wishlist & Address** | `/wishlist`, `/address` | Retention                 | Menyimpan artikel favorit dan buku alamat untuk mempercepat transaksi berikutnya.                          |
+| **Admin**       | **Dashboard & Ops**    | `/admin/*`              | Internal Management       | Mengelola inventaris atomik, memproses resi, dan memantau analitik harian.                                 |
 
 ---
 
-### D. Cart (`/cart`)
+## 4. Spesifikasi Rinci Modul Halaman
 
-- **Peran Halaman:** Pengelola sementara item pesanan sebelum tahap pembayaran (_Shopping Cart_).
-- **Jenis Komponen:** Client Component yang tersinkronisasi dengan _Zustand LocalStorage Store_.
-- **Tujuan Pengguna:** Memeriksa kembali daftar belanjaan, menyesuaikan jumlah kuantitas, memasukkan kode voucher diskon, dan memastikan total belanjaan akurat.
-- **Blok & Komponen Antarmuka Kunci:**
-  1. _Cart Items Table/List_: Daftar item pesanan yang memuat gambar thumbnail mini, judul produk, varian ukuran terpilih, harga satuan, pengatur kuantitas (+/-), dan tombol hapus item.
-  2. _Coupon Code Box_: Formulir input kode kupon diskon atau voucher promosi dengan validasi pesan instan.
-  3. _Order Summary Card_: Rincian subtotal produk, diskon kupon yang diterapkan, dan catatan biaya pengiriman yang akan dihitung pada tahap checkout.
-  4. _Navigation CTA_: Tombol utama "Lanjutkan ke Checkout" dan tombol sekunder "Lanjut Berbelanja".
-- **Kebutuhan State UI:**
-  - _Empty Cart State_: Tampilan kosong yang ramah dengan ilustrasi tas belanja bersih dan tombol aksi menuju halaman Shop.
-  - _Stock Conflict State_: Peringatan dinamis jika ada item di keranjang yang kuota stoknya berkurang atau habis sebelum checkout.
+### A. Public Domain
 
----
+#### 1. Home (`/`)
 
-### E. Checkout (`/checkout`)
+- **Tujuan Halaman:** Mengubah pengunjung pertama menjadi penjelajah produk (_Convert visitor into product explorer_).
+- **Urutan Seksi:** Hero $\rightarrow$ Featured Drop $\rightarrow$ Brand Story $\rightarrow$ Best Seller $\rightarrow$ Community $\rightarrow$ Footer.
+- **Komponen Kunci:** Banner visual WebP beresolusi tinggi, penyorot kuota stok rilis terbatas, pilar kualitas katun gramasi berat, dan galeri komunitas media sosial.
 
-- **Peran Halaman:** Pusat penyelesaian transaksi tanpa friksi (_One-Page Guest Checkout_).
-- **Jenis Komponen:** Client Component teroptimasi dengan Server Actions untuk validasi data instan via Zod.
-- **Tujuan Pengguna:** Menyelesaikan pembayaran belanja dalam waktu di bawah 60 detik tanpa kewajiban registrasi akun.
-- **Blok & Komponen Antarmuka Kunci:**
-  1. _Bagian 1 : Data Pengiriman_: Formulir ringkas mencakup Nama Penerima, Nomor WhatsApp aktif (untuk notifikasi resi otomatis), Alamat Lengkap Rumah/Kantor, dan Kode Pos.
-  2. _Bagian 2 : Pilihan Layanan Logistik_: Integrasi API Biteship real-time yang memuat opsi kurir (JNE Regular/YES, SiCepat, J&T) beserta estimasi hari tiba dan biaya ongkir yang dihitung otomatis berdasarkan berat paket dan kota tujuan.
-  3. _Bagian 3 : Ringkasan Tagihan_: Subtotal belanja, ongkos kirim terpilih, potongan diskon voucher, dan total pembayaran akhir.
-  4. _Bagian 4 : Gerbang Pembayaran Terpadu_: Integrasi antarmuka Midtrans Snap yang mendukung pembayaran instan QRIS (GoPay, OVO, ShopeePay, BCA/Mandiri Mobile), Virtual Account bank, dan Kartu Debit/Kredit.
-  5. _Security Trust Badges_: Indikator enkripsi SSL dan logo resmi Midtrans untuk memberikan rasa aman kepada pembeli.
-- **Kebutuhan State UI:**
-  - _Calculating Shipping_: Indikator animasi kalkulasi ongkir saat alamat atau kurir diubah.
-  - _Processing Payment_: Tombol bayar dinonaktifkan sementara untuk mencegah transaksi ganda (_double charge_).
-  - _Payment Success_: Pengalihan otomatis ke halaman konfirmasi pesanan dengan nomor faktur resmi.
+#### 2. Shop (`/shop`)
 
----
+- **Tujuan Halaman:** Eksplorasi katalog yang cepat dan fleksibel di bawah 5 detik.
+- **Kategori MVP:** All Products, New Drop, Best Seller, Archive.
+- **Komponen Kunci:** Quick Chip Bar kategori, Bottom Sheet Filter Drawer (ukuran S-XXL, rentang harga), grid produk responsif 2 kolom mobile / 4 kolom desktop, dan badge stok real-time.
 
-### F. Account (`/account`)
+#### 3. Product Detail (`/products/[slug]`)
 
-- **Peran Halaman:** Hub retensi dan pengelolaan data pelanggan (_Customer Portal_).
-- **Jenis Komponen:** Hybrid RSC dan Client Component (Progressive Account Access).
-- **Tujuan Pengguna:** Mengakses riwayat belanja masa lalu, mengunduh bukti invoice, dan memperbarui alamat pengiriman tanpa dipaksa membuat akun di awal pembelian.
-- **Blok & Komponen Antarmuka Kunci:**
-  1. _Akses Progresif (Tamu / Belum Login)_:
-     - Opsi login cepat menggunakan verifikasi _Magic Link_ via Email atau OTP WhatsApp berdasarkan nomor transaksi sebelumnya.
-  2. _Dasbor Akun Terdaftar_:
-     - _Profil Ringkas_: Nama pengguna, email, nomor kontak tersimpan, dan tier status pelanggan loyalitas.
-     - _Riwayat Pesanan (`/account/orders`)_: Kartu pesanan masa lalu yang memuat nomor faktur, tanggal transaksi, total belanja, status pembayaran, dan tautan instan ke pelacakan kurir.
-     - _Buku Alamat (`/account/profile`)_: Alamat utama pengiriman tersimpan untuk mempercepat pembelian di masa depan.
-- **Kebutuhan State UI:**
-  - _Unauthenticated_: Tampilan login / verifikasi pesanan yang bersih.
-  - _Empty Orders State_: Tampilan khusus bagi pengguna yang baru pertama kali mendaftar tanpa riwayat pesanan sebelumnya.
+- **Tujuan Halaman:** Menghapus ketakutan belanja online (_Remove buying anxiety_).
+- **Urutan Seksi:** Gallery $\rightarrow$ Product Info $\rightarrow$ Variant $\rightarrow$ Size Guide $\rightarrow$ Material $\rightarrow$ Shipping $\rightarrow$ CTA.
+- **Komponen Kunci:** Galeri foto multi-sudut makro tekstur kain, pemilih ukuran dengan indikator sisa stok, modal Interactive Size Guide berprofil model asli, kalkulator ongkir cepat, dan Sticky Bottom Action Bar di zona jempol.
 
----
+#### 4. Collection (`/collection`), About (`/about`), FAQ (`/faq`), Contact (`/contact`)
 
-### G. Order Tracking (`/track/[orderId]`)
+- **Tujuan Halaman:** Memperkuat cerita kultur streetwear (_Storytelling_), transparansi standar produksi, dan saluran bantuan pelanggan terpercaya.
 
-- **Peran Halaman:** Pusat pelacakan status pesanan dan paket kurir secara mandiri (_Self-Service Order Tracking_).
-- **Jenis Komponen:** Next.js Server Component dengan sinkronisasi _webhook_ kurir Biteship.
-- **Tujuan Pengguna:** Mengetahui kepastian posisi barang fisik secara transparan tanpa perlu bertanya manual ke admin toko.
-- **Blok & Komponen Antarmuka Kunci:**
-  1. _Status Header_: Nomor pesanan (Invoice ID), tanggal pembelian, dan lencana status utama (_Menunggu Pembayaran, Diproses Gudang, Sedang Dikirim, Selesai_).
-  2. _Live Shipment Timeline_: Diagram garis waktu visual pergerakan kurir logistik (diterima kurir, di pusat sortir, dalam perjalanan antar kota, sedang diantar kurir ke alamat, paket diterima).
-  3. _Informasi Ekspedisi_: Nama kurir pengiriman (contoh: JNE Reguler), nomor resi resmi (_Waybill Number_) dengan tombol "Salin Resi", dan nama kurir pengantar jika tersedia.
-  4. _Rincian Paket_: Ringkasan item barang yang dipesan dan alamat tujuan akhir.
-  5. _Layanan Bantuan Terpadu_: Tombol pintas "Butuh Bantuan Pesanan?" yang menghubungkan ke tim dukungan operasional jika terjadi kendala pengiriman.
-- **Kebutuhan State UI:**
-  - _Tracking Active_: Riwayat kurir terperinci lengkap dengan stempel waktu terkini.
-  - _Delivered State_: Pesan ucapan selamat dan ajakan membagikan foto OOTD ke Instagram dengan tagar resmi VOID Supply.
-  - _Invalid Order ID_: Pesan galat informatif jika nomor pesanan tidak ditemukan di basis data.
+### B. Transaction Domain
+
+#### 1. Cart (`/cart`)
+
+- **Tujuan Halaman:** Pengelolaan item pesanan sementara dengan persistensi lokal via Zustand.
+- **Komponen Kunci:** Baris item dengan kontrol kuantitas (+/-), input voucher diskon, ringkasan kalkulasi tagihan, dan tombol navigasi ke checkout.
+
+#### 2. Checkout (`/checkout`)
+
+- **Tujuan Halaman:** Menyelesaikan transaksi belanja di bawah 60 detik (_Complete purchase <60s_).
+- **Urutan Seksi:** Customer Data $\rightarrow$ Shipping $\rightarrow$ Payment $\rightarrow$ Confirmation.
+- **Komponen Kunci:** Formulir linear satu layar (One-Page Guest Checkout), kurir lokal real-time via Biteship, pemilihan metode bayar Midtrans Snap QRIS / Virtual Account, dan indikator keamanan SSL.
+
+#### 3. Payment Result (`/order/[orderId]`) & Order Tracking (`/track/[orderId]`)
+
+- **Tujuan Halaman:** Konfirmasi pembayaran instan dan pelacakan kurir logistik mandiri tanpa perlu bertanya manual ke admin toko.
+- **Komponen Kunci:** Lencana status transaksi lunas, nomor faktur pesanan, garis waktu pergerakan kurir real-time, dan tombol salin resi 1-tap.
+
+### C. Customer Domain
+
+#### 1. Account Portal (`/account`) & Order History (`/account/orders`)
+
+- **Tujuan Halaman:** Akses riwayat pesanan progresif via tautan Magic Link atau nomor faktur + WhatsApp tanpa kewajiban kata sandi.
+
+#### 2. Wishlist (`/account/wishlist`) & Address Book (`/account/address`)
+
+- **Tujuan Halaman:** Menyimpan artikel rilis terbatas yang diincar dan mempercepat proses isi alamat pada pembelian berikutnya.
+
+### D. Admin Domain (Operasional Dimas "Operations" Setyawan)
+
+Berdasarkan analisis kebutuhan persona admin pada [PERSONA.md](file:///c:/Projects/VOID%20Supply/PERSONA.md):
+
+1. **Dashboard (`/admin`):** Ringkasan metrik penjualan harian, rasio konversi keranjang, dan status transaksi lunas.
+2. **Products (`/admin/products`):** Penambahan dan pengeditan katalog, pengelolaan foto resolusi tinggi, dan penentuan varian ukuran.
+3. **Inventory (`/admin/inventory`):** Pengawasan stok atomik real-time, peringatan stok menipis (_low stock alert_), dan pencegahan penjualan berlebih (_overselling_).
+4. **Orders (`/admin/orders`):** Pemrosesan pesanan masuk, verifikasi status Midtrans, pembuatan resi kurir otomatis via Biteship, dan cetak label pengiriman.
+5. **Customers (`/admin/customers`):** Database kontak pembeli (WhatsApp terverifikasi) dan riwayat nilai transaksi pelanggan (CLV).
+6. **Promotions (`/admin/promotions`):** Pengaturan kode voucher promosi, potongan harga edisi drop, dan banner pengumuman situs web.
 
 ---
 
-## 4. Navigasi Ponsel Pintar (_Mobile Bottom Navigation_)
+## 5. Navigasi Ponsel Pintar (Mobile Bottom Bar)
 
-Untuk mengoptimalkan kenyamanan penggunaan satu tangan pada persona Rian yang 95% mengakses via smartphone, situs web dilengkapi bilah navigasi bawah (_Sticky Mobile Bottom Bar_):
+Untuk memastikan seluruh alur perjalanan pengguna dapat dijangkau oleh satu tangan pada layar ponsel (sesuai prinsip _Thumb-Zone Centric Ergonomics_):
 
-| Tombol Navigasi   | Ikon              | Rute Target        | Indikator Status                       |
-| :---------------- | :---------------- | :----------------- | :------------------------------------- |
-| **Beranda**       | Home Icon         | `/`                | Aktif saat di halaman depan            |
-| **Katalog**       | Grid Icon         | `/` atau `/shop`   | Aktif saat menjelajahi produk          |
-| **Keranjang**     | Shopping Bag Icon | `/cart`            | Badge angka dinamis berisi jumlah item |
-| **Lacak Pesanan** | Truck Icon        | `/track/[orderId]` | Akses instan pelacakan resi            |
-| **Akun**          | User Icon         | `/account`         | Indikator profil pengguna              |
+| Tombol Navigasi   | Ikon              | Rute Target        | Indikator Status & Peran                        |
+| :---------------- | :---------------- | :----------------- | :---------------------------------------------- |
+| **Beranda**       | Home Icon         | `/`                | Pintu gerbang visual dan rilis terbaru.         |
+| **Katalog**       | Grid Icon         | `/shop`            | Akses instan katalog dengan 4 kategori MVP.     |
+| **Keranjang**     | Shopping Bag Icon | `/cart`            | Badge angka dinamis berisi jumlah item belanja. |
+| **Lacak Pesanan** | Truck Icon        | `/track/[orderId]` | Akses mandiri pelacakan status resi kurir.      |
+| **Akun**          | User Icon         | `/account`         | Akses profil, riwayat pesanan, dan wishlist.    |
