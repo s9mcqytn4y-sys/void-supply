@@ -25,8 +25,10 @@ Dokumen rekayasa resmi yang telah diselesaikan untuk Submodule 02.0:
 1. [Arsitektur Frontend VOID Supply](./architecture.md): Sasaran aplikasi, keputusan stack, strategi rendering, struktur direktori, alur data, batasan keamanan, dan alur rilis.
 2. [Panduan Environment & Konfigurasi](./environment.md): Penjelasan mendalam lingkungan development, staging, dan production, serta pengelolaan berkas kredensial `.env`.
 3. [Konvensi Folder & Arsitektur Fitur](./folder-convention.md): Paradigma _Feature Sliced Thinking_, struktur internal fitur, aturan isolasi, dan konvensi penamaan.
-4. [Strategi Pengelolaan State](./state-management.md): Pemisahan tegas Server State (TanStack Query), Client State (Zustand), dan URL State (Next.js SearchParams).
-5. [Strategi Data Layer & API](./api-strategy.md): Perbandingan Server Actions vs Route Handlers, validasi runtime Zod, transaksi atomik Drizzle ORM, serta integrasi Midtrans dan Biteship.
+4. [Arsitektur Aliran Data](./data-flow.md): Pemetaan pergerakan data dari Server Component, Client Component, Server Action, hingga webhook Midtrans.
+5. [Batasan Keamanan & Arsitektur Proteksi](./security.md): Security boundary, tata kelola kredensial rahasia, validasi Zod runtime, dan verifikasi SHA-512 webhook.
+6. [Strategi Pengelolaan State](./state-management.md): Pemisahan tegas Server State (TanStack Query), Client State (Zustand), dan URL State (Next.js SearchParams).
+7. [Strategi Data Layer & API](./api-strategy.md): Perbandingan Server Actions vs Route Handlers, validasi runtime Zod, transaksi atomik Drizzle ORM, serta integrasi Midtrans dan Biteship.
 
 ---
 

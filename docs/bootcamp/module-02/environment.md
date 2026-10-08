@@ -24,34 +24,26 @@ Log/Monitor:  Terminal Console                    Sentry Staging Environment    
 
 ---
 
-## 2. Perbedaan Rinci Antar Tingkatan Environment
+---
 
-### A. Development Environment (Lokal Pengembang)
+## 2. Tingkatan Environment
 
-- **Fokus Utama:** Kecepatan iterasi, kemudahan debugging, dan isolasi eksperimen kode.
-- **Karakteristik:**
-  - Berjalan pada URL lokal `http://localhost:3000`.
-  - Database berjalan di mesin lokal pengembang (`127.0.0.1:5432/void_supply`).
-  - Menggunakan kunci sandbox Midtrans (`SB-Mid-server-xxxx`). Pembayaran dapat disimulasikan menggunakan simulator Snap resmi tanpa uang riil.
-  - Kesalahan (_errors_) ditampilkan secara mendalam pada layar peramban untuk mempercepat investigasi.
+### Development
 
-### B. Staging Environment (Pra-Produksi)
+- **Purpose:** Membangun fitur baru secara cepat pada mesin lokal pengembang dengan umpan balik instan dan isolasi data total.
+- **Tools:** Node.js v22 LTS, Next.js 16 App Router, Turbopack, VS Code, Git Bash, Vitest, Playwright.
+- **Database:** PostgreSQL 18.6 lokal (`localhost:5432/void_supply`) via Drizzle ORM.
+- **External Services:** Midtrans Snap Sandbox (simulator transaksi tanpa uang sungguhan) dan Biteship Test API (tarif kurir simulasi).
 
-- **Fokus Utama:** Validasi integrasi sistem end-to-end dalam kondisi menyerupai lingkungan produksi sebelum rilis ke publik.
-- **Karakteristik:**
-  - Berjalan pada domain pratinjau seperti `staging.voidsupply.com` atau Vercel Preview Deployments.
-  - Memiliki database terisolasi dari data produksi, sehingga pengujian beban dan penghapusan data aman dilakukan.
-  - Tetap menggunakan Midtrans Sandbox dan Biteship Test API untuk mencegah tagihan kartu kredit atau pemanggilan kurir fisik secara tidak sengaja.
-  - Menjalankan suite pengujian Playwright E2E secara otomatis.
+### Staging
 
-### C. Production Environment (Produksi Publik)
+- **Purpose:** Tempat verifikasi integrasi sistem menyeluruh (QA dan UAT) pada lingkungan komputasi awan sebelum rilis produksi.
+- **Difference:** Dijalankan pada domain pratinjau (`staging.voidsupply.com`), menggunakan cloud database terisolasi dari mesin lokal maupun produksi, menjalankan pengujian otomatis Playwright E2E pada pipeline CI/CD, namun tetap mempertahankan Midtrans Sandbox dan Biteship Testing agar tidak membebankan tagihan finansial riil atau memicu penjemputan paket fisik.
 
-- **Fokus Utama:** Ketersediaan tinggi (_High Availability_), keamanan data sensitif pelanggan, dan integritas finansial.
-- **Karakteristik:**
-  - Berjalan pada domain resmi `https://voidsupply.com`.
-  - Terhubung ke kluster database produksi terenkripsi dengan replikasi otomatis dan backup berkala.
-  - Menggunakan kunci produksi resmi Midtrans (`Mid-server-xxxx`). Transaksi QRIS dan Virtual Account memotong dana riil dari rekening pembeli.
-  - Log galat dikirim secara terenkripsi ke Sentry tanpa menampilkan rincian teknis basis data kepada pengguna akhir.
+### Production
+
+- **Purpose:** Menyajikan layanan e-commerce publik resmi (`voidsupply.com`) dengan performa tinggi, kestabilan 99.9% uptime, dan keandalan transaksi finansial nyata.
+- **Security Rules:** Seluruh kredensial rahasia tersimpan terenkripsi di environment dashboard Vercel, mutasi pembayaran wajib memverifikasi SHA-512 signature key Midtrans, SSL/TLS 256-bit aktif wajib di semua rute, data database di-backup berkala dengan enkripsi saat istirahat, dan pelaporan galat dikirim terenkripsi ke Sentry tanpa membocorkan struktur tabel atau query SQL kepada pengguna.
 
 ---
 
@@ -87,24 +79,24 @@ Kebijakan pengabaian berkas rahasia ini melindungi repositori dari insiden keama
 
 Aplikasi mengadopsi arsitektur _Dual-Slot Credentials_ yang memisahkan slot Sandbox (pengujian) dan slot Production (transaksi riil) secara berdampingan di `.env` dan `.env.example`:
 
-| Nama Variabel                                | Batas Akses      | Tingkat Kritis | Lingkungan / Peran | Deskripsi & Tujuan                                                                                                |
-| :------------------------------------------- | :--------------- | :------------- | :----------------- | :---------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_APP_NAME`                       | Klien & Server   | Rendah         | Global             | Nama resmi aplikasi untuk metadata HTML (`VOID Supply`).                                                          |
-| `NEXT_PUBLIC_APP_URL`                        | Klien & Server   | Rendah         | Global             | URL dasar aplikasi untuk canonical URL (`http://localhost:3000`).                                                 |
-| `DATABASE_URL`                               | **Hanya Server** | **Kritis**     | Dev Lokal          | String koneksi PostgreSQL 18 lokal untuk Drizzle ORM.                                                             |
-| `DATABASE_URL_STAGING`                       | **Hanya Server** | **Kritis**     | Staging            | String koneksi basis data pengujian pra-produksi pada server staging terisolasi.                                  |
-| `DATABASE_URL_PRODUCTION`                    | **Hanya Server** | **Kritis**     | Production         | Koneksi cluster database produksi utama dengan proteksi replikasi berkala.                                        |
-| `MIDTRANS_IS_PRODUCTION`                     | **Hanya Server** | Tinggi         | Kontrol            | Flag penentu lingkungan aktif Midtrans, bernilai false untuk sandbox dan true saat berpindah ke pembayaran nyata. |
-| `MIDTRANS_SERVER_KEY_SANDBOX`                | **Hanya Server** | Kritis         | Sandbox            | Kunci server pengujian Midtrans Snap lokal.                                                                       |
-| `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_SANDBOX`    | Klien & Server   | Sedang         | Sandbox            | Kunci publik untuk memunculkan pop-up Snap JS pada browser pengujian.                                             |
-| `MIDTRANS_MERCHANT_ID_SANDBOX`               | **Hanya Server** | Sedang         | Sandbox            | ID merchant pengujian sandbox.                                                                                    |
-| `MIDTRANS_SERVER_KEY_PRODUCTION`             | **Hanya Server** | **Kritis**     | Production         | Kunci server rahasia untuk memproses transaksi dana riil pembeli di gateway Midtrans.                             |
-| `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_PRODUCTION` | Klien & Server   | Sedang         | Production         | Kunci publik resmi peramban untuk membuka pembayaran Snap di domain produksi.                                     |
-| `MIDTRANS_MERCHANT_ID_PRODUCTION`            | **Hanya Server** | Sedang         | Production         | Identitas merchant resmi VOID Supply yang terdaftar pada Midtrans produksi.                                       |
-| `BITESHIP_ORIGIN_POSTAL_CODE`                | **Hanya Server** | Sedang         | Global             | Kode pos titik penjemputan paket dari gudang Sleman.                                                              |
-| `BITESHIP_API_KEY_SANDBOX`                   | **Hanya Server** | Kritis         | Sandbox            | Kunci API pengujian simulasi kurir Biteship.                                                                      |
-| `BITESHIP_API_KEY_PRODUCTION`                | **Hanya Server** | **Kritis**     | Production         | Token otentikasi resmi untuk pemanggilan kurir logistik dan pembuatan nomor resi fisik.                           |
-| `NEXT_PUBLIC_SENTRY_DSN`                     | Klien & Server   | Rendah         | Global             | Alamat endpoint pemantauan crash aplikasi.                                                                        |
+| Nama Variabel                                | Batas Akses      | Tingkat Kritis | Lingkungan / Peran | Deskripsi & Tujuan                                                                                                                 |
+| :------------------------------------------- | :--------------- | :------------- | :----------------- | :--------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_APP_NAME`                       | Klien & Server   | Rendah         | Global             | Nama resmi aplikasi untuk metadata HTML (`VOID Supply`).                                                                           |
+| `NEXT_PUBLIC_APP_URL`                        | Klien & Server   | Rendah         | Global             | URL dasar aplikasi untuk canonical URL (`http://localhost:3000`).                                                                  |
+| `DATABASE_URL`                               | **Hanya Server** | **Kritis**     | Dev Lokal          | URL PostgreSQL 18 lokal.                                                                                                           |
+| `DATABASE_URL_STAGING`                       | **Hanya Server** | **Kritis**     | Staging            | String koneksi basis data pengujian pra-produksi yang di-hosting pada instance cloud server staging terisolasi dengan data tiruan. |
+| `DATABASE_URL_PRODUCTION`                    | **Hanya Server** | **Kritis**     | Production         | Endpoint kluster produksi utama dengan proteksi replikasi berkala serta enkripsi data saat istirahat.                              |
+| `MIDTRANS_IS_PRODUCTION`                     | **Hanya Server** | Tinggi         | Kontrol            | Flag penentu lingkungan aktif Midtrans, bernilai false untuk sandbox dan true saat berpindah ke pembayaran nyata.                  |
+| `MIDTRANS_SERVER_KEY_SANDBOX`                | **Hanya Server** | Kritis         | Sandbox            | Kunci server pengujian Midtrans Snap lokal.                                                                                        |
+| `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_SANDBOX`    | Klien & Server   | Sedang         | Sandbox            | Kunci publik untuk memunculkan pop-up Snap JS pada browser pengujian.                                                              |
+| `MIDTRANS_MERCHANT_ID_SANDBOX`               | **Hanya Server** | Sedang         | Sandbox            | ID merchant pengujian sandbox.                                                                                                     |
+| `MIDTRANS_SERVER_KEY_PRODUCTION`             | **Hanya Server** | **Kritis**     | Production         | Kredensial rahasia gateway Midtrans untuk transaksi riil pembeli.                                                                  |
+| `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_PRODUCTION` | Klien & Server   | Sedang         | Production         | Kunci publik peramban untuk membuka pembayaran Snap di domain produksi secara aman tanpa mengekspos rahasia backend aplikasi.      |
+| `MIDTRANS_MERCHANT_ID_PRODUCTION`            | **Hanya Server** | Sedang         | Production         | ID merchant produksi resmi.                                                                                                        |
+| `BITESHIP_ORIGIN_POSTAL_CODE`                | **Hanya Server** | Sedang         | Global             | Kode pos titik penjemputan paket dari gudang Sleman.                                                                               |
+| `BITESHIP_API_KEY_SANDBOX`                   | **Hanya Server** | Kritis         | Sandbox            | Kunci API pengujian simulasi kurir Biteship.                                                                                       |
+| `BITESHIP_API_KEY_PRODUCTION`                | **Hanya Server** | **Kritis**     | Production         | Token otentikasi resmi untuk pemanggilan kurir logistik dan pembuatan nomor resi fisik.                                            |
+| `NEXT_PUBLIC_SENTRY_DSN`                     | Klien & Server   | Rendah         | Global             | Alamat endpoint pemantauan crash aplikasi.                                                                                         |
 
 ---
 
