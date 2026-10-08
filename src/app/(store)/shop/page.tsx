@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { catalogService, ProductGrid } from "@/features/catalog";
 
 export const metadata: Metadata = {
@@ -12,10 +13,10 @@ export default async function ShopPage() {
   const products = await catalogService.ambilDaftarKatalog();
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-7xl bg-neutral-950 px-4 py-12 sm:px-6 lg:px-8">
+    <main className="mx-auto min-h-screen w-full max-w-7xl bg-neutral-950 px-4 py-8 sm:px-6 lg:px-8">
       {/* Header Koleksi Editorial */}
-      <header className="mb-12 border-b border-neutral-800 pb-8">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+      <header className="mb-10 border-b border-neutral-800 pb-8">
+        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <span className="mb-2 block font-mono text-xs tracking-widest text-neutral-400 uppercase">
               CATALOG // DROP 04
@@ -28,6 +29,23 @@ export default async function ShopPage() {
             <p className="font-mono text-xs tracking-wider text-neutral-400 uppercase">
               {products.length} Artikel Rilis Terbatas
             </p>
+          </div>
+        </div>
+
+        {/* Hero Editorial Banner Lookbook */}
+        <div className="relative aspect-[16/9] w-full overflow-hidden border border-neutral-800 bg-neutral-900 md:aspect-[21/9]">
+          <Image
+            src="/images/lookbook/drop-04-editorial-hero.webp"
+            alt="Drop 04 Night Transmission Lookbook Editorial"
+            fill
+            priority
+            sizes="(max-width: 1280px) 100vw, 1280px"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 flex items-end bg-gradient-to-t from-neutral-950/80 via-transparent to-transparent p-6 md:p-8">
+            <span className="border border-neutral-700/60 bg-neutral-900/80 px-3 py-1.5 font-mono text-xs tracking-widest text-neutral-300 uppercase backdrop-blur-sm">
+              EDITORIAL LOOKBOOK // ARCHIVE 2026
+            </span>
           </div>
         </div>
       </header>
