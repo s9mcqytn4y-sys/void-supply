@@ -17,7 +17,7 @@ Kesalahan umum dalam pengembangan frontend adalah menyimpan seluruh data ke dala
           ▼                           ▼                           ▼
   [ SERVER STATE ]            [ CLIENT STATE ]            [ URL STATE ]
 • Katalog Produk            • Item Keranjang Belanja    • Filter Kategori (?category)
-• Sisa Stok Inventaris      • Status Laci (Cart Drawer) • Ukuran Terpilih (?size)
+• Sisa Stok Inventaris      • Halaman Cart (/cart)      • Ukuran Terpilih (?size)
 • Status Tagihan Midtrans   • Notifikasi Toast Aktif    • Kata Kunci Cari (?q)
 • Detail Riwayat Pesanan    • Modal Panduan Ukuran      • Urutan Harga (?sort)
           │                           │                           │
@@ -89,19 +89,16 @@ interface ItemKeranjang {
 
 interface CartState {
   items: ItemKeranjang[];
-  isDrawerOpen: boolean;
   tambahItem: (item: ItemKeranjang) => void;
   ubahKuantitas: (variantId: string, kuantitas: number) => void;
   hapusItem: (variantId: string) => void;
   kosongkanKeranjang: () => void;
-  setDrawerOpen: (isOpen: boolean) => void;
 }
 
 export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
       items: [],
-      isDrawerOpen: false,
       tambahItem: (itemBaru) =>
         set((state) => {
           const itemAda = state.items.find((i) => i.variantId === itemBaru.variantId);
@@ -114,10 +111,9 @@ export const useCartStore = create<CartState>()(
               items: state.items.map((i) =>
                 i.variantId === itemBaru.variantId ? { ...i, kuantitas: kuantitasBaru } : i
               ),
-              isDrawerOpen: true, // Buka Cart Drawer otomatis saat item ditambah
             };
           }
-          return { items: [...state.items, itemBaru], isDrawerOpen: true };
+          return { items: [...state.items, itemBaru] };
         }),
       ubahKuantitas: (variantId, kuantitas) =>
         set((state) => ({
@@ -128,12 +124,11 @@ export const useCartStore = create<CartState>()(
           items: state.items.filter((i) => i.variantId !== variantId),
         })),
       kosongkanKeranjang: () => set({ items: [] }),
-      setDrawerOpen: (isOpen) => set({ isDrawerOpen: isOpen }),
     }),
     {
       name: "void_cart_storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ items: state.items }), // Hanya simpan items, bukan state drawer
+      partialize: (state) => ({ items: state.items }),
     }
   )
 );

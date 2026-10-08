@@ -365,7 +365,7 @@ Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembe
 
 - **Size Guide Drawer Modal:** Klik tautan memicu pembukaan modal dari bawah layar dengan transisi pegas, tombol tutup `[X]`, dan dukungan tutup via tombol _Escape_.
 - **Variant Change:** Memilih tombol ukuran secara otomatis memperbarui indikator kuota stok dan mengaktifkan tombol beli.
-- **Add-to-Cart Trigger:** Menekan tombol memicu animasi getar taktil halus, penambahan kuantitas ke badge keranjang, dan pembukaan drawer keranjang samping (_Cart Drawer Slide-in_).
+- **Add-to-Cart Trigger:** Menekan tombol memicu animasi getar taktil halus, penambahan kuantitas ke badge keranjang, dan pengalihan langsung ke Halaman Penuh Keranjang (`/cart`) atau pemunculan Toast konfirmasi dengan tombol cepat `[Buka Keranjang]`.
 
 ### D. Responsive Behavior
 
@@ -426,7 +426,7 @@ Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembe
 
 ### A. Metadata Halaman
 
-- **Page:** Shopping Cart (`/cart` & Cart Drawer)
+- **Page:** Dedicated Shopping Cart Page (`/cart`)
 - **Goal:** Pengelolaan item belanjaan yang transparan dan tanpa hambatan (_Frictionless Order Management_).
 - **Primary User:** Pembeli yang ingin memeriksa kembali daftar belanjaan, menyesuaikan jumlah barang, dan memasukkan kode promosi sebelum membayar.
 - **Success Metric:**
@@ -475,7 +475,7 @@ Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembe
 
 ### D. Responsive Behavior
 
-- **Mobile (< 768px):** Tampil sebagai halaman vertikal penuh atau drawer samping kanan (_slide-over drawer_).
+- **Mobile (< 768px):** Tampil sebagai halaman vertikal penuh mandiri (`/cart`) dengan navigasi kembali ke katalog, daftar item ramah jempol, dan tombol lanjut checkout melekat di dasar layar.
 - **Desktop ($\ge 1024px$):** Layout 2 kolom: Daftar belanjaan di kolom kiri (lebar 65%), ringkasan tagihan sticky di kolom kanan (lebar 35%).
 
 ### E. Engineering Impact
@@ -804,25 +804,22 @@ Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checko
 
 Bagian ini mendefinisikan rancangan 9 komponen antarmuka yang digunakan secara konsisten di seluruh platform VOID Supply. Seluruh komponen dirancang memenuhi standar Anti-Slop, Mobile-First, serta aksesibilitas WCAG AA (tap target minimum 44px, kontras tinggi, navigasi keyboard).
 
-### 9.1. Komponen Cart Slide-Over Drawer
+### 9.1. Spesifikasi Arsitektur Halaman Penuh Keranjang Belanja (`/cart`)
 
-- **Fungsi:** Komponen laci keranjang belanja melayang yang terbuka secara otomatis saat pengguna menekan tombol `[+ KERANJANG]` pada halaman detail produk atau katalog.
-- **Anatomi UI:**
-  - `BackdropOverlay`: Lapisan gelap semi-transparan berlatar `bg-black/80 backdrop-blur-sm` dengan transisi opacity 200ms.
-  - `DrawerPanel`: Lebar 380px di desktop (geser dari sisi kanan layar), lebar 100% di mobile (slide-in bottom sheet).
-  - `DrawerHeader`: Judul `Keranjang Belanja (N)` font Display 18px, tombol tutup ikon silang 44px `[X]`.
-  - `DrawerBody (Scrollable)`:
-    - Daftar kartu produk ringkas: Thumbnail 80px x 100px, nama artikel, varian ukuran, harga tabular monospace.
-    - Kontrol kuantitas 44px `[-]` `[Qty]` `[+]` dengan proteksi batas sisa stok riil.
-    - Tombol hapus instan `[Hapus]`.
-    - Empty state editorial jika keranjang kosong: Pesan `Keranjang Anda masih kosong` + tombol `[Jelajahi Rilis Terbaru]`.
-  - `DrawerFooter (Sticky Bottom)`:
-    - Baris rincian subtotal produk dan estimasi diskon.
-    - Tombol CTA utama 48px berlatar Volt Neon `#E2F952` bertuliskan `[LANJUT KE CHECKOUT (Rp xxx.xxx)]`.
-    - Tombol sekunder `[Lanjut Belanja]` untuk menutup laci.
+- **Keputusan Arsitektur:** VOID Supply menetapkan keputusan rekayasa bahwa keranjang belanja beroperasi sebagai Halaman Penuh Mandiri (_Dedicated Full Page_ `/cart`) tanpa drawer/laci melayang. Pendekatan ini memberikan ruang visual optimal untuk memeriksa daftar artikel, penyesuaian kuantitas, penerapan kode kupon diskon, dan kalkulasi tagihan sebelum beralih ke alur checkout satu halaman.
+- **Anatomi UI Halaman:**
+  - `CartHeader`: Judul `KERANJANG BELANJA (N)` dengan navigasi tombol kembali `[< Lanjut Belanja]` menuju katalog produk.
+  - `CartListContainer`:
+    - Kartu artikel produk: Thumbnail foto WebP 80px x 100px rasio 4:5, nama kaos/hoodie font Display 16px, varian ukuran terpilih (Size L), dan harga satuan monospace tabular.
+    - Kontrol kuantitas 44px `[-]` `[Qty]` `[+]` dengan batas stok gudang atomik.
+    - Tombol hapus instan `[Hapus]` dengan konfirmasi halus.
+    - _Empty State_ editorial bertema gelap jika keranjang kosong: Teks `Keranjang Anda masih kosong` + tombol CTA `[JELAJAHI DROP TERBARU]`.
+  - `PromoVoucherBlock`: Kontainer input kode voucher promo dengan tombol 44px `[TERAPKAN]` dan feedback visual inline.
+  - `OrderSummaryCard`: Rincian subtotal produk, diskon voucher, catatan estimasi ongkos kirim, dan total sementara berhuruf tebal 18px.
+  - `PrimaryCheckoutButton`: Tombol lebar penuh 48px berlatar Volt Neon `#E2F952` bertuliskan `[LANJUT KE CHECKOUT (Rp xxx.xxx)]` dengan umpan balik taktil `active:scale-[0.98]`.
 - **Aksesibilitas & Interaksi:**
-  - Menutup otomatis saat menekan tombol `Escape` keyboard atau mengetuk area backdrop.
-  - Penguncian gulir layar latar (`overflow-hidden` pada `<body>`) saat drawer terbuka.
+  - Seluruh kontrol interaktif memenuhi batas tap target minimum 44px.
+  - Mutasi jumlah barang langsung memperbarui angka subtotal di sisi klien via Zustand `useCartStore` tanpa jeda muat ulang halaman.
 
 ### 9.2. Komponen Toast Notification System
 
@@ -935,7 +932,7 @@ Bagian ini mendefinisikan rancangan 9 komponen antarmuka yang digunakan secara k
 | **Homepage (`/`)**                      | Hero 1 kolom full-width, 6 seksi linier, grid 2 kolom, sticky bottom bar | Split hero (teks kiri, model kanan), grid produk 4 kolom, header navigasi horizontal |
 | **Shop (`/shop`)**                      | Chip bar horizontal geser, filter via Bottom Sheet Drawer, grid 2 kolom  | Sidebar filter statis di kiri (260px), grid produk 4 kolom di kanan                  |
 | **Product Detail (`/products/[slug]`)** | Galeri swipe horizontal, 8 seksi linier mental model, sticky action bar  | Galeri 2 kolom vertikal di kiri, panel beli dan spesifikasi sticky di kanan          |
-| **Cart (`/cart` & Drawer)**             | Bottom sheet drawer instan, rincian vertikal 1 kolom                     | Slide-over drawer kanan (380px), layout halaman 2 kolom (65% item, 35% ringkasan)    |
+| **Cart (`/cart`)**                      | Halaman penuh vertikal 1 kolom, ringkasan belanja di bawah               | Layout 2 kolom (Daftar belanja kiri 65%, ringkasan tagihan sticky kanan 35%)         |
 | **Checkout (`/checkout`)**              | Formulir linier 1 kolom bebas distraksi, tombol bayar bawah              | Layout 2 kolom (Formulir pengiriman kiri 60%, ringkasan dan bayar kanan 40%)         |
 | **Account (`/account`)**                | Kartu riwayat pesanan bertumpuk vertikal, segmented tabs geser           | Layout 2 kolom: Sidebar profil di kiri (280px), daftar pesanan dan tabel di kanan    |
 | **Order Tracking (`/track/[orderId]`)** | Garis waktu kurir vertikal, tombol salin resi ramah jempol               | Garis waktu vertikal berdampingan dengan kartu rincian paket dan alamat tujuan       |

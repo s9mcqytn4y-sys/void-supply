@@ -83,37 +83,74 @@ Kredensial rahasia tidak boleh tersimpan di dalam repositori Git. Kami menerapka
 
 ## 4. Matriks Kontrak Variabel Lingkungan VOID Supply
 
-| Nama Variabel                     | Batas Akses      | Tingkat Kritis | Deskripsi & Tujuan                                                                             |
-| :-------------------------------- | :--------------- | :------------- | :--------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_APP_NAME`            | Klien & Server   | Rendah         | Nama resmi aplikasi untuk metadata HTML dan judul halaman (`VOID Supply`).                     |
-| `NEXT_PUBLIC_APP_URL`             | Klien & Server   | Rendah         | URL dasar aplikasi untuk pembuatan link absolut dan canonical URL (`http://localhost:3000`).   |
-| `DATABASE_URL`                    | **Hanya Server** | **Kritis**     | String koneksi terenkripsi ke PostgreSQL 18 untuk Drizzle ORM. Dilarang diekspos ke klien!     |
-| `MIDTRANS_SERVER_KEY`             | **Hanya Server** | **Kritis**     | Kunci otentikasi server untuk membuat transaksi Snap token dan memverifikasi webhook Midtrans. |
-| `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` | Klien & Server   | Sedang         | Kunci publik untuk inisialisasi pop-up Snap JS di browser pelanggan.                           |
-| `MIDTRANS_IS_PRODUCTION`          | **Hanya Server** | Tinggi         | Penentu mode transaksi Midtrans (`false` untuk sandbox, `true` untuk produksi).                |
-| `BITESHIP_API_KEY`                | **Hanya Server** | **Kritis**     | Kunci akses API resmi Biteship untuk cek tarif ongkir dan order kurir penjemputan.             |
-| `BITESHIP_ORIGIN_POSTAL_CODE`     | **Hanya Server** | Sedang         | Kode pos gudang asal pengiriman barang VOID Supply (`55281` Sleman, D.I. Yogyakarta).          |
-| `NEXT_PUBLIC_SENTRY_DSN`          | Klien & Server   | Rendah         | Alamat pengiriman laporan galat aplikasi ke dasbor monitoring Sentry.                          |
+Aplikasi mengadopsi arsitektur _Dual-Slot Credentials_ yang memisahkan slot Sandbox (pengujian) dan slot Production (transaksi riil) secara berdampingan di `.env` dan `.env.example`:
+
+| Nama Variabel                                | Batas Akses      | Tingkat Kritis | Lingkungan / Peran | Deskripsi & Tujuan                                                        |
+| :------------------------------------------- | :--------------- | :------------- | :----------------- | :------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_APP_NAME`                       | Klien & Server   | Rendah         | Global             | Nama resmi aplikasi untuk metadata HTML (`VOID Supply`).                  |
+| `NEXT_PUBLIC_APP_URL`                        | Klien & Server   | Rendah         | Global             | URL dasar aplikasi untuk canonical URL (`http://localhost:3000`).         |
+| `DATABASE_URL`                               | **Hanya Server** | **Kritis**     | Dev Lokal          | String koneksi PostgreSQL 18 lokal Drizzle ORM.                           |
+| `DATABASE_URL_STAGING`                       | **Hanya Server** | **Kritis**     | Staging            | String koneksi basis data pengujian pra-produksi.                         |
+| `DATABASE_URL_PRODUCTION`                    | **Hanya Server** | **Kritis**     | Production         | String koneksi basis data rilis publik utama.                             |
+| `MIDTRANS_IS_PRODUCTION`                     | **Hanya Server** | Tinggi         | Kontrol            | Penentu mode transaksi Midtrans (`false` = Sandbox, `true` = Production). |
+| `MIDTRANS_SERVER_KEY_SANDBOX`                | **Hanya Server** | Kritis         | Sandbox            | Kunci server pengujian Midtrans Snap.                                     |
+| `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_SANDBOX`    | Klien & Server   | Sedang         | Sandbox            | Kunci klien pengujian pop-up Snap browser.                                |
+| `MIDTRANS_MERCHANT_ID_SANDBOX`               | **Hanya Server** | Sedang         | Sandbox            | Merchant ID sandbox (`G357841497`).                                       |
+| `MIDTRANS_SERVER_KEY_PRODUCTION`             | **Hanya Server** | **Kritis**     | Production         | Kunci server transaksi dana riil Midtrans.                                |
+| `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_PRODUCTION` | Klien & Server   | Sedang         | Production         | Kunci klien transaksi dana riil peramban.                                 |
+| `MIDTRANS_MERCHANT_ID_PRODUCTION`            | **Hanya Server** | Sedang         | Production         | Merchant ID resmi produksi toko.                                          |
+| `BITESHIP_ORIGIN_POSTAL_CODE`                | **Hanya Server** | Sedang         | Global             | Kode pos gudang asal VOID Supply (`55281` Sleman).                        |
+| `BITESHIP_API_KEY_SANDBOX`                   | **Hanya Server** | Kritis         | Sandbox            | Kunci API pengujian tarif dan kurir Biteship.                             |
+| `BITESHIP_API_KEY_PRODUCTION`                | **Hanya Server** | **Kritis**     | Production         | Kunci API resmi pengiriman dan penjemputan kurir riil.                    |
+| `NEXT_PUBLIC_SENTRY_DSN`                     | Klien & Server   | Rendah         | Global             | Alamat pengiriman pemantauan galat Sentry.                                |
 
 ---
 
-## 5. Validasi Runtime Variabel Lingkungan dengan Zod
+## 5. Validasi Runtime Variabel Lingkungan dengan Zod & Resolusi Dinamis
 
-Untuk mencegah aplikasi mengalami _crash_ mendadak di tengah transaksi akibat variabel lingkungan yang lupa dikonfigurasi, sistem memvalidasi seluruh variabel saat inisialisasi aplikasi menggunakan Zod:
+Sistem menyelesaikan kredensial aktif secara dinamis di runtime berdasarkan nilai flag `MIDTRANS_IS_PRODUCTION`:
 
 ```typescript
-// Konsep Validasi Skema Environment (src/lib/env.ts)
+// Konsep Resolusi Kredensial Dinamis (src/lib/env.ts)
 import { z } from "zod";
 
 export const envSkema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.string().url("DATABASE_URL harus berupa URL database yang valid"),
-  MIDTRANS_SERVER_KEY: z.string().min(1, "MIDTRANS_SERVER_KEY wajib diisi"),
-  NEXT_PUBLIC_MIDTRANS_CLIENT_KEY: z.string().min(1, "NEXT_PUBLIC_MIDTRANS_CLIENT_KEY wajib diisi"),
+
+  // Kontrol Lingkungan
   MIDTRANS_IS_PRODUCTION: z.string().transform((val) => val === "true"),
-  BITESHIP_API_KEY: z.string().min(1, "BITESHIP_API_KEY wajib diisi"),
+
+  // Midtrans Dual-Slot
+  MIDTRANS_SERVER_KEY_SANDBOX: z.string().optional(),
+  MIDTRANS_SERVER_KEY_PRODUCTION: z.string().optional(),
+  NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_SANDBOX: z.string().optional(),
+  NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_PRODUCTION: z.string().optional(),
+
+  // Biteship Dual-Slot
+  BITESHIP_API_KEY_SANDBOX: z.string().optional(),
+  BITESHIP_API_KEY_PRODUCTION: z.string().optional(),
   BITESHIP_ORIGIN_POSTAL_CODE: z.string().length(5, "Kode pos gudang asal harus 5 digit numerik"),
 });
+
+// Helper Resolusi Kunci Aktif
+export function getMidtransServerKey(): string {
+  const isProd = process.env.MIDTRANS_IS_PRODUCTION === "true";
+  const key = isProd
+    ? process.env.MIDTRANS_SERVER_KEY_PRODUCTION
+    : process.env.MIDTRANS_SERVER_KEY_SANDBOX || process.env.MIDTRANS_SERVER_KEY;
+  if (!key) throw new Error("Kunci Midtrans Server aktif tidak ditemukan");
+  return key;
+}
+
+export function getBiteshipApiKey(): string {
+  const isProd = process.env.MIDTRANS_IS_PRODUCTION === "true";
+  const key = isProd
+    ? process.env.BITESHIP_API_KEY_PRODUCTION
+    : process.env.BITESHIP_API_KEY_SANDBOX || process.env.BITESHIP_API_KEY;
+  if (!key) throw new Error("Kunci Biteship API aktif tidak ditemukan");
+  return key;
+}
 ```
 
-Jika ada variabel kritis yang kosong atau salah format, proses _build_ atau _startup_ server akan langsung berhenti dengan pesan galat yang jelas, mencegah kegagalan diam-diam (_silent failure_) di lingkungan produksi.
+Jika aplikasi dijalankan dalam mode produksi (`MIDTRANS_IS_PRODUCTION=true`), sistem secara otomatis memvalidasi keberadaan `MIDTRANS_SERVER_KEY_PRODUCTION` dan `BITESHIP_API_KEY_PRODUCTION` saat proses startup, mencegah kegagalan fatal saat pembeli bertransaksi.

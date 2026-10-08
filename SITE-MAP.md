@@ -27,7 +27,7 @@ src/app
 │   └── contact/page.tsx                      -> Saluran Bantuan (/contact)
 │
 ├── (transaction)/                            -> [TRANSACTION DOMAIN]
-│   ├── cart/page.tsx                         -> Cart Drawer / Page (/cart)
+│   ├── cart/page.tsx                         -> Dedicated Cart Page (/cart)
 │   ├── checkout/page.tsx                     -> One-Page Guest Checkout (/checkout)
 │   ├── order/[orderId]/page.tsx              -> Payment Result & Invoice (/order/[orderId])
 │   └── track/[orderId]/page.tsx              -> Public Courier Tracking (/track/[orderId])

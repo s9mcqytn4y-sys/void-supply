@@ -49,7 +49,7 @@ Next.js 16 App Router menyediakan 3 paradigma eksekusi yang diterapkan secara di
        │           ├─ Akses langsung Drizzle ORM / PostgreSQL
        │           └─ Kirim HTML statis + RSC payload ke browser (Zero JS bundle overhead)
        │
-       ├─► Interaksi UI (Cart Drawer, Filter Tabs, Modal)
+       ├─► Interaksi UI (Halaman Cart, Filter Tabs, Modal, Nav Drawer)
        │     └─► [ Client Component ("use client") ]
        │           ├─ State lokal browser (Zustand & React State)
        │           ├─ Event listeners (onClick, onTouch, onChange)
@@ -77,7 +77,7 @@ Next.js 16 App Router menyediakan 3 paradigma eksekusi yang diterapkan secara di
 
 - **Karakteristik:** Memiliki akses ke state peramban, _event listeners_, _browser APIs_ (LocalStorage), dan interaksi taktil.
 - **Penerapan pada VOID Supply:**
-  - `CartDrawer` & `CartTrigger` (membaca `useCartStore` reaktif).
+  - Halaman Keranjang (`src/app/(transaction)/cart/page.tsx` & komponen `CartView` yang membaca `useCartStore`).
   - `SizeSelector` & `SizeGuideModal` (interaksi pemilihan varian ukuran).
   - `ToastContainer` & `ToastItem` (notifikasi pop-up reaktif).
   - `NavigationDrawer` (menu hamburger seluler).
@@ -110,7 +110,7 @@ src/
 │   │   ├── collection/page.tsx                # Lookbook Editorial
 │   │   └── faq/page.tsx                       # Panduan & Ukuran
 │   ├── (transaction)/                         # Domain Transaksi Bebas Distraksi
-│   │   ├── cart/page.tsx                      # Halaman Keranjang Fallback
+│   │   ├── cart/page.tsx                      # Halaman Keranjang Mandiri (Dedicated Full Page)
 │   │   ├── checkout/page.tsx                  # One-Page Guest Checkout
 │   │   └── order/[orderId]/page.tsx           # Status Pembayaran & Faktur
 │   ├── (customer)/                            # Domain Portal Pelanggan
@@ -161,7 +161,8 @@ PostgreSQL (Drizzle ORM) ──► Server Component ──► HTML Browser (Cach
 User Tap [+ KERANJANG] ──► Zustand Store (useCartStore) ──► LocalStorage Persist
                                      │
                                      ▼
-                            Cart Drawer Terbuka
+                     Navigasi /cart atau Toast Konfirmasi
+                            (Dedicated Full Page)
 
 [ Transaksi Checkout ]
 Form Klien (React Hook Form)
