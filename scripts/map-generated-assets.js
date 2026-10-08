@@ -13,6 +13,10 @@ const mappings = [
     targets: ["void-tee-01-front.webp", "void-tee-01-back.webp"],
   },
   {
+    src: "void_tee_macro_1791476250659.jpg",
+    targets: ["void-tee-01-detail.webp"],
+  },
+  {
     src: "void_acid_wash_tee_1791474291733.jpg",
     targets: ["void-tee-02-front.webp", "void-tee-02-back.webp"],
   },
@@ -25,8 +29,16 @@ const mappings = [
     targets: ["hoodie-zip-front.webp", "hoodie-zip-back.webp"],
   },
   {
+    src: "hoodie_zipper_macro_1791476322381.jpg",
+    targets: ["hoodie-zip-detail.webp"],
+  },
+  {
     src: "modular_bomber_jacket_1791474352840.jpg",
     targets: ["bomber-front.webp", "bomber-back.webp"],
+  },
+  {
+    src: "bomber_hardware_macro_1791476353838.jpg",
+    targets: ["bomber-detail.webp"],
   },
   {
     src: "tactical_cargo_pants_1791474377062.jpg",

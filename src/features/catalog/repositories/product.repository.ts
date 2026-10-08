@@ -1,6 +1,6 @@
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { produk, varianProduk, kategori } from "@/lib/db/schema";
+import { produk, kategori } from "@/lib/db/schema";
 
 export const productRepository = {
   async temukanSemuaAktif() {

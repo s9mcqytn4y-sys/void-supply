@@ -50,6 +50,60 @@ Satu entitas `Produk` menaungi banyak entitas `VarianProduk`. Ketika checkout be
 
 ---
 
+## 2.1 Customer Entity (Profil Pelanggan)
+
+Entitas `Pelanggan` mencatat identitas akun pembeli terdaftar, alamat pengiriman default, kontak darurat WhatsApp, serta riwayat transaksi pesanan.
+
+### Atribut Pelanggan
+
+| Nama Atribut      | Tipe Data TypeScript | Kolom Database                   | Deskripsi & Batasan                                      |
+| :---------------- | :------------------- | :------------------------------- | :------------------------------------------------------- |
+| `id`              | `string` (UUID v7)   | `id` (uuid, PK)                  | Kunci primer akun pelanggan.                             |
+| `namaLengkap`     | `string`             | `nama_lengkap` (varchar 150)     | Nama lengkap pengguna sesuai identitas kependudukan.     |
+| `email`           | `string`             | `email` (varchar 255, unik)      | Alamat surel unik untuk autentikasi dan bukti transaksi. |
+| `telepon`         | `string \| null`     | `telepon` (varchar 30)           | Nomor telepon / WhatsApp aktif.                          |
+| `alamatDefault`   | `string \| null`     | `alamat_default` (text)          | Alamat tujuan pengiriman prioritas.                      |
+| `kotaDefault`     | `string \| null`     | `kota_default` (varchar 100)     | Kota administratif pemesan.                              |
+| `provinsiDefault` | `string \| null`     | `provinsi_default` (varchar 100) | Provinsi administratif pemesan.                          |
+| `kodePosDefault`  | `string \| null`     | `kode_pos_default` (varchar 10)  | Kode pos wilayah domisili pembeli.                       |
+| `dibuatPada`      | `Date`               | `dibuat_pada` (timestamp)        | Waktu pendaftaran akun pelanggan.                        |
+| `diperbaruiPada`  | `Date`               | `diperbarui_pada` (timestamp)    | Waktu terakhir pembaruan profil pelanggan.               |
+
+---
+
+## 2.2 PostgreSQL Enums (State Machine & Lifecycles)
+
+Untuk mencegah distorsi data akibat inkonsistensi string, seluruh status domain dikunci oleh tipe data `pgEnum`:
+
+```typescript
+export const statusProdukEnum = pgEnum("status_produk", ["draft", "aktif", "habis", "arsip"]);
+
+export const statusPesananEnum = pgEnum("status_pesanan", [
+  "menunggu_pembayaran",
+  "diproses",
+  "dikirim",
+  "selesai",
+  "dibatalkan",
+]);
+
+export const statusPembayaranEnum = pgEnum("status_pembayaran", [
+  "menunggu_pembayaran",
+  "berhasil",
+  "kadaluarsa",
+  "gagal",
+  "dikembalikan",
+]);
+
+export const statusPengirimanEnum = pgEnum("status_pengiriman", [
+  "menunggu_resi",
+  "dalam_pengiriman",
+  "terkirim",
+  "gagal",
+]);
+```
+
+---
+
 ## 3. Order Entity & Item Pesanan
 
 Entitas `Pesanan` mengikat kontrak transaksi finansial antara pembeli dan toko, mencakup rincian penerima, kalkulasi subtotal, diskon promosi, dan ongkos kirim.

@@ -17,12 +17,29 @@ async function seed() {
   await db.delete(schema.pembayaran);
   await db.delete(schema.pengiriman);
   await db.delete(schema.pesanan);
+  await db.delete(schema.pelanggan);
   await db.delete(schema.varianProduk);
   await db.delete(schema.produk);
   await db.delete(schema.koleksi);
   await db.delete(schema.kategori);
 
   console.log("✓ Data lama berhasil dibersihkan");
+
+  // 1.1 Seeding Profil Pelanggan (Persona Rian The Trendsetter)
+  const [pelangganRian] = await db
+    .insert(schema.pelanggan)
+    .values({
+      namaLengkap: "Rian Pratama",
+      email: "rian.trendsetter@voidsupply.test",
+      telepon: "081298765432",
+      alamatDefault: "Jl. Kemang Timur No. 42, Bangka, Mampang Prapatan",
+      kotaDefault: "Jakarta Selatan",
+      provinsiDefault: "DKI Jakarta",
+      kodePosDefault: "12730",
+    })
+    .returning();
+
+  console.log(`✓ Profil pelanggan seed (${pelangganRian.namaLengkap}) berhasil dibuat`);
 
   // 2. Seeding Kategori
   const [katOuterwear, katTshirt, katPants, katAccessories] = await db
@@ -86,6 +103,7 @@ async function seed() {
       galeriGambar: [
         "/images/products/drop-04/void-tee-01-front.webp",
         "/images/products/drop-04/void-tee-01-back.webp",
+        "/images/products/drop-04/void-tee-01-detail.webp",
       ],
       varians: [
         { ukuran: "S", warna: "Hitam", sku: "VOID-D04-TEE-BLK-S", stok: 25, berat: 420 },
@@ -144,6 +162,7 @@ async function seed() {
       galeriGambar: [
         "/images/products/drop-04/hoodie-zip-front.webp",
         "/images/products/drop-04/hoodie-zip-back.webp",
+        "/images/products/drop-04/hoodie-zip-detail.webp",
       ],
       varians: [
         { ukuran: "M", warna: "Pitch Black", sku: "VOID-D04-HD-BLK-M", stok: 20, berat: 920 },
@@ -162,6 +181,7 @@ async function seed() {
       galeriGambar: [
         "/images/products/drop-04/bomber-front.webp",
         "/images/products/drop-04/bomber-back.webp",
+        "/images/products/drop-04/bomber-detail.webp",
       ],
       varians: [
         { ukuran: "M", warna: "Olive Drab", sku: "VOID-D04-BMB-OLV-M", stok: 10, berat: 850 },

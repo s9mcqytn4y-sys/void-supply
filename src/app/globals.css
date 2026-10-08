@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@theme {
+  --color-void-black: #0a0a0a;
+  --color-void-card: #121212;
+  --color-void-border: #262626;
+  --color-void-muted: #737373;
+  --color-void-light: #ededed;
+  --color-void-white: #ffffff;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
@@ -8,8 +18,9 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   min-height: 100vh;
   margin: 0;
   padding: 0;
 }
+

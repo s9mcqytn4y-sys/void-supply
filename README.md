@@ -45,13 +45,14 @@ VOID Supply/
 │       ├── opportunity-gap.md     # Analisis celah peluang desain yang belum diselesaikan kompetitor
 │       └── ux-principles.md       # Enam prinsip desain pengalaman pengguna inti VOID Supply
 ├── src/
-│   ├── app/                 # Halaman App Router & Route Handlers
-│   ├── components/          # UI primitives & komponen reusable
-│   ├── features/            # Feature-sliced modules (keranjang, checkout, produk)
-│   ├── lib/                 # Integrasi pihak ketiga (db/drizzle, payment, shipping)
-│   ├── types/               # Tipe TypeScript global & domain
-│   └── data/
-│       └── products.ts      # Data produk merchandise awal (0 byte placeholder)
+│   ├── app/                 # Halaman Next.js 16 App Router (store, checkout, api)
+│   ├── components/          # UI primitives & komponen antarmuka bersama
+│   ├── features/            # Feature-based architecture
+│   │   └── catalog/         # Modul katalog (components, repositories, services, schemas, types)
+│   ├── lib/                 # Utilitas sistem & layer database
+│   │   ├── db/              # Drizzle ORM schema, client connection, dan seeding
+│   │   └── utils/           # Fungsi helper format mata uang & classNames
+│   └── types/               # Tipe TypeScript global & domain kontrak
 ├── .editorconfig            # Standarisasi indentasi & format berkas
 ├── .env.example             # Template variabel lingkungan
 ├── .env                     # File env lokal development (diabaikan Git)
@@ -118,6 +119,7 @@ Database lokal `void_supply` telah disiapkan dalam kondisi bersih (dari 0). Untu
 
 ```bash
 npm run db:push
+npm run db:seed
 npm run db:studio
 ```
 
