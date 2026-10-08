@@ -173,5 +173,20 @@
     "**/node_modules": true,
     "**/.next": true,
     "**/dist": true
-  }
+  },
+
+  // SQLTools Database Synchronization (PostgreSQL 18 Local)
+  "sqltools.useNodeRuntime": true,
+  "sqltools.connections": [
+    {
+      "name": "VOID Supply (Local PostgreSQL 18)",
+      "dialect": "PostgreSQL",
+      "server": "localhost",
+      "port": 5432,
+      "database": "void_supply",
+      "username": "postgres",
+      "askForPassword": false,
+      "connectionTimeout": 15
+    }
+  ]
 }

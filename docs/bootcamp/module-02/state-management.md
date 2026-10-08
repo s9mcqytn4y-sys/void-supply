@@ -47,7 +47,9 @@ export function useStock(productId: string) {
     queryKey: ["stock", productId],
     queryFn: async () => {
       const res = await fetch(`/api/stock/${productId}`);
-      if (!res.ok) throw new Error("Gagal mengambil sisa stok");
+      if (res.ok === false) {
+        throw new Error("Gagal mengambil sisa stok");
+      }
       return res.json();
     },
     refetchInterval: 30000, // Cek stok berkala setiap 30 detik pada drop aktif
@@ -59,13 +61,11 @@ export function useStock(productId: string) {
 
 ## 3. Client State: Zustand Store
 
-Client State adalah data sementara yang **hanya ada di memori browser** dan mengatur perilaku antarmuka pengguna saat itu juga.
+Client State adalah data sementara yang tersimpan di dalam memori peramban dan mengontrol perilaku antarmuka pengguna pada sesi berjalan.
 
 ### Mengapa Zustand?
 
-- Ukuran berkas sangat kecil (< 1.5 kB) dibanding Redux Toolkit (25 kB+).
-- Bebas dari pembungkus _Context Provider_ bertingkat (_No Provider Hell_).
-- Komponen hanya me-render ulang jika nilai spesifik yang dilanggan berubah (_Atomic Selectors_).
+Dibandingkan dengan Redux Toolkit yang berbobot lebih dari 25 kB, pustaka Zustand memiliki jejak ukuran sangat ringkas di bawah 1.5 kB. Arsitektur Zustand membebaskan kode dari pembungkus Provider bertingkat di tingkat akar aplikasi, sementara pembaruan antarmuka hanya terpicu jika nilai atomik yang dilanggan mengalami perubahan langsung.
 
 ### A. Keranjang Belanja Tamu (Cart Store dengan LocalStorage Persist)
 
@@ -109,19 +109,23 @@ export const useCartStore = create<CartState>()(
             );
             return {
               items: state.items.map((i) =>
-                i.variantId === itemBaru.variantId ? { ...i, kuantitas: kuantitasBaru } : i
+                i.variantId === itemBaru.variantId
+                  ? Object.assign({}, i, { kuantitas: kuantitasBaru })
+                  : i
               ),
             };
           }
-          return { items: [...state.items, itemBaru] };
+          return { items: state.items.concat(itemBaru) };
         }),
       ubahKuantitas: (variantId, kuantitas) =>
         set((state) => ({
-          items: state.items.map((i) => (i.variantId === variantId ? { ...i, kuantitas } : i)),
+          items: state.items.map((i) =>
+            i.variantId === variantId ? Object.assign({}, i, { kuantitas }) : i
+          ),
         })),
       hapusItem: (variantId) =>
         set((state) => ({
-          items: state.items.filter((i) => i.variantId !== variantId),
+          items: state.items.filter((i) => (i.variantId == variantId) === false),
         })),
       kosongkanKeranjang: () => set({ items: [] }),
     }),
@@ -161,12 +165,16 @@ export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
   tambahToast: (toast) => {
     const id = Math.random().toString(36).substring(2, 9);
-    set((state) => ({ toasts: [...state.toasts, { ...toast, id }] }));
+    const itemBaru = Object.assign({}, toast, { id });
+    set((state) => ({ toasts: state.toasts.concat(itemBaru) }));
     setTimeout(() => {
-      set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
-    }, 3000); // Otomatis hilang setelah 3 detik
+      set((state) => ({ toasts: state.toasts.filter((t) => (t.id == id) === false) }));
+    }, 3000);
   },
-  hapusToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+  hapusToast: (id) =>
+    set((state) => ({
+      toasts: state.toasts.filter((t) => (t.id == id) === false),
+    })),
 }));
 ```
 

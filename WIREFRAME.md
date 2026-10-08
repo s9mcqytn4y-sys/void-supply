@@ -20,9 +20,9 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
 - **Primary Text:** `#FFFFFF` (Pure White, kontras 16.5:1).
 - **Secondary / Muted Text:** `#A1A1AA` (Zinc-400 Neutral, kontras 5.8:1).
 - **Controlled Accent:** `#E2F952` (Volt Safety Neon, saturasi terarah untuk tombol CTA utama, badge drop, dan indikator aktif).
-- **Success / In-Stock:** `#22C55E` (Emerald Green).
-- **Warning / Low Stock:** `#F59E0B` (Amber Orange).
-- **Danger / Sold Out:** `#EF4444` (Coral Red).
+- **Success / In-Stock:** `#22C55E` (Emerald Green, indikator ketersediaan inventaris aman di gudang).
+- **Warning / Low Stock:** `#F59E0B` (Amber Orange, sinyal peringatan ketika sisa persediaan di bawah batas lima unit).
+- **Danger / Sold Out:** `#EF4444` (Coral Red, status habis terjual).
 
 ### B. Tipografi Deterministik (Anti-Slop Font Stack)
 
@@ -50,7 +50,7 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
 
 ## 2. Spesifikasi Wireframe Halaman 1 : Homepage (`/`)
 
-### A. Metadata Halaman
+### A. Metadata Halaman 1 : Homepage
 
 - **Page:** Homepage (`/`)
 - **Goal:** Mengubah pengunjung pertama kali menjadi penjelajah katalog produk dalam 3 detik pertama (_Convert visitor into product explorer_).
@@ -60,7 +60,7 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
   - _Click-Through Rate (CTR) Hero CTA ke Katalog_ > 25%.
   - _Largest Contentful Paint (LCP)_ < 1.5 detik pada jaringan 4G.
 
-### B. Content Hierarchy
+### B. Content Hierarchy Halaman 1 : Homepage
 
 #### Section 1: Editorial Hero & Limited Drop Banner
 
@@ -99,7 +99,7 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
   - `ProductGrid`: 2 kolom di mobile (`gap-4`), 4 kolom di desktop (`gap-6`).
   - `ProductCard`: Thumbnail 4:5, indikator stok dot hijau/kuning, nama artikel, harga monospace tabular.
 
-#### Section 5: Community Showcase (#VOIDStreetwear)
+#### Section 5: Galeri Komunitas (#VOIDStreetwear)
 
 - **Purpose:** Bukti sosial autentik dari pembeli nyata di komunitas Instagram/TikTok/Discord.
 - **Component & UI Anatomy:**
@@ -113,25 +113,25 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
   - `FooterLinks`: Kebijakan Retur 7 Hari, Panduan Ukuran, FAQ, Kontak Bantuan WhatsApp.
   - `Copyright`: Identitas resmi brand dan sertifikat enkripsi SSL.
 
-### C. Interaction
+### C. Interaction Halaman 1 : Homepage
 
 - **Hero Swiper:** Dukungan sapuan jari halus (_touch-swipe_) antar foto editorial rilis drop.
 - **Card Hover:** Foto berganti ke sudut tampak belakang (_alternate angle_) saat kursor diarahkan atau disentuh.
 - **Tactile Feedback:** Efek tekan fisik (`active:scale-[0.98]`) pada setiap tombol aksi.
 - **Persistent Bottom Bar:** Navigasi 5 ikon melayang di bagian bawah layar ponsel dengan efek kaca gelap berbingkai halus (`backdrop-blur-md bg-[#0B0B0B]/90 border-t border-[#262626]`).
 
-### D. Responsive Behavior
+### D. Responsive Behavior Halaman 1 : Homepage
 
 - **Mobile (< 768px):** Tata letak linier 1 kolom, hero layar penuh, grid produk 2 kolom rapat, bilah bawah ramah jempol.
 - **Desktop ($\ge 1024px$):** Asymmetric split hero (konten teks tebal di kiri, galeri model di kanan), grid produk 4 kolom terkurasi, header horizontal dengan dropdown mini.
 
-### E. Engineering Impact
+### E. Engineering Impact Halaman 1 : Homepage
 
 - **Next.js:** Halaman Server Component (`page.tsx`) di bawah route group `src/app/(public)`.
 - **State Management:** Tombol keranjang membaca kuantitas reaktif dari `useCartStore` Zustand.
 - **Asset Optimization:** Next.js `<Image>` dengan atribut `priority` pada Hero Banner dan `loading="lazy"` di bawah lipatan layar.
 
-### F. Diagram Wireframe Tata Letak (Mobile 390 px)
+### F. Diagram Wireframe Tata Letak Halaman 1 : Homepage (Mobile 390 px)
 
 ```text
 +---------------------------------------------------+
@@ -166,7 +166,7 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
 | | Rp 249.000          |   | Rp 399.000          | |
 | +---------------------+   +---------------------+ |
 +---------------------------------------------------+
-| 5. COMMUNITY SHOWCASE (#VOIDStreetwear)           |
+| 5. GALERI KOMUNITAS (#VOIDStreetwear)             |
 | [Foto OOTD 1] [Foto OOTD 2] [Foto OOTD 3] [ > ]   |
 | Gabung Discord Komunitas: discord.gg/voidsupply   |
 +---------------------------------------------------+
@@ -182,16 +182,16 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
 
 ## 3. Spesifikasi Wireframe Halaman 2 : Shop (`/shop`)
 
-### A. Metadata Halaman
+### A. Metadata Halaman 2 : Shop Catalog
 
 - **Page:** Shop Catalog (`/shop`)
-- **Goal:** Eksplorasi katalog yang cepat dan tanpa friksi di bawah 5 detik (_Fast & Frictionless Catalog Exploration_).
+- **Goal:** Eksplorasi katalog yang cepat dan tanpa hambatan di bawah 5 detik (_Fast & Streamlined Catalog Exploration_).
 - **Primary User:** Pembeli yang mencari artikel tertentu berdasarkan ukuran atau status rilis.
 - **Success Metric:**
   - Waktu ke klik produk pertama < 5 detik.
   - _Add-to-cart conversion rate_ dari katalog > 12%.
 
-### B. Content Hierarchy
+### B. Content Hierarchy Halaman 2 : Shop Catalog
 
 #### Section 1: Quick Search & Pill Filters (1-Tap MVP Categories)
 
@@ -212,11 +212,11 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
 
 - **Purpose:** Menampilkan daftar produk terkurasi secara jelas dengan data ketersediaan stok riil.
 - **Component & UI Anatomy:**
-  - `GridContainer`: 2 kolom di mobile (`gap-4`), 4 kolom di desktop (`gap-6`).
+  - `GridContainer`: Dua kolom teratur pada tampilan ponsel pintar (`gap-4`) serta empat kolom leluasa pada layar komputer desktop (`gap-6`).
   - `ProductCard`:
-    - Media: Foto rasio 4:5 dengan sudut `rounded-xl`.
-    - Badges: Tag pojok kiri atas `[NEW DROP]`, `[ARCHIVE - SOLD OUT]`, atau `[LOW STOCK]`.
-    - Typography: Nama artikel (Font Display 14px), harga monospace tabular (Font Mono 14px).
+    - Media: Foto WebP rasio 4:5 berbingkai sudut halus `rounded-xl`.
+    - Badges: Tag pojok kiri atas penanda rilis seperti `[NEW DROP]`, `[ARCHIVE - SOLD OUT]`, atau peringatan kuota tipis `[LOW STOCK]`.
+    - Typography: Nama artikel berkarakter Display 14px dengan harga angka tabular monospaced `JetBrains Mono` 14px.
     - Sizing Chips: Mini chip ukuran yang tersedia `[S] [M] [L] [XL]`.
 
 #### Section 4: Pagination / Infinite Load Trigger
@@ -225,23 +225,23 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
 - **Component & UI Anatomy:**
   - `LoadMoreButton`: Tombol 44px `[MUAT ARTIKEL LAINNYA (16/24)]`.
 
-### C. Interaction
+### C. Interaction Halaman 2 : Shop Catalog
 
 - **Filter Drawer (Mobile):** Membuka panel laci geser dari bawah (_Bottom Sheet_) dengan transisi pegas, memuat pilihan ukuran S-XL, slider harga, dan tombol konfirmasi `[TERAPKAN FILTER (16)]`.
 - **Instant URL Synchronization:** Perubahan filter langsung menyelaraskan parameter URL search params (`?category=new-drop&size=L`) tanpa memuat ulang halaman (_shallow routing_).
 - **Card Quick View:** Menahan sentuhan kartu produk menampilkan pratinjau cepat stok ukuran yang tersedia.
 
-### D. Responsive Behavior
+### D. Responsive Behavior Halaman 2 : Shop Catalog
 
 - **Mobile (< 768px):** Barisan chip horizontal dapat digeser menyamping (_overflow-x-auto_), filter detail berada di dalam Bottom Sheet Drawer, grid 2 kolom.
 - **Desktop ($\ge 1024px$):** Sidebar filter statis di sebelah kiri (lebar 260px sticky), grid produk 4 kolom di sebelah kanan.
 
-### E. Engineering Impact
+### E. Engineering Impact Halaman 2 : Shop Catalog
 
 - **Next.js:** Server Component yang membaca `searchParams` untuk query database Drizzle ORM PostgreSQL.
 - **Performance:** Optimasi caching TanStack Query dan _Suspense boundary_ dengan fallback skeleton card.
 
-### F. Diagram Wireframe Tata Letak (Mobile 390 px)
+### F. Diagram Wireframe Tata Letak Halaman 2 : Shop Catalog (Mobile 390 px)
 
 ```text
 +---------------------------------------------------+
@@ -279,7 +279,7 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
 
 ## 4. Spesifikasi Wireframe Halaman 3 : Product Detail (`/products/[slug]`)
 
-### A. Metadata Halaman
+### A. Metadata Halaman 3 : Product Detail
 
 - **Page:** Product Detail Page (`/products/[slug]`)
 - **Goal:** Menghilangkan seluruh keraguan belanja online (_Zero-Hesitation Confidence Builder_) melalui transparansi ukuran, bahan, dan stok nyata.
@@ -289,7 +289,7 @@ Sesuai standar _high-agency frontend_, parameter dasar antarmuka dikunci pada ko
   - Tingkat interaksi ke modal Panduan Ukuran > 40%.
   - Tingkat retur akibat kesalahan ukuran < 2%.
 
-### B. Content Hierarchy (8-Step Mental Model)
+### B. Content Hierarchy Halaman 3 : Product Detail (8-Step Mental Model)
 
 Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembeli:
 
@@ -300,19 +300,19 @@ Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembe
 - **Purpose:** Menyajikan visual fisik asli pakaian tanpa manipulasi filter saturasi warna.
 - **Component & UI Anatomy:**
   - `CarouselContainer`: Galeri geser rasio 4:5 dengan indikator nomor foto (1/5).
-  - `Asset 1`: Foto model tampak depan dengan pencahayaan alami.
-  - `Asset 2`: Foto model tampak belakang (_back graphic detail_).
-  - `Asset 3`: Foto sudut samping (_silhouette & drop-shoulder cut_).
-  - `Asset 4`: Foto makro ekstrem serat kain (_fabric weave closeup_).
-  - `Asset 5`: Foto makro sablon grafis (_print texture closeup_).
+  - `Asset 1`: Foto model tampak depan dengan pencahayaan alami studio.
+  - `Asset 2`: Foto model tampak belakang memperlihatkan detail grafis punggung secara menyeluruh.
+  - `Asset 3`: Foto sudut samping untuk mengamati siluet bahu drop-shoulder.
+  - `Asset 4`: Foto makro ekstrem menampakkan kerapatan serat benang kain katun combed.
+  - `Asset 5`: Foto jarak dekat tekstur tinta sablon plastisol.
 
 #### Step 2: Product Identity & Status Badge
 
 - **Purpose:** Menyajikan identitas resmi artikel dan harga transparan.
 - **Component & UI Anatomy:**
-  - `DropTag`: Pill `[LIMITED DROP 04]`.
+  - `DropTag`: Pill identitas rilis terkini `[LIMITED DROP 04]`.
   - `ProductTitle`: Heading 24px `HEAVYWEIGHT OVERSIZED TEE - VOID BLACK`.
-  - `PriceTag`: Monospace tabular 20px `Rp 249.000`.
+  - `PriceTag`: Angka harga monospace tabular 20px `Rp 249.000` tanpa biaya tersembunyi.
 
 #### Step 3: Social Proof & Verifikasi Komunitas
 
@@ -343,15 +343,15 @@ Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembe
 - **Component & UI Anatomy:**
   - `MaterialAccordion`:
     - Bahan: 100% Katun Combed Heavyweight 24s (gramasi 210-220 gsm).
-    - Cetak: Sablon High Density Plastisol tahan pecah.
-    - Pola: Boxy drop-shoulder cut dengan kerah ribbed 3cm anti-melar.
-    - Petunjuk Cuci: Cuci dingin terbalik, jangan disetrika langsung pada sablon.
+    - Cetak: Sablon High Density Plastisol tahan pecah walau dicuci berulang kali.
+    - Pola: Potongan boxy beraksen drop-shoulder dipadu kerah rajut tebal 3cm yang kokoh anti-melar.
+    - Petunjuk Cuci: Cuci dingin dengan baju dibalik, hindari menyetrika langsung bidang sablonan grafis.
 
 #### Step 7: Instant Shipping Estimator
 
 - **Purpose:** Memberikan kepastian biaya pengiriman sebelum masuk ke keranjang.
 - **Component & UI Anatomy:**
-  - `EstimatorBox`: Input nama kota/kecamatan + output tarif kurir reguler instan Biteship API.
+  - `EstimatorBox`: Kolom input pengetikan nama kota tujuan yang langsung memunculkan perkiraan ongkir terendah Biteship.
 
 #### Step 8: Thumb-Zone Sticky Action Bar
 
@@ -361,23 +361,23 @@ Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembe
   - `Summary`: Menampilkan ukuran terpilih dan total harga.
   - `Buttons`: Tombol primer Volt Neon `[+ KERANJANG]` dan tombol sekunder `[BELI SEKARANG]`.
 
-### C. Interaction
+### C. Interaction Halaman 3 : Product Detail
 
 - **Size Guide Drawer Modal:** Klik tautan memicu pembukaan modal dari bawah layar dengan transisi pegas, tombol tutup `[X]`, dan dukungan tutup via tombol _Escape_.
 - **Variant Change:** Memilih tombol ukuran secara otomatis memperbarui indikator kuota stok dan mengaktifkan tombol beli.
 - **Add-to-Cart Trigger:** Menekan tombol memicu animasi getar taktil halus, penambahan kuantitas ke badge keranjang, dan pengalihan langsung ke Halaman Penuh Keranjang (`/cart`) atau pemunculan Toast konfirmasi dengan tombol cepat `[Buka Keranjang]`.
 
-### D. Responsive Behavior
+### D. Responsive Behavior Halaman 3 : Product Detail
 
 - **Mobile (< 768px):** Galeri foto swipe horizontal, urutan 8 seksi linier bertumpuk, tombol beli sticky di dasar layar ponsel.
 - **Desktop ($\ge 1024px$):** Split layout 2 kolom: Galeri foto vertikal 2 kolom di sebelah kiri (scrollable), panel identitas produk, spesifikasi, dan tombol beli statis di sebelah kanan (_sticky right column_).
 
-### E. Engineering Impact
+### E. Engineering Impact Halaman 3 : Product Detail
 
 - **Next.js:** Server Component dengan _Server Action_ untuk validasi stok atomik Drizzle ORM saat ukuran dipilih.
 - **Cart Store:** Interaksi penambahan item tersinkronisasi ke Zustand `useCartStore` dengan persistensi _LocalStorage_.
 
-### F. Diagram Wireframe Tata Letak (Mobile 390 px)
+### F. Diagram Wireframe Tata Letak Halaman 3 : Product Detail (Mobile 390 px)
 
 ```text
 +---------------------------------------------------+
@@ -424,16 +424,16 @@ Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembe
 
 ## 5. Spesifikasi Wireframe Halaman 4 : Cart (`/cart`)
 
-### A. Metadata Halaman
+### A. Metadata Halaman 4 : Cart
 
 - **Page:** Dedicated Shopping Cart Page (`/cart`)
-- **Goal:** Pengelolaan item belanjaan yang transparan dan tanpa hambatan (_Frictionless Order Management_).
+- **Goal:** Pengelolaan item belanjaan yang transparan dan efisien (_Streamlined Order Management_).
 - **Primary User:** Pembeli yang ingin memeriksa kembali daftar belanjaan, menyesuaikan jumlah barang, dan memasukkan kode promosi sebelum membayar.
 - **Success Metric:**
   - Rasio konversi Cart ke Checkout > 70%.
   - Waktu di halaman keranjang < 30 detik.
 
-### B. Content Hierarchy
+### B. Content Hierarchy Halaman 4 : Cart
 
 #### Section 1: Cart Items List
 
@@ -468,22 +468,22 @@ Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembe
   - `CheckoutCTA`: Tombol lebar penuh 48px berlatar Volt Neon `#E2F952` `[LANJUT KE CHECKOUT (Rp 688.000)]`.
   - `ContinueShopping`: Tombol sekunder bertaut `[Lanjut Belanja]`.
 
-### C. Interaction
+### C. Interaction Halaman 4 : Cart
 
 - **Live Quantity Mutation:** Mengubah tombol `[+]` atau `[-]` langsung memperbarui subtotal secara atomik tanpa memuat ulang halaman (_zero page reload_).
 - **Empty Cart State:** Jika item dihapus seluruhnya, tampilkan ilustrasi editorial bertema gelap dengan pesan `Keranjang Anda masih kosong` dan tombol CTA `[JELAJAHI DROP TERBARU]`.
 
-### D. Responsive Behavior
+### D. Responsive Behavior Halaman 4 : Cart
 
 - **Mobile (< 768px):** Tampil sebagai halaman vertikal penuh mandiri (`/cart`) dengan navigasi kembali ke katalog, daftar item ramah jempol, dan tombol lanjut checkout melekat di dasar layar.
 - **Desktop ($\ge 1024px$):** Layout 2 kolom: Daftar belanjaan di kolom kiri (lebar 65%), ringkasan tagihan sticky di kolom kanan (lebar 35%).
 
-### E. Engineering Impact
+### E. Engineering Impact Halaman 4 : Cart
 
 - **State Management:** Terhubung penuh ke Zustand `useCartStore`.
 - **Stock Guard:** Kuantitas maksimal pada tombol `[+]` dikunci oleh sisa inventaris riil dari PostgreSQL.
 
-### F. Diagram Wireframe Tata Letak (Mobile 390 px)
+### F. Diagram Wireframe Tata Letak Halaman 4 : Cart (Mobile 390 px)
 
 ```text
 +---------------------------------------------------+
@@ -522,7 +522,7 @@ Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembe
 
 ## 6. Spesifikasi Wireframe Halaman 5 : Checkout (`/checkout`)
 
-### A. Metadata Halaman
+### A. Metadata Halaman 5 : Checkout
 
 - **Page:** One-Page Guest Checkout (`/checkout`)
 - **Goal:** Menuntaskan transaksi pembelian dalam waktu di bawah 60 detik tanpa friksi registrasi (_Complete purchase < 60 seconds_).
@@ -532,7 +532,7 @@ Alur informasi disusun secara presisi menjawab 4 pertanyaan bertahap calon pembe
   - _Payment Success Rate_ > 85%.
   - Waktu penyelesaian checkout rata-rata < 60 detik.
 
-### B. Content Hierarchy (Distraction-Free Architecture)
+### B. Content Hierarchy Halaman 5 : Checkout (Distraction-Free Architecture)
 
 Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checkout** (bilah menu utama, banner promosi, dan bottom bar dihilangkan agar fokus pembeli 100% terarah pada penyelesaian transaksi).
 
@@ -578,23 +578,23 @@ Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checko
   - `SecurityBadge`: Ikon gembok hijau `[Enkripsi SSL 256-Bit & Pembayaran Aman Midtrans]`.
   - `ExecutionButton`: Tombol lebar penuh 48px `[BAYAR SEKARANG (Rp 702.000)]`.
 
-### C. Interaction
+### C. Interaction Halaman 5 : Checkout
 
 - **City & District Autocomplete:** Mengetik nama kecamatan langsung memunculkan saran resmi database Biteship untuk menghindari kesalahan ongkir.
 - **Selection State:** Memilih opsi kurir secara otomatis memperbarui nilai total tagihan akhir dengan transisi angka halus.
 - **Payment Modal Launch:** Menekan tombol "Bayar Sekarang" mengubah tombol menjadi status berputar (_Spinner loading state_) guna mencegah _double submit_, lalu membuka modal resmi Midtrans Snap.
 
-### D. Responsive Behavior
+### D. Responsive Behavior Halaman 5 : Checkout
 
 - **Mobile (< 768px):** Formulir bertumpuk linier 1 kolom, fokus satu arah ke bawah, tombol bayar sticky di dasar layar.
 - **Desktop ($\ge 1024px$):** Layout 2 kolom: Formulir Kontak, Alamat, dan Pilihan Kurir di sebelah kiri (lebar 60%), Panel Ringkasan Pesanan dan Tombol Bayar sticky di sebelah kanan (lebar 40%).
 
-### E. Engineering Impact
+### E. Engineering Impact Halaman 5 : Checkout
 
 - **Next.js:** Server Action `buatPesanan()` dengan validasi Zod schema `checkoutSkema` dan mutasi transaksi atomik Drizzle ORM.
 - **Integration:** Pemanggilan server-to-server API Biteship untuk rate check dan Midtrans Core API untuk pembuatan transaksi Snap token.
 
-### F. Diagram Wireframe Tata Letak (Mobile 390 px)
+### F. Diagram Wireframe Tata Letak Halaman 5 : Checkout (Mobile 390 px)
 
 ```text
 +---------------------------------------------------+
@@ -633,7 +633,7 @@ Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checko
 
 ## 7. Spesifikasi Wireframe Halaman 6 : Akun & Portal Pelanggan (`/account`)
 
-### A. Metadata Halaman
+### A. Metadata Halaman 6 : Akun & Portal Pelanggan
 
 - **Page:** Customer Portal (`/account`)
 - **Goal:** Memudahkan pelanggan memantau riwayat pesanan edisi terbatas, melacak status pengiriman paket, dan mengelola alamat tanpa beban registrasi password konvensional.
@@ -642,7 +642,7 @@ Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checko
   - Waktu akses status pesanan terkini < 3 detik.
   - Penurunan tiket pertanyaan status pesanan di WhatsApp hingga 40%.
 
-### B. Content Hierarchy
+### B. Content Hierarchy Halaman 6 : Akun & Portal Pelanggan
 
 #### Section 1: Customer Profile Header (Hybrid Guest-First)
 
@@ -675,13 +675,13 @@ Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checko
   - `AddressCard`: Nama penerima, nomor WhatsApp, alamat jalan lengkap, kota, kecamatan, dan kode pos.
   - `ActionButtons`: Tombol `[Ubah Alamat]` dan `[+ Tambah Alamat Baru]`.
 
-### C. Interaction & Responsive Behavior
+### C. Interaction & Responsive Behavior Halaman 6 : Akun & Portal Pelanggan
 
 - **Tab Switching:** Berpindah tab menyaring daftar transaksi secara instan di sisi klien tanpa memuat ulang halaman.
 - **Mobile (< 768px):** Kartu pesanan bertumpuk linier 1 kolom, tab horizontal dapat digeser menyamping.
 - **Desktop (>= 1024px):** Layout 2 kolom: Sidebar navigasi profil di kiri (lebar 280px), daftar pesanan dan rincian transaksi di kanan.
 
-### D. Diagram Wireframe Tata Letak (Mobile 390 px)
+### D. Diagram Wireframe Tata Letak Halaman 6 : Akun & Portal Pelanggan (Mobile 390 px)
 
 ```text
 +---------------------------------------------------+
@@ -722,7 +722,7 @@ Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checko
 
 ## 8. Spesifikasi Wireframe Halaman 7 : Pelacakan Pengiriman Kurir (`/track/[orderId]`)
 
-### A. Metadata Halaman
+### A. Metadata Halaman 7 : Pelacakan Pengiriman Kurir
 
 - **Page:** Public Courier Order Tracking (`/track/[orderId]`)
 - **Goal:** Menghadirkan transparansi perjalanan paket kurir secara real-time dari gudang VOID Supply di Sleman ke pintu rumah pembeli tanpa perlu login.
@@ -731,7 +731,7 @@ Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checko
   - Waktu muat status resi < 1.5 detik.
   - Akurasi data status kurir 100% tersinkronisasi via Biteship Tracking API.
 
-### B. Content Hierarchy
+### B. Content Hierarchy Halaman 7 : Pelacakan Pengiriman Kurir
 
 #### Section 1: Tracking Header & Courier Info
 
@@ -764,7 +764,7 @@ Halaman checkout menerapkan prinsip **Navigation Rule 3: Distraction-Free Checko
 - **Component & UI Anatomy:**
   - `HelpBanner`: Tombol 44px `[HUBUNGI CS VIA WHATSAPP]` untuk bantuan investigasi kurir.
 
-### C. Diagram Wireframe Tata Letak (Mobile 390 px)
+### C. Diagram Wireframe Tata Letak Halaman 7 : Pelacakan Pengiriman Kurir (Mobile 390 px)
 
 ```text
 +---------------------------------------------------+
@@ -829,10 +829,10 @@ Bagian ini mendefinisikan rancangan 9 komponen antarmuka yang digunakan secara k
   - Mobile (< 768px): Bagian atas layar (`top-4 left-4 right-4`), aman dari jangkauan jempol dan tidak menghalangi bilah navigasi bawah.
   - Desktop (>= 1024px): Sudut kanan bawah layar (`bottom-6 right-6 max-w-sm`).
 - **4 Varian Toast Semantik:**
-  - `Success`: Bingkai kiri hijau emerald (`border-l-4 border-[#22C55E] bg-[#161616]`), ikon centang tebal, contoh: `Artikel berhasil ditambahkan ke keranjang`.
-  - `Warning`: Bingkai kiri amber orange (`border-l-4 border-[#F59E0B] bg-[#161616]`), ikon peringatan, contoh: `Sisa stok ukuran L tersisa 2 pcs di gudang`.
-  - `Error`: Bingkai kiri coral red (`border-l-4 border-[#EF4444] bg-[#161616]`), ikon silang, contoh: `Koneksi gagal. Silakan coba kembali`.
-  - `Info`: Bingkai kiri volt neon (`border-l-4 border-[#E2F952] bg-[#161616]`), ikon informasi, contoh: `Kode kupon VOIDDROP berhasil diterapkan`.
+  - `Success`: Bingkai kiri hijau emerald (`border-l-4 border-[#22C55E] bg-[#161616]`) disertai ikon centang tebal, misalnya konfirmasi artikel sukses ditambahkan ke tas belanja.
+  - `Warning`: Bingkai kiri amber orange (`border-l-4 border-[#F59E0B] bg-[#161616]`) dengan lambang peringatan jika sisa inventaris gudang tinggal sedikit.
+  - `Error`: Bingkai kiri coral red (`border-l-4 border-[#EF4444] bg-[#161616]`) dan ikon silang jika jaringan gagal merespons.
+  - `Info`: Bingkai kiri volt neon (`border-l-4 border-[#E2F952] bg-[#161616]`) saat kode kupon diskon aktif diterapkan.
 - **Anatomi & Durasi:**
   - Ikon status (20px), judul singkat, deskripsi pesan, dan tombol silang tutup 44px `[X]`.
   - Timer penghilangan otomatis (_auto-dismiss_) 3000ms dengan visual bar durasi menipis.
@@ -886,10 +886,10 @@ Bagian ini mendefinisikan rancangan 9 komponen antarmuka yang digunakan secara k
   - Label: Display 14px di atas input, warna zinc netral `#A1A1AA`.
   - Pesan Bantuan / Galat: Teks 12px di bawah input.
 - **4 Status Visual Formulir:**
-  1. `Default`: Bingkai netral `border-[#262626]`.
-  2. `Focus Active`: Cincin fokus aksen Volt Neon `focus-visible:ring-1 focus-visible:ring-[#E2F952] border-[#E2F952]`.
-  3. `Validation Error`: Bingkai merah terang `border-[#EF4444]`, pesan galat teks merah di bawah input, ikon peringatan mini.
-  4. `Disabled`: Opasitas rendah `opacity-50 cursor-not-allowed bg-[#111111]`.
+  1. `Default`: Bingkai netral minimalis `border-[#262626]` yang tenang.
+  2. `Focus Active`: Cincin fokus aksen Volt Neon menyala jelas `focus-visible:ring-1 focus-visible:ring-[#E2F952] border-[#E2F952]`.
+  3. `Validation Error`: Bingkai merah peringatan `border-[#EF4444]` disertai pesan galat di bawah kolom input.
+  4. `Disabled`: Opasitas rendah `opacity-50 cursor-not-allowed bg-[#111111]` saat formulir sedang memproses aksi.
 - **Kontrol Khusus:**
   - Input Nomor WhatsApp: Prefix kaku `+62` di sisi kiri input dengan pemisah garis 1px.
   - Auto-complete Lokasi Biteship: Input teks terhubung dengan daftar rekomendasi kelurahan/kecamatan melayang.
@@ -907,9 +907,9 @@ Bagian ini mendefinisikan rancangan 9 komponen antarmuka yang digunakan secara k
 
 - **Fungsi:** Navigasi berganti konten dalam satu halaman tanpa memicu perpindahan URL atau muat ulang browser.
 - **Penerapan Utama:**
-  - Tabs Filter Katalog Shop: `[All Products]`, `[New Drop]`, `[Best Seller]`, `[Archive]`.
-  - Tabs Status Pesanan Akun: `[Semua]`, `[Menunggu Bayar]`, `[Diproses]`, `[Dikirim]`, `[Selesai]`.
-  - Tabs Informasi Produk: `[Spesifikasi Bahan]`, `[Panduan Ukuran]`, `[Ulasan Pembeli]`.
+  - Tabs Filter Katalog Shop: Navigasi kategori utama mencakup opsi `[All Products]`, `[New Drop]`, `[Best Seller]`, dan `[Archive]`.
+  - Tabs Status Pesanan Akun: Penyaring status transaksi pelanggan dari `[Semua]`, `[Menunggu Bayar]`, `[Diproses]`, `[Dikirim]`, hingga `[Selesai]`.
+  - Tabs Informasi Produk: Rincian spesifikasi artikel meliputi `[Spesifikasi Bahan]`, `[Panduan Ukuran]`, serta ulasan pembeli.
 - **Perilaku Visual:**
   - Tab aktif ditandai dengan garis bawah tebal 2px berwarna Volt Neon `#E2F952` dan teks putih terang.
   - Tab tidak aktif menggunakan warna zinc sekunder `#A1A1AA` dengan efek transisi warna saat hover.
