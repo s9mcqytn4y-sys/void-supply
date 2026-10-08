@@ -6,50 +6,38 @@ Dokumen ini mendefinisikan arsitektur resmi aplikasi VOID Supply menggunakan Nex
 
 ## Routing Strategy
 
-Aplikasi memanfaatkan fitur App Router dengan pola segmentasi _Route Groups_ untuk memisahkan konteks tata letak secara fisik di dalam direktori `src/app`:
+Aplikasi memanfaatkan fitur Next.js 16 App Router dengan kombinasi arsitektur berbasis fitur (_Feature-Based Architecture_) dan segmentasi rute toko (_Store Route Groups_) di dalam direktori `src/app`:
 
 ```text
 src/app/
-├── (public)/                      # Konteks Toko Publik (Header Navigasi + Footer Lengkap)
-│   ├── layout.tsx                 # Menyediakan Navbar, Bottom Bar Mobile, dan Footer Toko
+├── (store)/                       # Konteks Pengalaman Belanja (Header Navigasi + Footer Toko)
+│   ├── layout.tsx                 # Menyediakan Navbar Utama, Bottom Bar Mobile, dan Footer
 │   ├── page.tsx                   # Halaman Utama (/)
-│   ├── shop/                      # Katalog Produk (/shop)
+│   ├── shop/                      # Katalog Penjelajahan Produk (/shop)
 │   │   └── page.tsx
-│   ├── products/                  # Detail Produk (/products/[slug])
-│   │   └── [slug]/
-│   │       └── page.tsx
-│   └── cart/                      # Halaman Penuh Keranjang Belanja (/cart)
-│       └── page.tsx
-│
-├── (checkout)/                    # Konteks Transaksi Bebas Distraksi (Distraction-Free)
-│   ├── layout.tsx                 # Layout Khusus: Tanpa Navbar dan Tanpa Footer Publik
-│   └── checkout/                  # Formulir Satu Halaman (/checkout)
-│       └── page.tsx
-│
-├── (portal)/                      # Portal Layanan Pelanggan & Pelacakan
-│   ├── layout.tsx                 # Layout Minimalis dengan Tombol Kembali ke Toko
-│   ├── account/                   # Dasbor Akun Pelanggan (/account)
-│   │   └── page.tsx
-│   └── track/                     # Pelacakan Resi Kurir Publik (/track/[orderId])
-│       └── [orderId]/
+│   └── product/                   # Detail Artikel Pakaian (/product/[slug])
+│       └── [slug]/
 │           └── page.tsx
 │
-├── (api)/                         # Titik Akhir Integrasi Layanan Luar
-│   └── api/
-│       └── webhooks/
-│           └── midtrans/          # Penerima Webhook Notifikasi Bayar (/api/webhooks/midtrans)
-│               └── route.ts
+├── checkout/                      # Konteks Transaksi Mandiri Bebas Distraksi (/checkout)
+│   ├── layout.tsx                 # Layout Khusus: Tanpa Bilah Menu Atas & Tanpa Footer Publik
+│   └── page.tsx                   # Formulir Checkout Satu Halaman
 │
-├── layout.tsx                     # Root Layout: Font Geist/Outfit, Metadata HTML, Toast Provider
-├── not-found.tsx                  # Halaman 404 Bertema Gelap Minimalis
-└── globals.css                    # Definisi Token Utilitas Tailwind CSS v4
+├── api/                           # Titik Integrasi Layanan Eksternal & Webhook
+│   └── webhooks/
+│       └── midtrans/              # Webhook Penerima Notifikasi Pembayaran Midtrans
+│           └── route.ts
+│
+├── layout.tsx                     # Root Layout: Konfigurasi Font Outfit/Geist, Metadata Global
+├── not-found.tsx                  # Halaman Galat 404 Bertema Gelap Minimalis
+└── globals.css                    # Impor Utilitas dan Definisi Desain Token Tailwind CSS v4
 ```
 
 ### Prinsip Utama Pembagian Rute
 
-1. **Route Group Terisolasi:** Segmentasi folder menggunakan kurung buka-tutup seperti `(public)` dan `(checkout)` memungkinkan pemakaian file `layout.tsx` yang berbeda tanpa memengaruhi struktur URL peramban.
-2. **Distraction-Free Checkout:** Jalur `(checkout)/checkout` memiliki tata letak sendiri yang secara fisik meniadakan bilah menu atas dan tautan footer, menjamin fokus pembeli terarah penuh pada penyelesaian pembayaran.
-3. **Segmen Dinamis URL:** Segmen `[slug]` pada katalog produk dan `[orderId]` pada pelacakan kurir membaca parameter dinamis langsung dari URL peramban secara type-safe.
+1. **Pemisahan Konteks (store):** Folder `(store)` mengelompokkan halaman etalase publik tanpa menambah segmen pada URL peramban, memastikan navigasi toko konsisten.
+2. **Konteks Transaksi Terisolasi:** Rute `checkout/` memiliki tata letak terpisah tanpa navigasi publik untuk menjaga fokus pengguna menyelesaikan transaksi pembelian.
+3. **Segmen Dinamis:** Parameter `[slug]` pada rute produk membaca identitas unik artikel secara langsung di peladen.
 
 ---
 
@@ -60,8 +48,7 @@ Server Component merupakan model komputasi baku (_default_) pada Next.js 16 App 
 ### Komponen yang Wajib Berupa Server Component
 
 - **Halaman Katalog (`/shop`):** Mengambil daftar artikel langsung dari PostgreSQL 18 via Drizzle ORM berdasarkan kueri filter `searchParams`.
-- **Halaman Detail Produk (`/products/[slug]`):** Mengambil detail spesifikasi pakaian, foto resolusi tinggi, data panduan ukuran, dan kuota sisa inventaris gudang.
-- **Halaman Editorial & Koleksi (`/collection`):** Menampilkan narasi rilis drop terkini dan konten statis berbasis optimasi mesin pencari (_SEO_).
+- **Halaman Detail Produk (`/product/[slug]`):** Mengambil detail spesifikasi pakaian, foto resolusi tinggi, data panduan ukuran, dan kuota sisa inventaris gudang.
 - **Komponen Kartu Produk (`ProductCard`):** Menghasilkan elemen kartu 4:5 berupa dokumen HTML bersih dengan angka harga tabular.
 
 ### Alasan Rekayasa Pemilihan Server Component
@@ -100,99 +87,122 @@ VOID Supply menolak menjadikan keseluruhan halaman sebagai Client Component. Kam
 
 ## Data Flow
 
-Aliran data dalam aplikasi terbagi menjadi dua siklus utama: siklus pembacaan data searah (_Read Flow_) dan siklus mutasi transaksi dua arah (_Mutation Flow_).
+Aplikasi menerapkan pola aliran data berlapis (_Layered Data Flow_) dengan menyisipkan **Server Service Layer** di antara lapisan Drizzle ORM dan Server Component:
 
 ```text
-Siklus Pembacaan Data (Read Flow):
-Peramban ──(HTTP GET)──► Server Component ──► Drizzle ORM ──► PostgreSQL 18
-                              │
-                              ▼
-                         HTML Stream ──► Peramban Menampilkan Konten Langsung
-
-Siklus Mutasi Transaksi (Mutation Flow):
-Formulir Klien ──(Server Action)──► buatPesanan() ──► Validasi Zod Runtime
-                                                           │
-                                                           ▼
-Peladen Midtrans ◄──(Snap API)── Drizzle ORM Transaction ◄── (Valid)
-       │
-       ▼
-Token Snap Kembali ke Klien ──► Peramban Membuka Dialog Pembayaran
+DATABASE (PostgreSQL 18)
+        │
+        ▼
+   Drizzle ORM
+        │
+        ▼
+Server Service Layer (features/*/services/)
+        │
+        ▼
+  Server Component
+        │
+        ▼
+  React Component
+        │
+        ▼
+User Interaction (Klik Tambah Keranjang / Submit Form)
+        │
+        ▼
+Server Action / API Route
+        │
+        ▼
+Database Update (Mutasi Atomik PostgreSQL)
 ```
 
 ### Penjelasan Tahapan Aliran Data
 
-1. **Pembacaan Katalog:** Peramban memanggil alamat URL katalog produk. Server Component membaca parameter kueri URL secara langsung, menjalankan perintah query Drizzle ORM ke PostgreSQL, dan menyalurkan aliran dokumen HTML ke peramban.
-2. **Mutasi Keranjang Klien:** Saat pembeli menekan tombol beli, mutasi berlangsung secara sinkron pada Zustand store di memori peramban tanpa membebani lalu lintas jaringan server.
-3. **Penyelesaian Transaksi:** Ketika formulir checkout dikirim, Server Action memvalidasi data masukan secara runtime menggunakan Zod skema, membuka blok transaksi atomik pada basis data untuk memverifikasi stok, memanggil gateway Midtrans untuk meminta Snap Token, lalu mengembalikan token tersebut agar peramban dapat memunculkan jendela pembayaran digital.
+1. **Lapisan Basis Data & ORM:** PostgreSQL 18 bertindak sebagai sumber data utama, dipetakan secara type-safe menggunakan skema Drizzle ORM.
+2. **Server Service Layer:** Layanan server (seperti `productService.getProducts()`) mengenkapsulasi kueri bisnis, filter kategori, dan kalkulasi diskon sebelum diserahkan ke komponen tampilan.
+3. **Penyajian Server Component:** Server Component memanggil Service Layer secara langsung di peladen dan mengalirkan HTML murni ke peramban tanpa latensi API tambahan.
+4. **Interaksi & Mutasi:** Interaksi pengguna memicu pembaruan state lokal atau memanggil Server Action untuk mengeksekusi mutasi aman kembali ke basis data.
 
 ---
 
 ## Feature Structure
 
-Penerapan struktur folder mengadopsi paradigma _Feature-Sliced Thinking_ yang berpusat pada domain bisnis di dalam direktori `src/features/`. Setiap modul fitur mengisolasi komponen antarmuka, tipe TypeScript, skema validasi, dan fungsi aksi ke dalam satu direktori mandiri:
+Penerapan struktur folder menggabungkan App Router dengan arsitektur berbasis fitur (_Feature-Based Architecture_) di bawah direktori `src/features/`. Setiap fitur bisnis memiliki modul mandiri yang mengisolasi komponen antarmuka, service bisnis peladen, skema validasi Zod, dan tipe TypeScript:
 
 ```text
-src/features/
-├── product/                       # Fitur Katalog & Detail Produk
-│   ├── components/                # ProductCard, ProductGrid, SizeSelector, MediaGallery
-│   ├── types/                     # Produk, VarianProduk, KategoriProduk
-│   ├── schemas/                   # produkSkema, filterKatalogSkema
-│   └── queries/                   # ambilDaftarProduk, ambilProdukBySlug
+src/
+├── app/
+│   ├── (store)/
+│   │   ├── page.tsx               # Beranda Toko
+│   │   ├── shop/                  # Katalog Artikel
+│   │   └── product/               # Rincian Produk
+│   ├── checkout/                  # Halaman Transaksi
+│   └── api/                       # Webhook & API Routes
 │
-├── cart/                          # Fitur Pengelolaan Keranjang Belanja
-│   ├── components/                # CartItemList, CartSummary, CartEmptyState
-│   ├── hooks/                     # useCartStore (Zustand + LocalStorage Persist)
-│   └── types/                     # ItemKeranjang, CartState
+├── features/
+│   ├── product/                   # Domain Produk & Katalog
+│   │   ├── components/            # ProductCard, ProductGrid, SizeSelector
+│   │   ├── services/              # productService (Kueri Drizzle ORM Sisi Server)
+│   │   ├── schemas/               # produkSkema, filterKatalogSkema (Zod)
+│   │   └── types/                 # Produk, VarianProduk, KategoriProduk
+│   │
+│   ├── cart/                      # Domain Keranjang Belanja
+│   │   ├── components/            # CartItemList, CartSummary, CartEmptyState
+│   │   ├── hooks/                 # useCartStore (Zustand State & LocalStorage)
+│   │   └── types/                 # ItemKeranjang, CartState
+│   │
+│   ├── checkout/                  # Domain Alur Checkout Transaksi
+│   │   ├── components/            # CheckoutForm, AddressForm, CourierSelector
+│   │   ├── actions/               # buatPesanan (Next.js Server Action)
+│   │   ├── schemas/               # checkoutSkema (Validasi Form Zod)
+│   │   └── types/                 # FormCheckoutValues, OpsiKurir
+│   │
+│   └── payment/                   # Domain Gateway Pembayaran Midtrans
+│       ├── services/              # midtransService (Snap Token & Verifikasi SHA-512)
+│       └── types/                 # StatusPembayaran, MidtransWebhookPayload
 │
-├── checkout/                      # Fitur Alur Pembayaran & Transaksi
-│   ├── components/                # CheckoutForm, CourierSelector, PaymentMethodRadio
-│   ├── actions/                   # buatPesanan (Next.js Server Action)
-│   ├── schemas/                   # checkoutSkema (Zod Form Validation)
-│   └── types/                     # FormCheckoutValues, OpsiKurir, StatusPembayaran
+├── components/
+│   ├── ui/                        # Komponen Primitif (Button, Input, Badge, Toast)
+│   └── layout/                    # Komponen Tata Letak (Navbar, Footer, MobileNav)
 │
-└── order/                         # Fitur Pesanan & Pelacakan Kurir
-    ├── components/                # OrderTimeline, CourierTrackerCard, OrderHistoryList
-    ├── queries/                   # ambilDetailPesanan, cekStatusResiBiteship
-    └── types/                     # Pesanan, CheckpointKurir, StatusPengiriman
+├── lib/
+│   ├── db/                        # Konfigurasi Koneksi Drizzle ORM & PostgreSQL
+│   ├── utils/                     # Fungsi Pembantu Umum (formatRupiah, cn)
+│   └── validations/               # Validasi Lingkungan Runtime (envSkema)
+│
+└── types/                         # Kontrak Tipe Global Aplikasi
 ```
 
 ### Aturan Isolasi Antar Fitur
 
-- Fitur diperbolehkan mengimpor kode utilitas bersama dari direktori `src/components/ui/`, `src/lib/`, atau `src/types/`.
-- Fitur dilarang mengimpor modul privat internal milik fitur lain secara langsung tanpa melalui berkas ekspor publik yang telah ditentukan.
+- Setiap fitur memegang tanggung jawab penuh atas logika bisnis domainnya sendiri.
+- Komponen bersama lintas fitur diletakkan pada `src/components/ui/` atau `src/components/layout/`.
+- Logika kueri database untuk fitur dilarang ditulis acak di dalam komponen, melainkan wajib diorganisir di dalam folder `services/` milik fitur terkait.
 
 ---
 
 ## Commerce Flow
 
-Siklus lengkap pengalaman belanja pembeli di platform VOID Supply dirancang berlangsung cepat, transparan, dan bebas hambatan registrasi:
+Alur siklus pembelian barang di platform VOID Supply menerapkan urutan deterministik berikut:
 
 ```text
-[ 1. Discovery ]       Halaman Beranda (/) atau Katalog (/shop)
-                              │
-                              ▼
-[ 2. Evaluation ]      Detail Produk (/products/[slug])
-                       Pilih Ukuran S/M/L/XL & Cek Panduan Dimensi
-                              │
-                              ▼
-[ 3. Staging ]         Halaman Keranjang Penuh (/cart)
-                       Periksa Rincian Artikel & Masukkan Kupon Promo
-                              │
-                              ▼
-[ 4. Execution ]       Checkout Satu Halaman (/checkout)
-                       Isi Kontak WhatsApp, Alamat Pengiriman, dan Pilihan Kurir
-                              │
-                              ▼
-[ 5. Settlement ]      Dialog Pembayaran Midtrans Snap
-                       Selesaikan Tagihan via QRIS Instan atau Virtual Account
-                              │
-                              ▼
-[ 6. Verification ]    Webhook Midtrans (/api/webhooks/midtrans)
-                       Verifikasi Hash SHA-512 & Update Status Jadi "dibayar"
-                              │
-                              ▼
-[ 7. Fulfillment ]     Pelacakan Pengiriman Kurir (/track/[orderId])
-                       Pantau Perjalanan Paket Fisik dari Gudang Sleman ke Rumah
+User klik Add Cart
+        │
+        ▼
+Zustand update cart (useCartStore + LocalStorage)
+        │
+        ▼
+Checkout (/checkout)
+        │
+        ▼
+Create Order (Server Action buatPesanan + Validasi Zod)
+        │
+        ▼
+Midtrans API (Pembuatan Snap Token Resmi di Peladen)
+        │
+        ▼
+Payment Success (Pelunasan Pembeli via QRIS atau Virtual Account)
+        │
+        ▼
+Update Order Status (Webhook Midtrans Verifikasi SHA-512 ──► Status "dibayar")
 ```
 
-Dengan arsitektur terintegrasi ini, VOID Supply menghadirkan pengalaman belanja modern yang aman, responsif, dan terukur bagi komunitas penggemar busana streetwear.
+Dengan arsitektur terintegrasi ini, VOID Supply menghadirkan alur transaksi e-commerce yang modular, aman, responsif, dan mudah dipelihara dalam jangka panjang.
