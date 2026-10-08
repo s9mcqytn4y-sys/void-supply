@@ -124,6 +124,7 @@ async function seed() {
       galeriGambar: [
         "/images/products/drop-04/void-tee-02-front.webp",
         "/images/products/drop-04/void-tee-02-back.webp",
+        "/images/products/drop-04/void-tee-02-detail.webp",
       ],
       varians: [
         { ukuran: "S", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-S", stok: 18, berat: 430 },
@@ -143,6 +144,7 @@ async function seed() {
       galeriGambar: [
         "/images/products/drop-04/cybernetic-ls-01-front.webp",
         "/images/products/drop-04/cybernetic-ls-01-back.webp",
+        "/images/products/drop-04/cybernetic-ls-01-detail.webp",
       ],
       varians: [
         { ukuran: "S", warna: "Hitam", sku: "VOID-D04-LS-BLK-S", stok: 15, berat: 480 },
@@ -200,6 +202,7 @@ async function seed() {
       galeriGambar: [
         "/images/products/drop-04/cargo-pants-front.webp",
         "/images/products/drop-04/cargo-pants-back.webp",
+        "/images/products/drop-04/cargo-pants-detail.webp",
       ],
       varians: [
         { ukuran: "S", warna: "Black Onyx", sku: "VOID-D04-CRG-BLK-S", stok: 16, berat: 680 },
@@ -219,6 +222,7 @@ async function seed() {
       galeriGambar: [
         "/images/products/drop-04/pleated-pants-front.webp",
         "/images/products/drop-04/pleated-pants-back.webp",
+        "/images/products/drop-04/pleated-pants-detail.webp",
       ],
       varians: [
         { ukuran: "S", warna: "Deep Grey", sku: "VOID-D04-PLT-GRY-S", stok: 14, berat: 590 },

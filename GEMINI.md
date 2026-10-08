@@ -87,10 +87,10 @@ Sesuai aturan `/antislop`, `/antislop-code`, `/antislop-copywriting`, `/antislop
 
 ### B. Code Comment Hygiene (`/antislop-code`)
 
-- Dilarang membuat banner separator dekoratif (`// =======================`).
-- Dilarang menarasikan kode yang sudah jelas (`// Initialize state`).
-- Dilarang menggunakan emoji dekoratif pada komentar (`// 🚀 Performance`).
-- Pertahankan komentar yang menjelaskan keputusan bisnis, pertimbangan keamanan, dan integrasi webhook.
+- Hindari pembuatan banner separator dekoratif seperti baris garis komentar panjang (`// =======================`).
+- Jangan menarasikan ulang alur kode yang maknanya sudah gamblang terlihat (`// Initialize state`).
+- Dilarang menyisipkan emoji dekoratif pada baris komentar (`// 🚀 Performance`).
+- Pertahankan komentar teknis yang menguraikan alasan keputusan bisnis, pertimbangan keamanan, atau integrasi webhook pihak ketiga.
 
 ### C. Liveliness & Visual Dials (`/antislop-ui`)
 
@@ -114,11 +114,11 @@ Sesuai aturan `/antislop`, `/antislop-code`, `/antislop-copywriting`, `/antislop
 
 Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indonesia:
 
-- **Tabel Drizzle**: `produk`, `pesanan`, `item_pesanan`, `pelanggan`, `inventaris`, `pembayaran`, `pengiriman`.
-- **Kolom Timestamp**: `dibuat_pada`, `diperbarui_pada`.
-- **Type/Interface TypeScript**: `Produk`, `Pesanan`, `Pelanggan`, `StatusPembayaran`, `OpsiPengiriman`.
-- **Zod Schema**: `produkSkema`, `pesananSkema`, `checkoutSkema`.
-- **Server Actions**: `buatPesanan()`, `ambilDaftarProduk()`, `prosesWebhookMidtrans()`, `cekOngkirBiteship()`.
+- **Tabel Drizzle**: Menggunakan nama entitas tunggal yang mencakup produk, pesanan, item_pesanan, pelanggan, inventaris, pembayaran, dan pengiriman.
+- **Kolom Timestamp**: Ditetapkan secara konsisten dengan penamaan dibuat_pada serta diperbarui_pada.
+- **Type atau Interface TypeScript**: Merepresentasikan entitas bisnis seperti Produk, Pesanan, Pelanggan, StatusPembayaran, dan OpsiPengiriman.
+- **Zod Schema**: Skema validasi runtime seperti produkSkema, pesananSkema, dan checkoutSkema.
+- **Server Actions**: Fungsi operasional server seperti buatPesanan(), ambilDaftarProduk(), prosesWebhookMidtrans(), serta cekOngkirBiteship().
 
 ---
 
@@ -134,11 +134,11 @@ Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indon
 ### A. Komparasi Repositori
 
 1. **Repositori Aktual (Lokal di `c:\Projects\VOID Supply`)**:
-   - Memiliki berkas `.env` aktif yang berisi kredensial sandbox lokal (Midtrans, Biteship, RajaOngkir).
-   - Memiliki direktori konfigurasi `.agents/rules/` (`antislop.md`, `typescript-expert.md`) untuk panduan agen AI lokal (Antigravity dan Gemini CLI `agy`). Direktori ini sengaja dikecualikan di `.gitignore` agar tidak masuk repositori publik.
-   - Menggunakan database PostgreSQL lokal aktif pada port 5432 (`void_supply`).
-   - Menyimpan cache build seperti `tsconfig.tsbuildinfo` yang diabaikan oleh `.gitignore`.
-   - Memuat dokumen persona pengguna `PERSONA.md` di root proyek.
+   - Memuat berkas konfigurasi lokal `.env` yang menyimpan kredensial sandbox aktif untuk integrasi Midtrans, Biteship, dan RajaOngkir.
+   - Menyediakan direktori panduan agen lokal `.agents/rules/` yang dilindungi oleh aturan `.gitignore` agar tidak terunggah ke repositori publik.
+   - Menghubungkan aplikasi langsung ke kluster basis data PostgreSQL 18 aktif pada port 5432 (`void_supply`).
+   - Menyimpan berkas sementara kompilasi seperti `tsconfig.tsbuildinfo` yang diabaikan Git.
+   - Memuat dokumen persona pembeli `PERSONA.md` pada direktori root proyek.
 
 2. **Repositori GitHub (`origin/main` : `s9mcqytn4y-sys/void-supply`)**:
    - Berkas rahasia `.env` tidak ada (dilindungi oleh `.gitignore`), hanya menyertakan `.env.example`.
@@ -147,24 +147,24 @@ Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indon
 
 ### B. Evaluasi Berkas Root Proyek
 
-- `.editorconfig`: Standarisasi indentasi (2 spasi), charset UTF-8, dan newline LF/CRLF.
-- `.env`: Berkas rahasia lokal, terverifikasi aman dan tidak terlacak ke Git.
-- `.env.example`: Templat publik variabel lingkungan untuk dokumentasi setup tim.
-- `.gitignore`: Mengabaikan dependencies, build artifacts, `.env`, `.agents/`, dan test reports.
-- `.prettierrc`: Konfigurasi formatting kode (single quote, trailing comma, semi).
-- `drizzle.config.ts`: Konfigurasi Drizzle ORM PostgreSQL 18.
-- `eslint.config.mjs`: Konfigurasi ESLint flat config dengan aturan Next.js dan TypeScript.
-- `next.config.ts`: Konfigurasi Next.js 16 App Router.
-- `package.json`: Definisi dependensi Next.js 16, React 19, Tailwind v4, Drizzle, Vitest.
-- `playwright.config.ts`: Pengujian end-to-end browser Playwright.
-- `postcss.config.mjs`: Integrasi Tailwind CSS PostCSS plugin.
-- `tsconfig.json`: TypeScript strict mode dan path aliases (`@/*`).
-- `vercel.json`: Konfigurasi deployment hosting serverless Vercel.
-- `vite.config.ts`: Runner pengujian unit Vitest terintegrasi Tailwind v4.
-- `GEMINI.md`: Aturan arsitektur, panduan sistem, konvensi penamaan, dan batasan implementasi.
-- `PRD.md`: Spesifikasi kebutuhan produk dan modul fitur e-commerce.
-- `README.md`: Panduan utama proyek, instalasi, dan struktur folder.
-- `PERSONA.md`: Profil persona pembeli merchandise dan persona admin toko.
-- `CUSTOMER_JOURNEY_MAP.md`: Peta perjalanan pengguna Rian The Trendsetter (5 stage: Awareness, Consideration, Decision, Purchase, Retention).
-- `SITE-MAP.md`: Arsitektur informasi dan peta situs 7 halaman utama antarmuka toko.
-- `WIREFRAME.md`: Perencanaan wireframe, hierarki konten, komponen antarmuka, interaksi, dan spesifikasi Adobe XD.
+- `.editorconfig`: Konfigurasi indentasi dua spasi, encoding UTF-8, dan konsistensi baris akhir.
+- `.env`: Berkas rahasia lokal yang diproteksi penuh dari pelacakan Git.
+- `.env.example`: Berkas templat variabel lingkungan untuk dokumentasi setup rekan tim.
+- `.gitignore`: Daftar aturan pengecualian dependensi, build cache, dan berkas rahasia.
+- `.prettierrc`: Standarisasi format penulisan kode dengan single quote dan konsistensi koma.
+- `drizzle.config.ts`: Berkas konfigurasi Drizzle ORM terhubung ke PostgreSQL 18.
+- `eslint.config.mjs`: Konfigurasi flat ESLint terintegrasi aturan Next.js dan TypeScript.
+- `next.config.ts`: Konfigurasi Next.js 16 App Router beserta optimasi gambar.
+- `package.json`: Manifest dependensi proyek Next.js 16, React 19, Tailwind v4, Drizzle, dan Vitest.
+- `playwright.config.ts`: Konfigurasi rangkaian pengujian browser menyeluruh end-to-end.
+- `postcss.config.mjs`: Integrasi plugin PostCSS untuk pemrosesan Tailwind CSS v4.
+- `tsconfig.json`: Pengaturan ketat kompilasi TypeScript dan path alias.
+- `vercel.json`: Konfigurasi deployment hosting serverless ke platform Vercel.
+- `vite.config.ts`: Runner pengujian unit Vitest terintegrasi plugin Tailwind v4.
+- `GEMINI.md`: Dokumen pedoman arsitektur, aturan sistem, konvensi penamaan, dan batasan implementasi.
+- `PRD.md`: Spesifikasi kebutuhan produk dan cakupan fitur utama e-commerce.
+- `README.md`: Panduan utama proyek mencakup instalasi, dependensi, dan navigasi folder.
+- `PERSONA.md`: Profil persona target pembeli busana dan administrator pengelola toko.
+- `CUSTOMER_JOURNEY_MAP.md`: Peta perjalanan pengguna Rian The Trendsetter dari kesadaran merek hingga loyalitas.
+- `SITE-MAP.md`: Struktur arsitektur informasi dan peta tujuh halaman antarmuka toko.
+- `WIREFRAME.md`: Perencanaan wireframe, tata letak, komponen antarmuka, dan interaksi.

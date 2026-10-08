@@ -11,6 +11,8 @@ export default defineConfig({
     },
   },
   server: {
+    port: 4000,
+    strictPort: true,
     watch: {
       ignored: ["**/.next/**", "**/node_modules/**", "**/.git/**"],
     },

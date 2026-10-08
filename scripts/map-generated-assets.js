@@ -19,10 +19,12 @@ const mappings = [
   {
     src: "void_acid_wash_tee_1791474291733.jpg",
     targets: ["void-tee-02-front.webp", "void-tee-02-back.webp"],
+    detailCrop: "void-tee-02-detail.webp",
   },
   {
     src: "cybernetic_longsleeve_1791474312759.jpg",
     targets: ["cybernetic-ls-01-front.webp", "cybernetic-ls-01-back.webp"],
+    detailCrop: "cybernetic-ls-01-detail.webp",
   },
   {
     src: "transmission_zip_hoodie_1791474332582.jpg",
@@ -43,10 +45,12 @@ const mappings = [
   {
     src: "tactical_cargo_pants_1791474377062.jpg",
     targets: ["cargo-pants-front.webp", "cargo-pants-back.webp"],
+    detailCrop: "cargo-pants-detail.webp",
   },
   {
     src: "relaxed_pleated_trousers_1791474404543.jpg",
     targets: ["pleated-pants-front.webp", "pleated-pants-back.webp"],
+    detailCrop: "pleated-pants-detail.webp",
   },
   {
     src: "utility_balaclava_1791474423113.jpg",
@@ -65,18 +69,37 @@ async function run() {
       continue;
     }
 
+    // Pemetaan Foto Standar 4:5
     for (const targetName of item.targets) {
       const destPath = path.join(productsOutDir, targetName);
-      // Resize ke rasio 4:5 tepat (800x1000px) dengan format WebP kualitas 88%
       await sharp(srcPath)
         .resize(800, 1000, { fit: "cover", position: "center" })
         .webp({ quality: 88 })
         .toFile(destPath);
       console.log(`✓ Berhasil memetakan: ${targetName}`);
     }
+
+    // Pemetaan Foto Detail Makro via Zoom Crop
+    if (item.detailCrop) {
+      const destDetailPath = path.join(productsOutDir, item.detailCrop);
+      const metadata = await sharp(srcPath).metadata();
+      const width = metadata.width || 1024;
+      const height = metadata.height || 1024;
+      const cropW = Math.round(width * 0.5);
+      const cropH = Math.round(height * 0.625);
+      const left = Math.round((width - cropW) / 2);
+      const top = Math.round((height - cropH) / 2.5);
+
+      await sharp(srcPath)
+        .extract({ left, top, width: cropW, height: cropH })
+        .resize(800, 1000, { fit: "cover" })
+        .webp({ quality: 90 })
+        .toFile(destDetailPath);
+      console.log(`✓ Berhasil memetakan macro detail: ${item.detailCrop}`);
+    }
   }
 
-  // Hero Lookbook
+  // Hero Lookbook 16:9
   const heroSrc = path.join(brainDir, "lookbook_night_transmission_1791474442779.jpg");
   if (fs.existsSync(heroSrc)) {
     const heroDest = path.join(lookbookOutDir, "drop-04-editorial-hero.webp");

@@ -16,7 +16,7 @@ export default function ShopLoading() {
         </div>
 
         {/* Skeleton Lookbook Hero */}
-        <div className="aspect-[16/9] w-full border border-neutral-800 bg-neutral-900 md:aspect-[21/9]" />
+        <div className="aspect-video w-full border border-neutral-800 bg-neutral-900 md:aspect-21/9" />
       </header>
 
       {/* Skeleton Product Grid (8 Item Skeleton 4:5) */}
@@ -27,15 +27,15 @@ export default function ShopLoading() {
         {Array.from({ length: 8 }).map((_, index) => (
           <div key={index} className="flex flex-col border border-neutral-800/80 bg-neutral-950">
             {/* Wadah Gambar Skeleton 4:5 */}
-            <div className="aspect-[4/5] w-full bg-neutral-900" />
+            <div className="aspect-4/5 w-full bg-neutral-900" />
 
             {/* Wadah Info Skeleton */}
             <div className="flex flex-col gap-3 border-t border-neutral-800/80 p-4">
-              <div className="bg-neutral-850 h-3 w-16" />
+              <div className="h-3 w-16 bg-neutral-800/80" />
               <div className="h-4 w-3/4 bg-neutral-800" />
               <div className="flex items-center justify-between border-t border-neutral-900 pt-2">
                 <div className="h-4 w-24 bg-neutral-800" />
-                <div className="bg-neutral-850 h-3 w-14" />
+                <div className="h-3 w-14 bg-neutral-800/80" />
               </div>
             </div>
           </div>

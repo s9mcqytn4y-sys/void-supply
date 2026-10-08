@@ -20,29 +20,29 @@ Module ini fokus pada penerjemahan keputusan produk dan spesifikasi wireframe me
 
 ## Deliverables Dokumentasi Module 02.0
 
-Dokumen rekayasa resmi yang telah diselesaikan untuk Submodule 02.0:
+Daftar dokumen rekayasa resmi yang diselesaikan secara komprehensif untuk Submodule 02.0:
 
-1. [Arsitektur Frontend VOID Supply](./architecture.md): Memuat sasaran aplikasi, keputusan stack teknologi, strategi rendering, struktur direktori, alur data, batasan keamanan, dan alur rilis.
-2. [Arsitektur Next.js 16 App Router](./nextjs-architecture.md): Mendokumentasikan strategi routing rute store, penggunaan Server Component berpadu Client Island, Server Service Layer, struktur fitur, dan siklus commerce.
-3. [Panduan Environment & Konfigurasi](./environment.md): Penjelasan komprehensif mengenai lingkungan development, staging, dan production, serta tata kelola berkas kredensial `.env`.
-4. [Konvensi Folder & Arsitektur Fitur](./folder-convention.md): Menguraikan paradigma _Feature Sliced Thinking_, struktur internal fitur, aturan isolasi komponen, dan konvensi penamaan berkas.
-5. [Arsitektur Aliran Data](./data-flow.md): Memetakan pergerakan siklus data dari Server Component, Client Component, Server Action, hingga webhook penerima notifikasi Midtrans.
-6. [Batasan Keamanan & Arsitektur Proteksi](./security.md): Mendefinisikan security boundary, tata kelola kredensial rahasia, validasi Zod saat runtime, serta verifikasi tanda tangan SHA-512.
-7. [Strategi Pengelolaan State](./state-management.md): Mengatur pemisahan tegas Server State via TanStack Query, Client State via Zustand, dan URL State via Next.js SearchParams.
-8. [Strategi Data Layer & API](./api-strategy.md): Membandingkan Server Actions dengan Route Handlers, validasi skema runtime Zod, transaksi atomik Drizzle ORM, serta integrasi Midtrans dan Biteship.
-9. [Pemodelan Domain Bisnis](./domain-modeling.md): Menguraikan model entitas produk, varian stok fisik, pesanan snapshot imutabel, pembayaran Midtrans, logistik Biteship, serta pemetaan Drizzle ORM.
-10. [Strategi Lapisan Data & Desain Domain Basis Data](./data-layer-strategy.md): Menetapkan klasifikasi Server Data, Client State, Form State, alur kerja Functional Repository dan Service, serta relasi Drizzle ORM.
-11. [Server Components & Implementasi UI Katalog](./server-components-catalog-ui.md): Merinci arsitektur React Server Component /shop, komposisi komponen ProductGrid dan ProductCard, rasio foto 4:5, rekayasa status UI (loading, error, empty), serta pemenuhan aksesibilitas WCAG AA.
+1. [Arsitektur Frontend VOID Supply](./architecture.md): Memuat sasaran aplikasi, arsitektur rendering Next.js, struktur direktori, diagram alur data, batasan keamanan, serta alur deployment.
+2. [Arsitektur Next.js 16 App Router](./nextjs-architecture.md): Menguraikan hierarki routing store, perpaduan Server Component dengan Client Island, Server Service Layer, dan siklus transaksi commerce.
+3. [Panduan Environment & Konfigurasi](./environment.md): Menyajikan dokumentasi menyeluruh mengenai lingkungan development, staging, dan production, serta pengelolaan aman kredensial `.env`.
+4. [Konvensi Folder & Arsitektur Fitur](./folder-convention.md): Menetapkan paradigma Feature-Sliced modular, batasan komponen antarmuka, dan konvensi penamaan berkas.
+5. [Arsitektur Aliran Data](./data-flow.md): Memetakan siklus pergerakan data dari Server Component hingga webhook transaksi Midtrans secara menyeluruh.
+6. [Batasan Keamanan & Arsitektur Proteksi](./security.md): Mendefinisikan boundary keamanan, proteksi rahasia server, validasi runtime Zod, dan verifikasi hash tanda tangan transaksi.
+7. [Strategi Pengelolaan State](./state-management.md): Mengatur kepemilikan data antara TanStack Query, Zustand store, serta URL SearchParams.
+8. [Strategi Data Layer & API](./api-strategy.md): Membandingkan Server Actions dengan Route Handlers, skema validasi Zod, dan transaksi atomik Drizzle ORM.
+9. [Pemodelan Domain Bisnis](./domain-modeling.md): Menguraikan entitas produk, varian stok fisik, pesanan snapshot imutabel, dan pemetaan basis data Drizzle ORM.
+10. [Strategi Lapisan Data & Desain Domain Basis Data](./data-layer-strategy.md): Menetapkan klasifikasi data server, state klien, alur kerja repository fungsional, dan relasi tabel Drizzle ORM.
+11. [Server Components & Implementasi UI Katalog](./server-components-catalog-ui.md): Merinci implementasi Server Component pada rute katalog /shop, komposisi ProductGrid, ProductCard, dan ProductImage, rasio gambar 4:5, serta pemenuhan standar aksesibilitas WCAG AA.
 
 ---
 
 ## Gate Kelulusan Submodule 02.0
 
-Sebelum memulai penulisan kode fitur, pemahaman mendalam atas 3 keputusan rekayasa berikut merupakan syarat mutlak:
+Sebelum memulai penulisan kode fitur, pemahaman mendalam atas tiga keputusan rekayasa arsitektural berikut merupakan fondasi esensial:
 
-1. **Kenapa Halaman Produk Menggunakan Server Component?**
-   Data produk bersumber dari server state yang membutuhkan optimasi mesin pencari secara optimal dan minim interaksi peramban rumit, sehingga menghasilkan dokumen HTML instan tanpa beban bundel JavaScript klien.
-2. **Kenapa Keranjang Belanja Menggunakan Zustand?**
-   Interaksi keranjang belanja merupakan client state sementara yang sering berubah di sisi peramban tanpa memerlukan kueri jaringan berulang, serta didukung persistensi penyimpanan lokal untuk pembeli tanpa akun.
-3. **Kenapa Kita Membutuhkan Zod Jika TypeScript Sudah Ada?**
-   TypeScript hanya menjamin pemeriksaan tipe saat tahap kompilasi kode di editor, sedangkan pustaka Zod menjalankan validasi runtime penting terhadap masukan data formulir pengguna maupun respon webhook pihak ketiga.
+1. **Kenapa Halaman Produk Menggunakan Server Component?**  
+   Data katalog produk bersumber dari basis data relasional yang memerlukan optimasi mesin pencari secara maksimal dan minim interaksi peramban rumit, sehingga menghasilkan dokumen HTML instan tanpa membocorkan kredensial basis data atau membebani bundle JavaScript klien.
+2. **Kenapa Keranjang Belanja Menggunakan Zustand?**  
+   Interaksi keranjang belanja merupakan state antarmuka reaktif yang sering bertransisi di sisi peramban tanpa memerlukan latensi kueri jaringan berulang, serta diperkuat oleh persistensi penyimpanan lokal untuk kenyamanan pembeli tamu.
+3. **Kenapa Kita Membutuhkan Zod Jika TypeScript Sudah Ada?**  
+   Pemeriksaan tipe data TypeScript hanya aktif selama tahap kompilasi kode di editor, sedangkan pustaka validasi Zod mengeksekusi pemeriksaan tipe runtime terhadap masukan data formulir pengguna maupun muatan webhook pihak ketiga.

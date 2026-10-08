@@ -30,7 +30,7 @@ export default function ShopError({ error, reset }: ErrorProps) {
         <button
           type="button"
           onClick={() => reset()}
-          className="inline-flex min-h-[44px] w-full items-center justify-center border border-neutral-700 bg-neutral-900 px-6 font-mono text-xs tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-neutral-800 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+          className="inline-flex min-h-11 w-full items-center justify-center border border-neutral-700 bg-neutral-900 px-6 font-mono text-xs tracking-widest text-white uppercase transition-colors hover:border-white hover:bg-neutral-800 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
         >
           Coba Muat Ulang
         </button>

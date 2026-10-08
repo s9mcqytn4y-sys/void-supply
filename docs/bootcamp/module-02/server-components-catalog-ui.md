@@ -25,19 +25,15 @@ export default async function ShopPage() {
 1. **Zero Client-Side JavaScript Overhead**:
    Logika Drizzle ORM, driver basis data `postgres`, dan transformasi data dieksekusi secara privat pada server Node.js. Browser pembeli hanya menerima HTML yang telah di-render beserta payload streaming kecil tanpa bundle ORM.
 2. **Eliminasi Client Fetching Waterfall**:
-   Pada pola lama (`useEffect` + `fetch`), alur halaman mengalami tiga siklus tunda:
-   - Unduh bundle JS halaman (100–300ms)
-   - Eksekusi React mounting di browser
-   - Permintaan HTTP sekunder ke REST API (latency round-trip tambahan)
-     Pada Next.js 16 App Router, pengambilan data berlangsung berdampingan dengan siklus rendering server (single-hop data fetching).
+   Pada pola lama berbasis perpaduan `useEffect` dan `fetch`, pemuatan halaman katalog kerap tertunda akibat keharusan mengunduh bundle JavaScript halaman terlebih dahulu, menunggu eksekusi React mounting di peramban, serta meluncurkan permintaan HTTP sekunder ke REST API eksternal. Sebaliknya, pada Next.js 16 App Router seluruh pengambilan data berlangsung berdampingan dengan siklus rendering server dalam mekanisme single-hop data fetching.
 3. **Integritas dan Keamanan Finansial**:
-   Harga dasar, kalkulasi stok, dan SKU ditarik langsung dari tabel `produk` dan `varian_produk`. Tidak ada celah manipulasi harga dari parameter sisi klien.
+   Nilai harga dasar, kalkulasi stok, dan SKU ditarik langsung dari basis data tanpa celah manipulasi parameter di sisi klien.
 
 ---
 
 ## 2. Komposisi Komponen Katalog (Component Composition)
 
-Arsitektur antarmuka dibagi secara modular mengikuti prinsip _Single Responsibility Principle_:
+Arsitektur antarmuka dibagi secara modular mengikuti prinsip pemisahan tanggung jawab yang terisolasi:
 
 ```text
 ShopPage (Server Component)
@@ -45,7 +41,7 @@ ShopPage (Server Component)
     └── ProductGrid (Server / Pure Presentation)
             ├── Empty State (Kondisi saat katalog kosong)
             └── ProductCard (Komposisi Kartu Busana)
-                    ├── AspectRatio 4:5 Image Container (Next.js Image)
+                    ├── ProductImage (Kontainer Rasio Aspek 4:5 via Next.js Image)
                     │     ├── Badge Drop Edisi Terbatas (DROP 04)
                     │     ├── Badge Status Stok (HABIS TERJUAL / HAMPIR HABIS)
                     │     └── Quick Size Selector Overlay (Pills Ukuran)
@@ -61,20 +57,20 @@ ShopPage (Server Component)
 
 ### A. Palet Warna & Token Desain Tailwind CSS v4
 
-Tidak ada warna generik default AI (seperti gradien biru-ke-ungu atau efek neon acak). VOID Supply menggunakan palet brutalist streetwear yang terdefinisi di `src/app/globals.css`:
+Tidak ada warna generik default kecerdasan buatan seperti gradien biru-ke-ungu atau efek neon acak, melainkan palet brutalist streetwear konsisten yang terdefinisi di `src/app/globals.css`:
 
-- `--color-void-black`: `#0a0a0a` (Latar utama aplikasi)
-- `--color-void-card`: `#121212` (Permukaan kartu produk)
-- `--color-void-border`: `#262626` (Batas pemisah struktural)
-- `--color-void-muted`: `#737373` (Teks sekunder dan label pembantu)
-- `--color-void-light`: `#ededed` (Teks primer tingkat kontras tinggi)
-- `--font-mono`: Tipografi tabular untuk SKU, harga, dan label teknis.
+- `--color-void-black`: `#0a0a0a` yang berfungsi sebagai latar belakang utama kanvas aplikasi.
+- `--color-void-card`: `#121212` yang menjadi permukaan kartu produk dan panel interaktif.
+- `--color-void-border`: `#262626` untuk garis batas pemisah struktural antar elemen.
+- `--color-void-muted`: `#737373` sebagai warna teks sekunder dan label spesifikasi pembantu.
+- `--color-void-light`: `#ededed` yang memberikan tingkat kontras tinggi untuk teks primer.
+- `--font-mono`: Tipografi monospace khusus untuk penulisan SKU, format harga, dan label teknis busana.
 
 ### B. Standar Rasio Aspek Gambar Katalog
 
-- Semua foto busana menggunakan rasio **4:5 vertical portrait** (`800x1000px`), standar baku editorial mode global.
-- Banner lookbook menggunakan rasio **16:9** / **21:9** (`1920x1080px`).
-- Format berkas WebP efisiensi tinggi terkompresi tanpa artefak visual.
+- Semua foto busana menerapkan rasio portrait vertikal 4:5 beresolusi 800x1000px sesuai standar editorial mode kontemporer.
+- Banner lookbook utama mengadopsi rasio lanskap lebar 16:9 atau 21:9 dengan dimensi master 1920x1080px.
+- Format berkas WebP efisiensi tinggi terkompresi optimal guna memastikan rendering cepat tanpa kompromi ketajaman tekstur kain.
 
 ### C. Responsivitas Layar Ponsel (/antislop-layoutmobile)
 
