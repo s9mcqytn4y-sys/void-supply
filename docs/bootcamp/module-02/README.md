@@ -32,6 +32,7 @@ Dokumen rekayasa resmi yang telah diselesaikan untuk Submodule 02.0:
 8. [Strategi Data Layer & API](./api-strategy.md): Membandingkan Server Actions dengan Route Handlers, validasi skema runtime Zod, transaksi atomik Drizzle ORM, serta integrasi Midtrans dan Biteship.
 9. [Pemodelan Domain Bisnis](./domain-modeling.md): Menguraikan model entitas produk, varian stok fisik, pesanan snapshot imutabel, pembayaran Midtrans, logistik Biteship, serta pemetaan Drizzle ORM.
 10. [Strategi Lapisan Data & Desain Domain Basis Data](./data-layer-strategy.md): Menetapkan klasifikasi Server Data, Client State, Form State, alur kerja Functional Repository dan Service, serta relasi Drizzle ORM.
+11. [Server Components & Implementasi UI Katalog](./server-components-catalog-ui.md): Merinci arsitektur React Server Component /shop, komposisi komponen ProductGrid dan ProductCard, rasio foto 4:5, rekayasa status UI (loading, error, empty), serta pemenuhan aksesibilitas WCAG AA.
 
 ---
 

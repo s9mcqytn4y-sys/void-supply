@@ -124,7 +124,7 @@ Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indon
 
 ## 7. Batasan Struktur Kode & Keamanan
 
-- **Folder `src/`**: Direktori yang ada saat ini (`app`, `components`, `features`, `lib`, `types`, `data`) tidak boleh ditambahkan file dummy sebelum instruksi development resmi dimulai. File `products.ts` tetap 0 byte sebagai placeholder awal.
+- **Folder `src/`**: Modul katalog aktif menggunakan PostgreSQL 18 via Drizzle ORM (`src/features/catalog/`), terbagi rapi ke dalam repositories, services, components, schemas, dan types. Seluruh data dummy statis telah dihapus demi integritas relasional.
 - **Kredensial**: Dilarang melakukan commit terhadap secret atau API key asli ke Git. Selalu gunakan file template `.env.example`.
 
 ---

@@ -13,9 +13,9 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
     <article className="group relative flex flex-col border border-neutral-800 bg-neutral-950 transition-all duration-300 hover:border-neutral-600">
       {/* 1. Wadah Gambar Rasio 4:5 */}
       <Link
-        href={`/product/${product.slug}`}
-        className="relative block aspect-[4/5] w-full overflow-hidden bg-neutral-900"
-        aria-label={`Lihat detail ${product.nama}`}
+        href={`/shop/${product.slug}`}
+        className="relative block aspect-[4/5] w-full overflow-hidden bg-neutral-900 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+        aria-label={`Lihat detail artikel ${product.nama}`}
       >
         {/* Badge Koleksi Drop di Kiri Atas */}
         <span className="absolute top-3 left-3 z-10 border border-neutral-700/80 bg-black/80 px-2.5 py-1 font-mono text-[11px] tracking-widest text-neutral-200 uppercase backdrop-blur-sm">
@@ -37,7 +37,7 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
         <div className="relative h-full w-full">
           <Image
             src={product.gambarUtama}
-            alt={product.nama}
+            alt={`Foto produk ${product.nama}`}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             priority={priority}
@@ -78,7 +78,12 @@ export function ProductCard({ product, priority = false }: ProductCardProps) {
             {product.kategori}
           </span>
           <h2 className="line-clamp-1 text-sm font-semibold tracking-tight text-neutral-100 uppercase transition-colors group-hover:text-white">
-            <Link href={`/product/${product.slug}`}>{product.nama}</Link>
+            <Link
+              href={`/shop/${product.slug}`}
+              className="focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+            >
+              {product.nama}
+            </Link>
           </h2>
         </div>
 

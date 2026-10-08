@@ -49,6 +49,7 @@ export const catalogService = {
       deskripsi: item.deskripsi,
       kategori: item.kategoriRelasi?.nama ?? "Apparel",
       hargaDasar: item.hargaDasar,
+      status: item.status,
       gambarUtama: item.gambarUtama,
       galeriGambar: (item.galeriGambar as string[]) || [item.gambarUtama],
       varian: varianList.map((v) => ({
