@@ -1,7 +1,7 @@
-// Public API Exports untuk Modul Catalog
-export * from "./components/ProductCard";
-export * from "./components/ProductGrid";
-export * from "./components/ProductImage";
+// Public API Exports untuk Modul Katalog (Bahasa Indonesia & Compatibility Alias)
+export * from "./components/KartuProduk";
+export * from "./components/GridProduk";
+export * from "./components/GambarProduk";
 export * from "./services/catalog.service";
 export * from "./repositories/product.repository";
 export * from "./types/product.type";

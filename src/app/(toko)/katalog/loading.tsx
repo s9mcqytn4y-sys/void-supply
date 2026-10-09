@@ -1,4 +1,4 @@
-export default function ShopLoading() {
+export default function KatalogLoading() {
   return (
     <main
       className="mx-auto min-h-screen w-full max-w-7xl bg-neutral-950 px-4 py-8 sm:px-6 lg:px-8"

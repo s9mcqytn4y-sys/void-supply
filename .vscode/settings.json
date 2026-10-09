@@ -141,7 +141,7 @@
   "terminal.integrated.fontSize": 13,
   "terminal.integrated.lineHeight": 1.4,
   "terminal.integrated.fontFamily": "Cascadia Code, Consolas, 'Courier New', monospace",
-  "terminal.integrated.enableMultiLinePasteWarning": false,
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
   "terminal.integrated.scrollback": 10000,
   "terminal.integrated.shellIntegration.enabled": true,
 
@@ -183,11 +183,11 @@
   },
 
   // SQLTools Database Synchronization (PostgreSQL 18 Local)
-  "sqltools.useNodeRuntime": true,
+  "sqltools.useNodeRuntime": false,
   "sqltools.connections": [
     {
       "name": "VOID Supply (Local PostgreSQL 18)",
-      "dialect": "PostgreSQL",
+      "driver": "PostgreSQL",
       "server": "localhost",
       "port": 5432,
       "database": "void_supply",

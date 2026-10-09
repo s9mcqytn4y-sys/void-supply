@@ -50,3 +50,5 @@ export const productRepository = {
 };
 
 export type ProductRepository = typeof productRepository;
+export const repositoriProduk = productRepository;
+export type RepositoriProduk = typeof repositoriProduk;

@@ -31,6 +31,18 @@
     },
     {
       "type": "npm",
+      "script": "db:migrate",
+      "problemMatcher": [],
+      "detail": "Jalankan migrasi skema database Drizzle ORM ke PostgreSQL"
+    },
+    {
+      "type": "npm",
+      "script": "db:seed",
+      "problemMatcher": [],
+      "detail": "Jalankan data seeder Drop 04 ke PostgreSQL lokal"
+    },
+    {
+      "type": "npm",
       "script": "test",
       "group": "test",
       "problemMatcher": [],
@@ -38,10 +50,37 @@
     },
     {
       "type": "npm",
+      "script": "test:watch",
+      "isBackground": true,
+      "problemMatcher": [],
+      "detail": "Jalankan Vitest watcher mode untuk TDD"
+    },
+    {
+      "type": "npm",
+      "script": "test:e2e",
+      "problemMatcher": [],
+      "detail": "Jalankan Playwright end-to-end browser tests"
+    },
+    {
+      "type": "npm",
       "script": "build",
       "group": "build",
       "problemMatcher": [],
       "detail": "Build Next.js untuk production"
+    },
+    {
+      "label": "PostgreSQL: Start Service",
+      "type": "shell",
+      "command": "pg_ctl -D \"C:\\Users\\Acer\\scoop\\persist\\postgresql\\data\" -l \"C:\\Users\\Acer\\scoop\\persist\\postgresql\\data\\server.log\" start",
+      "problemMatcher": [],
+      "detail": "Jalankan daemon server PostgreSQL 18 lokal via pg_ctl"
+    },
+    {
+      "label": "PostgreSQL: Status Service",
+      "type": "shell",
+      "command": "pg_ctl -D \"C:\\Users\\Acer\\scoop\\persist\\postgresql\\data\" status",
+      "problemMatcher": [],
+      "detail": "Cek status operasional cluster PostgreSQL 18 lokal"
     }
   ]
 }

@@ -2,15 +2,15 @@
 
 import { useEffect } from "react";
 
-interface ErrorProps {
+interface PropertiGalat {
   error: Error & { digest?: string };
   reset: () => void;
 }
 
-export default function ShopError({ error, reset }: ErrorProps) {
+export default function KatalogError({ error, reset }: PropertiGalat) {
   useEffect(() => {
     // Pencatatan galat ke sistem monitoring analitik
-    console.error("Katalog Shop Error Boundary:", error);
+    console.error("Katalog Error Boundary:", error);
   }, [error]);
 
   return (

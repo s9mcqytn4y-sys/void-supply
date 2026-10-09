@@ -101,6 +101,18 @@ Sesuai aturan `/antislop`, `/antislop-code`, `/antislop-copywriting`, `/antislop
 
 ---
 
+### D. Aturan Kanonikal Tailwind CSS v4 (Zero IDE Warnings)
+
+1. **DILARANG menggunakan arbitrary value jika utility bawaan tersedia**:
+   - Gunakan `aspect-video` (bukan `aspect-[16/9]`).
+   - Gunakan `md:aspect-21/9` (bukan `md:aspect-[21/9]`).
+   - Gunakan `min-h-11` untuk tinggi tap target 44px (bukan `min-h-[44px]`).
+   - Gunakan `min-h-9` untuk tinggi 36px dan `min-h-12` untuk tinggi 48px.
+2. **Sintaks Gradien Tailwind v4**: Wajib menggunakan `bg-linear-to-*` (bukan sintaks v3 `bg-gradient-to-*`).
+3. **Pemisahan Kelas Kondisional `cn()`**: Hindari menyisipkan kelas warna latar dan teks yang bersaing di dalam percabangan ternary langsung pada `cn()`. Gunakan variabel penampung string terpisah atau template literal untuk mencegah konflik evaluasi linter.
+
+---
+
 ## 5. Implementasi Aturan TypeScript Expert (`/typescript-expert`)
 
 1. **Strict Type Safety**: Dilarang keras menggunakan tipe `any`. Gunakan `unknown` bila tipe belum pasti dan parse dengan Zod.
@@ -112,13 +124,15 @@ Sesuai aturan `/antislop`, `/antislop-code`, `/antislop-copywriting`, `/antislop
 
 ## 6. Konvensi Penamaan (Bahasa Indonesia)
 
-Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indonesia:
+Seluruh entitas domain bisnis, antarmuka toko, dan database wajib mengikuti konvensi Bahasa Indonesia:
 
+- **Rute Etalase Toko**: Menggunakan struktur `src/app/(toko)/katalog/` dengan redirect otomatis dari `/shop` di `next.config.ts`.
+- **Komponen UI Fitur**: Penamaan komponen antarmuka menggunakan Bahasa Indonesia seperti `KartuProduk.tsx`, `GridProduk.tsx`, dan `GambarProduk.tsx` dengan alias ekspor kompatibilitas di `src/features/catalog/index.ts`.
 - **Tabel Drizzle**: Menggunakan nama entitas tunggal yang mencakup produk, pesanan, item_pesanan, pelanggan, inventaris, pembayaran, dan pengiriman.
 - **Kolom Timestamp**: Ditetapkan secara konsisten dengan penamaan dibuat_pada serta diperbarui_pada.
 - **Type atau Interface TypeScript**: Merepresentasikan entitas bisnis seperti Produk, Pesanan, Pelanggan, StatusPembayaran, dan OpsiPengiriman.
 - **Zod Schema**: Skema validasi runtime seperti produkSkema, pesananSkema, dan checkoutSkema.
-- **Server Actions**: Fungsi operasional server seperti buatPesanan(), ambilDaftarProduk(), prosesWebhookMidtrans(), serta cekOngkirBiteship().
+- **Server Actions & Layanan**: Fungsi operasional server seperti buatPesanan(), ambilDaftarKatalog(), ambilDetailProduk(), prosesWebhookMidtrans(), serta cekOngkirBiteship().
 
 ---
 
@@ -139,6 +153,7 @@ Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indon
    - Menghubungkan aplikasi langsung ke kluster basis data PostgreSQL 18 aktif pada port 5432 (`void_supply`).
    - Menyimpan berkas sementara kompilasi seperti `tsconfig.tsbuildinfo` yang diabaikan Git.
    - Memuat dokumen persona pembeli `PERSONA.md` pada direktori root proyek.
+   - Memuat pipeline CI otomatis di `.github/workflows/ci.yml`.
 
 2. **Repositori GitHub (`origin/main` : `s9mcqytn4y-sys/void-supply`)**:
    - Berkas rahasia `.env` tidak ada (dilindungi oleh `.gitignore`), hanya menyertakan `.env.example`.
@@ -154,7 +169,7 @@ Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indon
 - `.prettierrc`: Standarisasi format penulisan kode dengan single quote dan konsistensi koma.
 - `drizzle.config.ts`: Berkas konfigurasi Drizzle ORM terhubung ke PostgreSQL 18.
 - `eslint.config.mjs`: Konfigurasi flat ESLint terintegrasi aturan Next.js dan TypeScript.
-- `next.config.ts`: Konfigurasi Next.js 16 App Router beserta optimasi gambar.
+- `next.config.ts`: Konfigurasi Next.js 16 App Router beserta optimasi gambar dan URL redirect.
 - `package.json`: Manifest dependensi proyek Next.js 16, React 19, Tailwind v4, Drizzle, dan Vitest.
 - `playwright.config.ts`: Konfigurasi rangkaian pengujian browser menyeluruh end-to-end.
 - `postcss.config.mjs`: Integrasi plugin PostCSS untuk pemrosesan Tailwind CSS v4.
@@ -168,3 +183,14 @@ Seluruh entitas domain bisnis dan database wajib mengikuti konvensi Bahasa Indon
 - `CUSTOMER_JOURNEY_MAP.md`: Peta perjalanan pengguna Rian The Trendsetter dari kesadaran merek hingga loyalitas.
 - `SITE-MAP.md`: Struktur arsitektur informasi dan peta tujuh halaman antarmuka toko.
 - `WIREFRAME.md`: Perencanaan wireframe, tata letak, komponen antarmuka, dan interaksi.
+
+<!-- antislop:start -->
+## antislop
+For UI, copy, people, mobile layout, or code comments work, read `antislop.md` (core) and then the skill for the task:
+- UI / visual: `skills/antislop-ui/SKILL.md`
+- Copy & text: `skills/antislop-copywriting/SKILL.md`
+- People: `skills/antislop-human/SKILL.md`
+- Mobile / responsive: `skills/antislop-layoutmobile/SKILL.md`
+- Code comments: `skills/antislop-code/SKILL.md`
+Before starting, ask the user when antislop applies: during the work, or after it is done.
+<!-- antislop:end -->

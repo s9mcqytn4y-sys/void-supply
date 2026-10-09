@@ -66,3 +66,8 @@ export const catalogService = {
 };
 
 export type CatalogService = typeof catalogService;
+export const layananKatalog = catalogService;
+export type LayananKatalog = typeof layananKatalog;
+
+export const ambilDaftarKatalog = catalogService.ambilDaftarKatalog.bind(catalogService);
+export const ambilDetailProduk = catalogService.ambilDetailProduk.bind(catalogService);

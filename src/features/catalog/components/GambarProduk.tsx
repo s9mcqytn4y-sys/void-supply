@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
-interface ProductImageProps {
+export interface PropertiGambarProduk {
   src: string;
   alt: string;
   apakahHabis?: boolean;
@@ -11,7 +11,7 @@ interface ProductImageProps {
   className?: string;
 }
 
-export function ProductImage({
+export function GambarProduk({
   src,
   alt,
   apakahHabis = false,
@@ -19,7 +19,7 @@ export function ProductImage({
   priority = false,
   labelBadge = "DROP 04",
   className,
-}: ProductImageProps) {
+}: PropertiGambarProduk) {
   return (
     <div className={cn("relative aspect-4/5 w-full overflow-hidden bg-neutral-900", className)}>
       {/* Badge Koleksi Drop di Kiri Atas */}
@@ -57,3 +57,7 @@ export function ProductImage({
     </div>
   );
 }
+
+// Alias untuk kompatibilitas
+export const ProductImage = GambarProduk;
+export type ProductImageProps = PropertiGambarProduk;

@@ -4,6 +4,7 @@
   --color-void-black: #0a0a0a;
   --color-void-card: #121212;
   --color-void-border: #262626;
+  --color-void-gray: #737373;
   --color-void-muted: #737373;
   --color-void-light: #ededed;
   --color-void-white: #ffffff;
@@ -13,6 +14,56 @@
 :root {
   --background: #0a0a0a;
   --foreground: #ededed;
+}
+
+/* VOID Typography Hierarchy Utilities */
+.type-display {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+  font-size: clamp(2.5rem, 5vw, 3.75rem);
+}
+
+.type-hero {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  font-size: clamp(1.875rem, 3.5vw, 2.5rem);
+}
+
+.type-heading {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+}
+
+.type-body {
+  font-weight: 400;
+  line-height: 1.5;
+  font-size: 0.9375rem;
+  color: #a3a3a3;
+}
+
+.type-caption {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+  font-size: 0.75rem;
+  color: #737373;
+}
+
+.type-label {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  font-size: 0.6875rem;
 }
 
 body {
