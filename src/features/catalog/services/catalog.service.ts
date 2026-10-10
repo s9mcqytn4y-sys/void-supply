@@ -52,6 +52,8 @@ export const catalogService = {
       status: item.status,
       gambarUtama: item.gambarUtama,
       galeriGambar: (item.galeriGambar as string[]) || [item.gambarUtama],
+      spesifikasi: item.spesifikasi,
+      panduanUkuran: item.panduanUkuran,
       varian: varianList.map((v) => ({
         id: v.id,
         ukuran: v.ukuran,

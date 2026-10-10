@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { formatRupiah } from "@/lib/utils";
 import { catalogService } from "../services/catalog.service";
 import { productRepository } from "../repositories/product.repository";
+import { dapatDibeli } from "../types/product.type";
+import { pilihVarianSkema } from "../schemas/product.schema";
 
 describe("Modul Katalog // Layanan & Validasi Bisnis", () => {
   beforeEach(() => {
@@ -147,6 +149,76 @@ describe("Modul Katalog // Layanan & Validasi Bisnis", () => {
       expect(daftar[0].apakahHabis).toBe(false);
       expect(daftar[0].apakahStokMenipis).toBe(true);
       expect(daftar[0].ukuranTersedia).toEqual(["M"]);
+    });
+  });
+
+  describe("Aturan Bisnis Pembelian // dapatDibeli (Module 02.11)", () => {
+    it("mengembalikan true untuk kuantitas valid dalam batas stok dan limit per transaksi (1-10)", () => {
+      expect(dapatDibeli(10, 2)).toBe(true);
+      expect(dapatDibeli(5, 1)).toBe(true);
+      expect(dapatDibeli(10, 10)).toBe(true);
+      expect(dapatDibeli(25, 10)).toBe(true);
+    });
+
+    it("mengembalikan false saat stok habis (0)", () => {
+      expect(dapatDibeli(0, 1)).toBe(false);
+    });
+
+    it("mengembalikan false saat jumlah melebihi stok yang tersedia", () => {
+      expect(dapatDibeli(3, 5)).toBe(false);
+      expect(dapatDibeli(1, 2)).toBe(false);
+    });
+
+    it("mengembalikan false saat jumlah melebihi batas pembelian maksimal (10)", () => {
+      expect(dapatDibeli(20, 11)).toBe(false);
+      expect(dapatDibeli(50, 99)).toBe(false);
+    });
+
+    it("mengembalikan false saat jumlah kurang dari 1 atau bukan integer bulat", () => {
+      expect(dapatDibeli(10, 0)).toBe(false);
+      expect(dapatDibeli(10, -1)).toBe(false);
+      expect(dapatDibeli(10, 1.5)).toBe(false);
+      expect(dapatDibeli(10, NaN)).toBe(false);
+    });
+  });
+
+  describe("Validasi Skema Zod Pemilih Varian // pilihVarianSkema & tambahKeranjangSkema", () => {
+    it("berhasil memvalidasi payload pilihVarianSkema dengan produkId dan varianId UUID yang valid", () => {
+      const payloadValid = {
+        produkId: "123e4567-e89b-12d3-a456-426614174000",
+        varianId: "987fcdeb-51a2-43f7-9876-543210fedcba",
+        kuantitas: 2,
+      };
+
+      const hasil = pilihVarianSkema.safeParse(payloadValid);
+      expect(hasil.success).toBe(true);
+    });
+
+    it("menolak payload bila format varianId bukan UUID valid", () => {
+      const payloadInvalid = {
+        produkId: "123e4567-e89b-12d3-a456-426614174000",
+        varianId: "id-bukan-uuid",
+        kuantitas: 1,
+      };
+
+      const hasil = pilihVarianSkema.safeParse(payloadInvalid);
+      expect(hasil.success).toBe(false);
+    });
+
+    it("menolak payload bila kuantitas di luar batas wajar (1-10)", () => {
+      const payloadNol = {
+        produkId: "123e4567-e89b-12d3-a456-426614174000",
+        varianId: "987fcdeb-51a2-43f7-9876-543210fedcba",
+        kuantitas: 0,
+      };
+      const payloadLebih = {
+        produkId: "123e4567-e89b-12d3-a456-426614174000",
+        varianId: "987fcdeb-51a2-43f7-9876-543210fedcba",
+        kuantitas: 11,
+      };
+
+      expect(pilihVarianSkema.safeParse(payloadNol).success).toBe(false);
+      expect(pilihVarianSkema.safeParse(payloadLebih).success).toBe(false);
     });
   });
 });

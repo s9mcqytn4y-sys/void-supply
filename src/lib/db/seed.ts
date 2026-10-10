@@ -9,7 +9,11 @@ const client = postgres(connectionString, { max: 1 });
 const db = drizzle(client, { schema });
 
 async function seed() {
-  console.log("--- Memulai Seeding Database VOID Supply ---");
+  console.log("--- Memulai Seeding Database VOID Supply (Module 02.11) ---");
+
+  // Pastikan kolom baru spesifikasi dan panduan_ukuran ada
+  await client`ALTER TABLE produk ADD COLUMN IF NOT EXISTS spesifikasi jsonb;`;
+  await client`ALTER TABLE produk ADD COLUMN IF NOT EXISTS panduan_ukuran jsonb;`;
 
   // 1. Bersihkan Data Lama
   await db.delete(schema.produkKeKoleksi);
@@ -90,7 +94,7 @@ async function seed() {
 
   console.log("✓ Koleksi Drop 04 berhasil di-seed");
 
-  // 4. Katalog Produk Master (8 Artikel Drop 04)
+  // 4. Katalog Produk Master (8 Artikel Drop 04) dengan Spesifikasi & Size Guide Nyata
   const dataProduk = [
     {
       kategoriId: katTshirt.id,
@@ -105,12 +109,39 @@ async function seed() {
         "/images/products/drop-04/void-tee-01-back.webp",
         "/images/products/drop-04/void-tee-01-detail.webp",
       ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Katun Combed 16s",
+          gramasi: "235 GSM (Heavyweight High-Density)",
+          pewarnaan: "Reactive Dye Jet Black (Tahan Luntur)",
+          finishing: "Pre-shrunk Enzyme Wash (Anti-Susut)",
+        },
+        konstruksi: {
+          jahitan: "Rantai Ganda (Double Chainstitch) pada Bahu",
+          kerahRib: "1x1 Spandex Rib Tebal 2.5 cm (Anti-Melar)",
+          teknikGrafis: "High-Density Plastisol Curing 160°C",
+          label: "Woven Satin Hitam Lembut Tanpa Iritasi",
+        },
+        perawatan: {
+          suhuCuci: "Air Dingin Maksimal 30°C",
+          bahanKimia: "Tanpa Pemutih Klorin",
+          pengeringan: "Jemur Terbalik di Tempat Teduh (Hindari Mesin Pengering)",
+          penyetrikaan: "Suhu Sedang, Balik Bagian Sablon",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "S", panjangBadan: 70, lebarDada: 52, panjangLengan: 23 },
+        { ukuran: "M", panjangBadan: 72, lebarDada: 55, panjangLengan: 24 },
+        { ukuran: "L", panjangBadan: 75, lebarDada: 58, panjangLengan: 25 },
+        { ukuran: "XL", panjangBadan: 77, lebarDada: 61, panjangLengan: 26 },
+        { ukuran: "XXL", panjangBadan: 79, lebarDada: 64, panjangLengan: 27 },
+      ],
       varians: [
         { ukuran: "S", warna: "Hitam", sku: "VOID-D04-TEE-BLK-S", stok: 25, berat: 420 },
         { ukuran: "M", warna: "Hitam", sku: "VOID-D04-TEE-BLK-M", stok: 35, berat: 450 },
         { ukuran: "L", warna: "Hitam", sku: "VOID-D04-TEE-BLK-L", stok: 30, berat: 480 },
         { ukuran: "XL", warna: "Hitam", sku: "VOID-D04-TEE-BLK-XL", stok: 15, berat: 510 },
-        { ukuran: "XXL", warna: "Hitam", sku: "VOID-D04-TEE-BLK-XXL", stok: 8, berat: 540 },
+        { ukuran: "XXL", warna: "Hitam", sku: "VOID-D04-TEE-BLK-XXL", stok: 0, berat: 540 }, // Stok 0 untuk verifikasi disabled
       ],
     },
     {
@@ -125,6 +156,32 @@ async function seed() {
         "/images/products/drop-04/void-tee-02-front.webp",
         "/images/products/drop-04/void-tee-02-back.webp",
         "/images/products/drop-04/void-tee-02-detail.webp",
+      ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Katun Combed 20s",
+          gramasi: "210 GSM (Medium Heavyweight)",
+          pewarnaan: "Manual Mineral Acid Wash Effect",
+          finishing: "Vintage Soft Distressed Touch",
+        },
+        konstruksi: {
+          jahitan: "Double-needle Edge Seam",
+          kerahRib: "Rib Katun 1x1 2.2 cm",
+          teknikGrafis: "Distressed Crack Plastisol Ink",
+          label: "Woven Neck Label VOID Archive",
+        },
+        perawatan: {
+          suhuCuci: "Air Dingin Pencucian Lembut (Handwash Disarankan)",
+          bahanKimia: "Dilarang Pemutih",
+          pengeringan: "Keringkan Alami di Tempat Terbuka",
+          penyetrikaan: "Suhu Rendah dari Dalam",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "S", panjangBadan: 69, lebarDada: 53, panjangLengan: 23 },
+        { ukuran: "M", panjangBadan: 71, lebarDada: 56, panjangLengan: 24 },
+        { ukuran: "L", panjangBadan: 74, lebarDada: 59, panjangLengan: 25 },
+        { ukuran: "XL", panjangBadan: 76, lebarDada: 62, panjangLengan: 26 },
       ],
       varians: [
         { ukuran: "S", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-S", stok: 18, berat: 430 },
@@ -146,6 +203,32 @@ async function seed() {
         "/images/products/drop-04/cybernetic-ls-01-back.webp",
         "/images/products/drop-04/cybernetic-ls-01-detail.webp",
       ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Katun Combed 24s",
+          gramasi: "200 GSM (Compact High-Density)",
+          pewarnaan: "Deep Jet Black Reactive",
+          finishing: "Carbon Peach Soft Touch",
+        },
+        konstruksi: {
+          jahitan: "Overlock 4-Benang Anti-Lepas",
+          kerahRib: "Mock-Neck 3.5 cm Berstruktur Tegak",
+          teknikGrafis: "Screenprint Plastisol Curing Multi-Pass",
+          label: "Heat-Press Inner Neck Stamp",
+        },
+        perawatan: {
+          suhuCuci: "Air Dingin Putaran Ringan",
+          bahanKimia: "Tanpa Klorin",
+          pengeringan: "Gantung Tanpa Pemerasan Keras",
+          penyetrikaan: "Suhu Sedang",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "S", panjangBadan: 71, lebarDada: 53, panjangLengan: 61 },
+        { ukuran: "M", panjangBadan: 73, lebarDada: 56, panjangLengan: 63 },
+        { ukuran: "L", panjangBadan: 76, lebarDada: 59, panjangLengan: 65 },
+        { ukuran: "XL", panjangBadan: 78, lebarDada: 62, panjangLengan: 67 },
+      ],
       varians: [
         { ukuran: "S", warna: "Hitam", sku: "VOID-D04-LS-BLK-S", stok: 15, berat: 480 },
         { ukuran: "M", warna: "Hitam", sku: "VOID-D04-LS-BLK-M", stok: 28, berat: 510 },
@@ -166,6 +249,31 @@ async function seed() {
         "/images/products/drop-04/hoodie-zip-back.webp",
         "/images/products/drop-04/hoodie-zip-detail.webp",
       ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Cotton French Terry Fleece",
+          gramasi: "420 GSM (Ultra Heavyweight Loopback)",
+          pewarnaan: "Sulfur Deep Black Matte",
+          finishing: "Anti-Pilling Washed Finish",
+        },
+        konstruksi: {
+          jahitan: "Flatlock 3-Jarum Tahan Beban Tarik",
+          kerahRib: "Ritsleting 2-Arah YKK Logam Hitam Matte",
+          teknikGrafis: "Patch Karet 3D di Bagian Tudung",
+          label: "Woven Heavy Label pada Bagian Bawah",
+        },
+        perawatan: {
+          suhuCuci: "Air Dingin Maksimal 30°C",
+          bahanKimia: "Deterjen Lembut Tanpa Pemutih",
+          pengeringan: "Rebahkan di Bidang Datar (Flat Dry)",
+          penyetrikaan: "Suhu Sedang dengan Kain Pelindung",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "M", panjangBadan: 70, lebarDada: 62, panjangLengan: 64 },
+        { ukuran: "L", panjangBadan: 73, lebarDada: 65, panjangLengan: 66 },
+        { ukuran: "XL", panjangBadan: 76, lebarDada: 68, panjangLengan: 68 },
+      ],
       varians: [
         { ukuran: "M", warna: "Pitch Black", sku: "VOID-D04-HD-BLK-M", stok: 20, berat: 920 },
         { ukuran: "L", warna: "Pitch Black", sku: "VOID-D04-HD-BLK-L", stok: 25, berat: 980 },
@@ -185,6 +293,31 @@ async function seed() {
         "/images/products/drop-04/bomber-back.webp",
         "/images/products/drop-04/bomber-detail.webp",
       ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Nilon Ripstop 70D + Polar Fleece Lining",
+          gramasi: "180 GSM Outer / 220 GSM Inner Fleece",
+          pewarnaan: "Mil-Spec Dark Olive Drab",
+          finishing: "Durable Water Repellent (DWR Finish C6)",
+        },
+        konstruksi: {
+          jahitan: "Bartack Reinforced Seams pada Titik Tekanan",
+          kerahRib: "Rib Kerah Rajut Nilon Campuran Spandex",
+          teknikGrafis: "Laser-Engraved Metal Puller + Webbing Molle",
+          label: "Monogram Tenun Taktikal Tahan Gesekan",
+        },
+        perawatan: {
+          suhuCuci: "Cuci Tangan Menggunakan Air Dingin",
+          bahanKimia: "Hindari Pelembut Pakaian dan Pemutih",
+          pengeringan: "Angin-anginkan di Tempat Teduh",
+          penyetrikaan: "Dilarang Menyetrika Langsung Permukaan Nilon",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "M", panjangBadan: 68, lebarDada: 63, panjangLengan: 63 },
+        { ukuran: "L", panjangBadan: 71, lebarDada: 66, panjangLengan: 65 },
+        { ukuran: "XL", panjangBadan: 74, lebarDada: 69, panjangLengan: 67 },
+      ],
       varians: [
         { ukuran: "M", warna: "Olive Drab", sku: "VOID-D04-BMB-OLV-M", stok: 10, berat: 850 },
         { ukuran: "L", warna: "Olive Drab", sku: "VOID-D04-BMB-OLV-L", stok: 15, berat: 900 },
@@ -203,6 +336,32 @@ async function seed() {
         "/images/products/drop-04/cargo-pants-front.webp",
         "/images/products/drop-04/cargo-pants-back.webp",
         "/images/products/drop-04/cargo-pants-detail.webp",
+      ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Cotton Ripstop Grid Fabric",
+          gramasi: "280 GSM (Tough Tactical Weave)",
+          pewarnaan: "Carbon Black Vat Dye",
+          finishing: "Bio-Polish Prewash (Luwes & Nyaman)",
+        },
+        konstruksi: {
+          jahitan: "Triple-Stitch Inseam Pengunci Sobekan",
+          kerahRib: "YKK Metal Zipper Fly + Tombol Logam Donat",
+          teknikGrafis: "6 Kantong Kargo Geometris dengan Penutup Flap",
+          label: "Silicone Puller pada Tali Serut Kaki",
+        },
+        perawatan: {
+          suhuCuci: "Air Dingin Mesin Cuci Putaran Normal",
+          bahanKimia: "Tanpa Pemutih",
+          pengeringan: "Gantung Kering Terbalik",
+          penyetrikaan: "Suhu Katun Sedang hingga Tinggi",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "S", panjangCelana: 102, lingkarPinggang: 78, lebarPaha: 34 },
+        { ukuran: "M", panjangCelana: 104, lingkarPinggang: 82, lebarPaha: 36 },
+        { ukuran: "L", panjangCelana: 106, lingkarPinggang: 86, lebarPaha: 38 },
+        { ukuran: "XL", panjangCelana: 108, lingkarPinggang: 90, lebarPaha: 40 },
       ],
       varians: [
         { ukuran: "S", warna: "Black Onyx", sku: "VOID-D04-CRG-BLK-S", stok: 16, berat: 680 },
@@ -224,6 +383,32 @@ async function seed() {
         "/images/products/drop-04/pleated-pants-back.webp",
         "/images/products/drop-04/pleated-pants-detail.webp",
       ],
+      spesifikasi: {
+        material: {
+          komposisi: "98% Katun Twill + 2% Spandex Elastane",
+          gramasi: "310 GSM (Struktur Drape Kokoh)",
+          pewarnaan: "Deep Charcoal Grey",
+          finishing: "Enzyme Soft Touch Wash",
+        },
+        konstruksi: {
+          jahitan: "Tailored French Seam",
+          kerahRib: "Double Front Pleat + Kancing Kait Logam Tersembunyi",
+          teknikGrafis: "Saku Paspoal Belakang Ganda",
+          label: "Piping Satin di Bagian Pinggang Dalam",
+        },
+        perawatan: {
+          suhuCuci: "Dry Clean Disarankan atau Cuci Tangan Air Dingin",
+          bahanKimia: "Dilarang Pemutih Klorin",
+          pengeringan: "Gantung Tegak Menjaga Lipatan",
+          penyetrikaan: "Suhu Katun Sedang searah Garis Lipit",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "S", panjangCelana: 100, lingkarPinggang: 78, lebarPaha: 33 },
+        { ukuran: "M", panjangCelana: 102, lingkarPinggang: 82, lebarPaha: 35 },
+        { ukuran: "L", panjangCelana: 104, lingkarPinggang: 86, lebarPaha: 37 },
+        { ukuran: "XL", panjangCelana: 106, lingkarPinggang: 90, lebarPaha: 39 },
+      ],
       varians: [
         { ukuran: "S", warna: "Deep Grey", sku: "VOID-D04-PLT-GRY-S", stok: 14, berat: 590 },
         { ukuran: "M", warna: "Deep Grey", sku: "VOID-D04-PLT-GRY-M", stok: 20, berat: 630 },
@@ -243,6 +428,29 @@ async function seed() {
         "/images/products/drop-04/balaclava-front.webp",
         "/images/products/drop-04/balaclava-detail.webp",
       ],
+      spesifikasi: {
+        material: {
+          komposisi: "92% Poliester Mikrofiber + 8% Spandex Breathable",
+          gramasi: "160 GSM (Ringan, Elastis 4-Way Stretch)",
+          pewarnaan: "Solid Jet Black Anti-Fade",
+          finishing: "Anti-Bakteri & Quick-Dry Moisture Wicking",
+        },
+        konstruksi: {
+          jahitan: "Seamless 3D Circular Knit",
+          kerahRib: "Bukaan Mata Berpenjepit Elastis Ergonomis",
+          teknikGrafis: "Patch Silikon 3D Monogram Timbul 2 mm",
+          label: "Heat-Transfer Care Label Tanpa Gesekan Kulit",
+        },
+        perawatan: {
+          suhuCuci: "Cuci Tangan Air Dingin",
+          bahanKimia: "Tanpa Pemutih / Tanpa Pelembut",
+          pengeringan: "Keringkan Cepat di Tempat Teduh",
+          penyetrikaan: "Dilarang Disetrika",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "ALL", lingkarKepala: 58, panjangBadan: 38 },
+      ],
       varians: [
         { ukuran: "ALL", warna: "Hitam", sku: "VOID-D04-ACC-BAL-ALL", stok: 40, berat: 180 },
       ],
@@ -261,6 +469,8 @@ async function seed() {
         status: "aktif",
         gambarUtama: item.gambarUtama,
         galeriGambar: item.galeriGambar,
+        spesifikasi: item.spesifikasi,
+        panduanUkuran: item.panduanUkuran,
       })
       .returning();
 
@@ -284,7 +494,7 @@ async function seed() {
     }
   }
 
-  console.log(`✓ Berhasil memasukkan ${dataProduk.length} artikel Drop 04 beserta varian fisik`);
+  console.log(`✓ Berhasil memasukkan ${dataProduk.length} artikel Drop 04 beserta varian fisik, spesifikasi teknis, dan size guide`);
   console.log("--- Seeding Selesai dengan Sukses ---");
   await client.end();
 }

@@ -3,22 +3,19 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
-export interface DimensiUkuran {
-  ukuran: string;
-  panjangBadan: number;
-  lebarDada: number;
-  panjangLengan: number;
+import type { DimensiUkuranGarmen } from "../types/product.type";
+
+export interface PropertiPanduanUkuran {
+  kategori?: string;
+  namaProduk?: string;
+  panduanUkuran?: readonly DimensiUkuranGarmen[] | null;
 }
 
-const TABEL_DIMENSI_DEFAULT: DimensiUkuran[] = [
-  { ukuran: "S", panjangBadan: 70, lebarDada: 52, panjangLengan: 23 },
-  { ukuran: "M", panjangBadan: 72, lebarDada: 55, panjangLengan: 24 },
-  { ukuran: "L", panjangBadan: 75, lebarDada: 58, panjangLengan: 25 },
-  { ukuran: "XL", panjangBadan: 77, lebarDada: 61, panjangLengan: 26 },
-  { ukuran: "XXL", panjangBadan: 79, lebarDada: 64, panjangLengan: 27 },
-];
-
-export function PanduanUkuran({ kategori = "T-Shirt" }: { kategori?: string }) {
+export function PanduanUkuran({
+  kategori = "T-Shirt",
+  namaProduk,
+  panduanUkuran,
+}: PropertiPanduanUkuran) {
   const [apakahBuka, setApakahBuka] = useState(false);
 
   // Keyboard accessibility: Tutup modal saat tombol Escape ditekan (Sesuai R-32)
@@ -39,6 +36,17 @@ export function PanduanUkuran({ kategori = "T-Shirt" }: { kategori?: string }) {
       window.removeEventListener("keydown", tanganiKeyDown);
     };
   }, [apakahBuka]);
+
+  const daftarDimensi = panduanUkuran && panduanUkuran.length > 0 ? panduanUkuran : null;
+
+  // Deteksi kolom yang relevan berdasarkan data yang tersedia
+  const memilikiPanjangBadan = daftarDimensi?.some((d) => d.panjangBadan !== undefined);
+  const memilikiLebarDada = daftarDimensi?.some((d) => d.lebarDada !== undefined);
+  const memilikiPanjangLengan = daftarDimensi?.some((d) => d.panjangLengan !== undefined);
+  const memilikiPanjangCelana = daftarDimensi?.some((d) => d.panjangCelana !== undefined);
+  const memilikiLingkarPinggang = daftarDimensi?.some((d) => d.lingkarPinggang !== undefined);
+  const memilikiLebarPaha = daftarDimensi?.some((d) => d.lebarPaha !== undefined);
+  const memilikiLingkarKepala = daftarDimensi?.some((d) => d.lingkarKepala !== undefined);
 
   return (
     <>
@@ -72,7 +80,7 @@ export function PanduanUkuran({ kategori = "T-Shirt" }: { kategori?: string }) {
                   SIZE CONFIDENCE // {kategori}
                 </span>
                 <h2 id="judul-panduan-ukuran" className="mt-1 text-xl font-bold text-white uppercase">
-                  Tabel Dimensi Ukuran (CM)
+                  Tabel Dimensi Ukuran {namaProduk ? `// ${namaProduk}` : ""}
                 </h2>
               </div>
               <button
@@ -87,42 +95,81 @@ export function PanduanUkuran({ kategori = "T-Shirt" }: { kategori?: string }) {
 
             {/* Catatan Fit Karakteristik */}
             <div className="my-4 border-l-2 border-neutral-500 bg-neutral-900/50 p-3 text-xs leading-relaxed text-neutral-300">
-              <strong className="font-semibold text-white">Potongan Boxy Streetwear:</strong> Pola
-              dirancang dengan drop-shoulder dan siluet lebar. Gunakan ukuran asli untuk tampilan
-              oversized kasual, atau turun satu ukuran jika menginginkan potongan tubuh yang lebih pas.
+              <strong className="font-semibold text-white">Panduan Fitting VOID Supply:</strong> Dimensi
+              diukur pada bidang datar (toleransi jahit 1-2 cm). Untuk tampilan oversized streetwear,
+              gunakan ukuran asli. Turun satu ukuran untuk siluet lebih pas di tubuh.
             </div>
 
-            {/* Tabel Dimensi Pengukuran Nyata */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left font-mono text-xs">
-                <thead>
-                  <tr className="border-b border-neutral-800 text-neutral-400">
-                    <th scope="col" className="py-2.5 pr-4 font-semibold uppercase">
-                      Ukuran
-                    </th>
-                    <th scope="col" className="py-2.5 px-4 font-semibold uppercase">
-                      Panjang (cm)
-                    </th>
-                    <th scope="col" className="py-2.5 px-4 font-semibold uppercase">
-                      Lebar Dada (cm)
-                    </th>
-                    <th scope="col" className="py-2.5 pl-4 font-semibold uppercase">
-                      Lengan (cm)
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-900 text-neutral-200">
-                  {TABEL_DIMENSI_DEFAULT.map((item) => (
-                    <tr key={item.ukuran} className="hover:bg-neutral-900/40">
-                      <td className="py-3 pr-4 font-bold text-white">{item.ukuran}</td>
-                      <td className="py-3 px-4">{item.panjangBadan}</td>
-                      <td className="py-3 px-4">{item.lebarDada}</td>
-                      <td className="py-3 pl-4">{item.panjangLengan}</td>
+            {/* Tabel Dimensi Pengukuran Nyata atau Unverified State */}
+            {daftarDimensi ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-mono text-xs">
+                  <thead>
+                    <tr className="border-b border-neutral-800 text-neutral-400">
+                      <th scope="col" className="py-2.5 pr-4 font-semibold uppercase">
+                        Ukuran
+                      </th>
+                      {memilikiPanjangBadan && (
+                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                          Panjang (cm)
+                        </th>
+                      )}
+                      {memilikiLebarDada && (
+                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                          Lebar Dada (cm)
+                        </th>
+                      )}
+                      {memilikiPanjangLengan && (
+                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                          Lengan (cm)
+                        </th>
+                      )}
+                      {memilikiPanjangCelana && (
+                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                          Panjang Celana (cm)
+                        </th>
+                      )}
+                      {memilikiLingkarPinggang && (
+                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                          Pinggang (cm)
+                        </th>
+                      )}
+                      {memilikiLebarPaha && (
+                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                          Lebar Paha (cm)
+                        </th>
+                      )}
+                      {memilikiLingkarKepala && (
+                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                          Lingkar Kepala (cm)
+                        </th>
+                      )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-900 text-neutral-200">
+                    {daftarDimensi.map((item) => (
+                      <tr key={item.ukuran} className="hover:bg-neutral-900/40">
+                        <td className="py-3 pr-4 font-bold text-white">{item.ukuran}</td>
+                        {memilikiPanjangBadan && <td className="py-3 px-3">{item.panjangBadan ?? "-"}</td>}
+                        {memilikiLebarDada && <td className="py-3 px-3">{item.lebarDada ?? "-"}</td>}
+                        {memilikiPanjangLengan && <td className="py-3 px-3">{item.panjangLengan ?? "-"}</td>}
+                        {memilikiPanjangCelana && <td className="py-3 px-3">{item.panjangCelana ?? "-"}</td>}
+                        {memilikiLingkarPinggang && <td className="py-3 px-3">{item.lingkarPinggang ?? "-"}</td>}
+                        {memilikiLebarPaha && <td className="py-3 px-3">{item.lebarPaha ?? "-"}</td>}
+                        {memilikiLingkarKepala && <td className="py-3 px-3">{item.lingkarKepala ?? "-"}</td>}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="border border-dashed border-neutral-800 p-6 text-center text-xs text-neutral-400">
+                <p className="font-mono text-neutral-300 uppercase">DATA UKURAN SEDANG DIVERIFIKASI</p>
+                <p className="mt-1">
+                  Pengukuran garmen fisik untuk artikel ini sedang ditinjau ulang oleh tim QC agar akurasi tetap terjaga.
+                </p>
+              </div>
+            )}
 
             {/* Footer Modal CTA Tutup */}
             <div className="mt-6 flex justify-end border-t border-neutral-800 pt-4">
@@ -141,3 +188,4 @@ export function PanduanUkuran({ kategori = "T-Shirt" }: { kategori?: string }) {
     </>
   );
 }
+

@@ -90,11 +90,16 @@ export default async function HalamanDetailProduk({
 
           <PemilihVarian
             kategori={produk.kategori}
+            namaProduk={produk.nama}
+            panduanUkuran={produk.panduanUkuran}
             varian={produk.varian}
             apakahHabisTotal={apakahHabis}
           />
 
-          <TransparansiMaterial kategori={produk.kategori} />
+          <TransparansiMaterial
+            kategori={produk.kategori}
+            spesifikasi={produk.spesifikasi}
+          />
         </section>
       </article>
     </main>

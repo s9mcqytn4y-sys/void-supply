@@ -2,12 +2,37 @@
 
 import { useState } from "react";
 
+import type { SpesifikasiGarmen } from "../types/product.type";
+
 export interface PropertiTransparansiMaterial {
   kategori: string;
+  spesifikasi?: SpesifikasiGarmen | null;
 }
 
-export function TransparansiMaterial({ kategori }: PropertiTransparansiMaterial) {
+export function TransparansiMaterial({ kategori, spesifikasi }: PropertiTransparansiMaterial) {
   const [tabAktif, setTabAktif] = useState<"material" | "konstruksi" | "perawatan">("material");
+
+  // Fallback data terstruktur jika spesifikasi belum diisi
+  const dataMaterial = spesifikasi?.material ?? {
+    komposisi: "100% Katun Pilihan",
+    gramasi: "Standar Industri",
+    pewarnaan: "Tahan Luntur",
+    finishing: "Pre-shrunk Wash",
+  };
+
+  const dataKonstruksi = spesifikasi?.konstruksi ?? {
+    jahitan: "Jahitan Rantai Ganda",
+    kerahRib: "Rib Elastis Tahan Bentuk",
+    teknikGrafis: "Sablon Presisi Tinggi",
+    label: "Woven Label Lembut",
+  };
+
+  const dataPerawatan = spesifikasi?.perawatan ?? {
+    suhuCuci: "Air Dingin Maksimal 30°C",
+    bahanKimia: "Tanpa Pemutih Klorin",
+    pengeringan: "Jemur di Tempat Teduh",
+    penyetrikaan: "Suhu Sedang",
+  };
 
   return (
     <div className="border border-neutral-800 bg-neutral-950 p-5">
@@ -67,19 +92,19 @@ export function TransparansiMaterial({ kategori }: PropertiTransparansiMaterial)
           <ul className="space-y-2">
             <li className="flex justify-between border-b border-neutral-900/80 pb-1.5">
               <span className="text-neutral-400">Komposisi Benang</span>
-              <span className="font-mono font-medium text-white">100% Katun Combed 16s</span>
+              <span className="font-mono font-medium text-white">{dataMaterial.komposisi}</span>
             </li>
             <li className="flex justify-between border-b border-neutral-900/80 pb-1.5">
               <span className="text-neutral-400">Gramasi Kain</span>
-              <span className="font-mono font-medium text-white">235 GSM (Heavyweight)</span>
+              <span className="font-mono font-medium text-white">{dataMaterial.gramasi}</span>
             </li>
             <li className="flex justify-between border-b border-neutral-900/80 pb-1.5">
               <span className="text-neutral-400">Pewarnaan</span>
-              <span className="font-mono font-medium text-white">Reactive Dye (Anti Luntur)</span>
+              <span className="font-mono font-medium text-white">{dataMaterial.pewarnaan}</span>
             </li>
             <li className="flex justify-between pb-1">
               <span className="text-neutral-400">Finishing</span>
-              <span className="font-mono font-medium text-white">Pre-shrunk Enzyme Wash</span>
+              <span className="font-mono font-medium text-white">{dataMaterial.finishing}</span>
             </li>
           </ul>
         )}
@@ -87,20 +112,20 @@ export function TransparansiMaterial({ kategori }: PropertiTransparansiMaterial)
         {tabAktif === "konstruksi" && (
           <ul className="space-y-2">
             <li className="flex justify-between border-b border-neutral-900/80 pb-1.5">
-              <span className="text-neutral-400">Jahitan Bahu</span>
-              <span className="font-mono font-medium text-white">Rantai Ganda (Chainstitch)</span>
+              <span className="text-neutral-400">Jahitan Utama</span>
+              <span className="font-mono font-medium text-white">{dataKonstruksi.jahitan}</span>
             </li>
             <li className="flex justify-between border-b border-neutral-900/80 pb-1.5">
-              <span className="text-neutral-400">Rib Kerah</span>
-              <span className="font-mono font-medium text-white">1x1 Rib Spandex 2.5 cm</span>
+              <span className="text-neutral-400">Kerah / Hardware</span>
+              <span className="font-mono font-medium text-white">{dataKonstruksi.kerahRib}</span>
             </li>
             <li className="flex justify-between border-b border-neutral-900/80 pb-1.5">
-              <span className="text-neutral-400">Teknik Grafis</span>
-              <span className="font-mono font-medium text-white">High-Density Plastisol Curing</span>
+              <span className="text-neutral-400">Teknik Grafis / Fitur</span>
+              <span className="font-mono font-medium text-white">{dataKonstruksi.teknikGrafis}</span>
             </li>
             <li className="flex justify-between pb-1">
-              <span className="text-neutral-400">Label Leher</span>
-              <span className="font-mono font-medium text-white">Woven Satin Halus Non-Iritasi</span>
+              <span className="text-neutral-400">Identitas Garmen</span>
+              <span className="font-mono font-medium text-white">{dataKonstruksi.label}</span>
             </li>
           </ul>
         )}
@@ -109,19 +134,19 @@ export function TransparansiMaterial({ kategori }: PropertiTransparansiMaterial)
           <ul className="space-y-2">
             <li className="flex justify-between border-b border-neutral-900/80 pb-1.5">
               <span className="text-neutral-400">Suhu Pencucian</span>
-              <span className="font-mono font-medium text-white">Air Dingin (Maks 30°C)</span>
+              <span className="font-mono font-medium text-white">{dataPerawatan.suhuCuci}</span>
             </li>
             <li className="flex justify-between border-b border-neutral-900/80 pb-1.5">
               <span className="text-neutral-400">Bahan Kimia</span>
-              <span className="font-mono font-medium text-white">Dilarang Pemutih Klorin</span>
+              <span className="font-mono font-medium text-white">{dataPerawatan.bahanKimia}</span>
             </li>
             <li className="flex justify-between border-b border-neutral-900/80 pb-1.5">
               <span className="text-neutral-400">Pengeringan</span>
-              <span className="font-mono font-medium text-white">Jemur Terbalik di Tempat Teduh</span>
+              <span className="font-mono font-medium text-white">{dataPerawatan.pengeringan}</span>
             </li>
             <li className="flex justify-between pb-1">
               <span className="text-neutral-400">Penyetrikaan</span>
-              <span className="font-mono font-medium text-white">Suhu Sedang, Balik Area Sablon</span>
+              <span className="font-mono font-medium text-white">{dataPerawatan.penyetrikaan}</span>
             </li>
           </ul>
         )}
@@ -129,3 +154,4 @@ export function TransparansiMaterial({ kategori }: PropertiTransparansiMaterial)
     </div>
   );
 }
+

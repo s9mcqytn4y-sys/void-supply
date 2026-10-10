@@ -75,6 +75,39 @@ export const koleksi = pgTable("koleksi", {
   dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// Interface Tipe Data Garmen Spesifik (JSONB)
+export interface SpesifikasiGarmen {
+  material: {
+    komposisi: string;
+    gramasi: string;
+    pewarnaan: string;
+    finishing: string;
+  };
+  konstruksi: {
+    jahitan: string;
+    kerahRib: string;
+    teknikGrafis: string;
+    label: string;
+  };
+  perawatan: {
+    suhuCuci: string;
+    bahanKimia: string;
+    pengeringan: string;
+    penyetrikaan: string;
+  };
+}
+
+export interface DimensiUkuranGarmen {
+  ukuran: string;
+  panjangBadan?: number;
+  lebarDada?: number;
+  panjangLengan?: number;
+  panjangCelana?: number;
+  lingkarPinggang?: number;
+  lebarPaha?: number;
+  lingkarKepala?: number;
+}
+
 // 4. Tabel Induk Produk (Master Artikel Merchandise)
 export const produk = pgTable("produk", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -88,6 +121,8 @@ export const produk = pgTable("produk", {
   status: statusProdukEnum("status").default("aktif").notNull(),
   gambarUtama: text("gambar_utama").notNull(),
   galeriGambar: jsonb("galeri_gambar").$type<string[]>().default([]).notNull(),
+  spesifikasi: jsonb("spesifikasi").$type<SpesifikasiGarmen>(),
+  panduanUkuran: jsonb("panduan_ukuran").$type<DimensiUkuranGarmen[]>(),
   dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
   diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
 });
