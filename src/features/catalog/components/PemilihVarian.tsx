@@ -4,7 +4,6 @@ import { useState } from "react";
 import type { VarianProdukItem } from "../types/product.type";
 import { Button } from "@/components/ui/button";
 import { PanduanUkuran } from "./PanduanUkuran";
-import { cn } from "@/lib/utils";
 
 export interface PropertiPemilihVarian {
   kategori: string;
@@ -47,6 +46,13 @@ export function PemilihVarian({
             const isTersedia = v.stok > 0;
             const isSelected = v.id === varianTerpilihId;
 
+            const buttonStateClass =
+              isSelected && isTersedia
+                ? "border-white bg-white text-black ring-1 ring-white"
+                : isTersedia
+                  ? "border-neutral-800 bg-neutral-950 text-neutral-200 hover:border-neutral-500 hover:text-white active:scale-98"
+                  : "cursor-not-allowed border-neutral-900 bg-neutral-950 text-neutral-600 line-through opacity-50";
+
             return (
               <button
                 key={v.id}
@@ -55,15 +61,7 @@ export function PemilihVarian({
                 aria-checked={isSelected}
                 disabled={!isTersedia}
                 onClick={() => setVarianTerpilihId(v.id)}
-                className={cn(
-                  "flex min-h-11 flex-col items-center justify-center border font-mono text-xs font-semibold tracking-wider uppercase transition-all duration-150",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
-                  isSelected && isTersedia
-                    ? "border-white bg-white text-black ring-1 ring-white"
-                    : isTersedia
-                      ? "border-neutral-800 bg-neutral-950 text-neutral-200 hover:border-neutral-500 hover:text-white active:scale-98"
-                      : "cursor-not-allowed border-neutral-900 bg-neutral-950 text-neutral-600 line-through opacity-50"
-                )}
+                className={`flex min-h-11 flex-col items-center justify-center border font-mono text-xs font-semibold tracking-wider uppercase transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${buttonStateClass}`}
               >
                 <span>{v.ukuran}</span>
               </button>

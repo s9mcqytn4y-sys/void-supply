@@ -85,19 +85,22 @@ export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
       </div>
 
       {/* 3. Decisive Call To Action: 44px Minimum Tap Target dengan affordance konsisten */}
-      <Link
-        href={`/katalog/${produk.slug}`}
-        aria-label={`Buka halaman produk ${produk.nama}`}
-        className={cn(
-          "flex min-h-11 w-full items-center justify-between border-t border-neutral-800 px-4 py-2.5 font-mono text-xs font-semibold tracking-wider uppercase transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none",
-          produk.apakahHabis
-            ? "bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
-            : "bg-neutral-950 text-neutral-200 hover:bg-white hover:text-black group-hover:border-neutral-700"
-        )}
-      >
-        <span>{produk.apakahHabis ? "LIHAT ARSIP // HABIS" : "DETAIL PRODUK"}</span>
-        <span aria-hidden="true">→</span>
-      </Link>
+      {(() => {
+        const tombolCtaClass = produk.apakahHabis
+          ? "bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+          : "bg-neutral-950 text-neutral-200 hover:bg-white hover:text-black group-hover:border-neutral-700";
+
+        return (
+          <Link
+            href={`/katalog/${produk.slug}`}
+            aria-label={`Buka halaman produk ${produk.nama}`}
+            className={`flex min-h-11 w-full items-center justify-between border-t border-neutral-800 px-4 py-2.5 font-mono text-xs font-semibold tracking-wider uppercase transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none ${tombolCtaClass}`}
+          >
+            <span>{produk.apakahHabis ? "LIHAT ARSIP // HABIS" : "DETAIL PRODUK"}</span>
+            <span aria-hidden="true">→</span>
+          </Link>
+        );
+      })()}
     </Card>
   );
 }

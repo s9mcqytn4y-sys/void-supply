@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
 
 export interface PropertiGaleriProduk {
   namaProduk: string;
@@ -32,6 +31,10 @@ export function GaleriProduk({
         >
           {daftarGambar.map((gambar, idx) => {
             const isAktif = idx === indeksAktif;
+            const thumbnailStateClass = isAktif
+              ? "border-white opacity-100 ring-1 ring-white"
+              : "border-neutral-800 opacity-60 hover:border-neutral-600 hover:opacity-90";
+
             return (
               <button
                 key={gambar}
@@ -40,13 +43,7 @@ export function GaleriProduk({
                 aria-selected={isAktif}
                 aria-label={`Lihat tampilan foto ke-${idx + 1} dari ${namaProduk}`}
                 onClick={() => setIndeksAktif(idx)}
-                className={cn(
-                  "relative aspect-4/5 w-16 shrink-0 overflow-hidden border bg-neutral-900 transition-all duration-200 md:w-full",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white",
-                  isAktif
-                    ? "border-white opacity-100 ring-1 ring-white"
-                    : "border-neutral-800 opacity-60 hover:border-neutral-600 hover:opacity-90"
-                )}
+                className={`relative aspect-4/5 w-16 shrink-0 overflow-hidden border bg-neutral-900 transition-all duration-200 md:w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${thumbnailStateClass}`}
               >
                 <Image
                   src={gambar}
