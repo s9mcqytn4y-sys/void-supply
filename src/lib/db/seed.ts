@@ -10,90 +10,106 @@ const db = drizzle(client, { schema });
 
 async function seed() {
   if (process.env.NODE_ENV === "production") {
-    console.error("❌ Peringatan Keamanan: Seeding dilarang keras dijalankan pada environment produksi untuk melindungi data transaksi dan pelanggan!");
+    console.error("❌ Peringatan Keamanan: Seeding dilarang keras dijalankan pada environment produksi!");
     process.exit(1);
   }
 
-  console.log("--- Memulai Seeding Database VOID Supply (Development Mode) ---");
+  // Multi-layer connection guard: Cegah eksekusi ke remote/staging tanpa izin eksplisit
+  try {
+    const parsedUrl = new URL(connectionString);
+    const host = parsedUrl.hostname;
+    const isLocalhost = host === "localhost" || host === "127.0.0.1" || host === "::1";
+    if (!isLocalhost && process.env.ALLOW_NON_LOCAL_SEED !== "true") {
+      console.error(
+        `❌ Peringatan Keamanan: Host basis data terdeteksi '${host}'. Seeding otomatis hanya diizinkan untuk host lokal (localhost / 127.0.0.1). Set ALLOW_NON_LOCAL_SEED=true jika Anda benar-benar yakin!`
+      );
+      process.exit(1);
+    }
+  } catch {
+    console.warn("⚠️ Peringatan: Gagal mem-parse DATABASE_URL sebagai URL standar. Melanjutkan dengan kewaspadaan.");
+  }
 
-  // 1. Bersihkan Data Lama
-  await db.delete(schema.produkKeKoleksi);
-  await db.delete(schema.itemPesanan);
-  await db.delete(schema.pembayaran);
-  await db.delete(schema.pengiriman);
-  await db.delete(schema.pesanan);
-  await db.delete(schema.pelanggan);
-  await db.delete(schema.varianProduk);
-  await db.delete(schema.produk);
-  await db.delete(schema.koleksi);
-  await db.delete(schema.kategori);
+  console.log("--- Memulai Seeding Database VOID Supply (Atomic Transaction Mode) ---");
 
-  console.log("✓ Data lama berhasil dibersihkan");
+  await db.transaction(async (tx) => {
+    // 1. Bersihkan Data Lama
+    await tx.delete(schema.produkKeKoleksi);
+    await tx.delete(schema.itemPesanan);
+    await tx.delete(schema.pembayaran);
+    await tx.delete(schema.pengiriman);
+    await tx.delete(schema.pesanan);
+    await tx.delete(schema.pelanggan);
+    await tx.delete(schema.varianProduk);
+    await tx.delete(schema.produk);
+    await tx.delete(schema.koleksi);
+    await tx.delete(schema.kategori);
 
-  // 1.1 Seeding Profil Pelanggan (Persona Rian The Trendsetter)
-  const [pelangganRian] = await db
-    .insert(schema.pelanggan)
-    .values({
-      namaLengkap: "Rian Pratama",
-      email: "rian.trendsetter@voidsupply.test",
-      telepon: "081298765432",
-      alamatDefault: "Jl. Kemang Timur No. 42, Bangka, Mampang Prapatan",
-      kotaDefault: "Jakarta Selatan",
-      provinsiDefault: "DKI Jakarta",
-      kodePosDefault: "12730",
-    })
-    .returning();
+    console.log("✓ Data lama berhasil dibersihkan dalam transaksi atomik");
 
-  console.log(`✓ Profil pelanggan seed (${pelangganRian.namaLengkap}) berhasil dibuat`);
+    // 1.1 Seeding Profil Pelanggan (Persona Rian The Trendsetter)
+    const [pelangganRian] = await tx
+      .insert(schema.pelanggan)
+      .values({
+        namaLengkap: "Rian Pratama",
+        email: "rian.trendsetter@voidsupply.test",
+        telepon: "081298765432",
+        alamatDefault: "Jl. Kemang Timur No. 42, Bangka, Mampang Prapatan",
+        kotaDefault: "Jakarta Selatan",
+        provinsiDefault: "DKI Jakarta",
+        kodePosDefault: "12730",
+      })
+      .returning();
 
-  // 2. Seeding Kategori
-  const [katOuterwear, katTshirt, katPants, katAccessories] = await db
-    .insert(schema.kategori)
-    .values([
-      {
-        nama: "Outerwear",
-        slug: "outerwear",
-        deskripsi: "Heavyweight jackets, zip hoodies, and technical bombers.",
-        urutan: 1,
-      },
-      {
-        nama: "T-Shirt",
-        slug: "tshirt",
-        deskripsi: "24s and 16s oversized boxy cut tees and graphic longsleeves.",
-        urutan: 2,
-      },
-      {
-        nama: "Pants",
-        slug: "pants",
-        deskripsi: "Tactical cargo trousers and relaxed wide-leg silhouettes.",
-        urutan: 3,
-      },
-      {
-        nama: "Accessories",
-        slug: "accessories",
-        deskripsi: "Utility balaclavas, caps, and technical gear.",
-        urutan: 4,
-      },
-    ])
-    .returning();
+    console.log(`✓ Profil pelanggan seed (${pelangganRian.namaLengkap}) berhasil dibuat`);
 
-  console.log("✓ Kategori busana berhasil di-seed");
+    // 2. Seeding Kategori
+    const [katOuterwear, katTshirt, katPants, katAccessories] = await tx
+      .insert(schema.kategori)
+      .values([
+        {
+          nama: "Outerwear",
+          slug: "outerwear",
+          deskripsi: "Heavyweight jackets, zip hoodies, and technical bombers.",
+          urutan: 1,
+        },
+        {
+          nama: "T-Shirt",
+          slug: "tshirt",
+          deskripsi: "24s and 16s oversized boxy cut tees and graphic longsleeves.",
+          urutan: 2,
+        },
+        {
+          nama: "Pants",
+          slug: "pants",
+          deskripsi: "Tactical cargo trousers and relaxed wide-leg silhouettes.",
+          urutan: 3,
+        },
+        {
+          nama: "Accessories",
+          slug: "accessories",
+          deskripsi: "Utility balaclavas, caps, and technical gear.",
+          urutan: 4,
+        },
+      ])
+      .returning();
 
-  // 3. Seeding Koleksi / Drop 04
-  const [drop04] = await db
-    .insert(schema.koleksi)
-    .values({
-      nama: "Drop 04: Night Transmission",
-      slug: "drop-04-night-transmission",
-      deskripsi: "Limited edition high-density streetwear engineered for urban nocturnal climate.",
-      nomorDrop: "04",
-      bannerGambar: "/images/lookbook/drop-04-editorial-hero.webp",
-      apakahAktif: true,
-      rilisPada: new Date("2026-10-08T20:00:00Z"),
-    })
-    .returning();
+    console.log("✓ Kategori busana berhasil di-seed");
 
-  console.log("✓ Koleksi Drop 04 berhasil di-seed");
+    // 3. Seeding Koleksi / Drop 04
+    const [drop04] = await tx
+      .insert(schema.koleksi)
+      .values({
+        nama: "Drop 04: Night Transmission",
+        slug: "drop-04-night-transmission",
+        deskripsi: "Limited edition high-density streetwear engineered for urban nocturnal climate.",
+        nomorDrop: "04",
+        bannerGambar: "/images/lookbook/drop-04-editorial-hero.webp",
+        apakahAktif: true,
+        rilisPada: new Date("2026-10-08T20:00:00Z"),
+      })
+      .returning();
+
+    console.log("✓ Koleksi Drop 04 berhasil di-seed");
 
   // 4. Katalog Produk Master (8 Artikel Drop 04) dengan Spesifikasi & Size Guide Nyata
   const dataProduk = [
@@ -155,7 +171,6 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/void-tee-02-front.webp",
       galeriGambar: [
         "/images/products/drop-04/void-tee-02-front.webp",
-        "/images/products/drop-04/void-tee-02-back.webp",
         "/images/products/drop-04/void-tee-02-detail.webp",
       ],
       spesifikasi: {
@@ -201,7 +216,6 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/cybernetic-ls-01-front.webp",
       galeriGambar: [
         "/images/products/drop-04/cybernetic-ls-01-front.webp",
-        "/images/products/drop-04/cybernetic-ls-01-back.webp",
         "/images/products/drop-04/cybernetic-ls-01-detail.webp",
       ],
       spesifikasi: {
@@ -247,7 +261,6 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/hoodie-zip-front.webp",
       galeriGambar: [
         "/images/products/drop-04/hoodie-zip-front.webp",
-        "/images/products/drop-04/hoodie-zip-back.webp",
         "/images/products/drop-04/hoodie-zip-detail.webp",
       ],
       spesifikasi: {
@@ -335,7 +348,6 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/cargo-pants-front.webp",
       galeriGambar: [
         "/images/products/drop-04/cargo-pants-front.webp",
-        "/images/products/drop-04/cargo-pants-back.webp",
         "/images/products/drop-04/cargo-pants-detail.webp",
       ],
       spesifikasi: {
@@ -381,7 +393,6 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/pleated-pants-front.webp",
       galeriGambar: [
         "/images/products/drop-04/pleated-pants-front.webp",
-        "/images/products/drop-04/pleated-pants-back.webp",
         "/images/products/drop-04/pleated-pants-detail.webp",
       ],
       spesifikasi: {
@@ -427,7 +438,6 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/balaclava-front.webp",
       galeriGambar: [
         "/images/products/drop-04/balaclava-front.webp",
-        "/images/products/drop-04/balaclava-detail.webp",
       ],
       spesifikasi: {
         material: {
@@ -459,7 +469,7 @@ async function seed() {
   ];
 
   for (const item of dataProduk) {
-    const [produkBaru] = await db
+    const [produkBaru] = await tx
       .insert(schema.produk)
       .values({
         kategoriId: item.kategoriId,
@@ -476,14 +486,14 @@ async function seed() {
       .returning();
 
     // Hubungkan produk ke Koleksi Drop 04
-    await db.insert(schema.produkKeKoleksi).values({
+    await tx.insert(schema.produkKeKoleksi).values({
       produkId: produkBaru.id,
       koleksiId: drop04.id,
     });
 
     // Masukkan Varian Produk
     for (const v of item.varians) {
-      await db.insert(schema.varianProduk).values({
+      await tx.insert(schema.varianProduk).values({
         produkId: produkBaru.id,
         ukuran: v.ukuran,
         warna: v.warna,
@@ -496,6 +506,8 @@ async function seed() {
   }
 
   console.log(`✓ Berhasil memasukkan ${dataProduk.length} artikel Drop 04 beserta varian fisik, spesifikasi teknis, dan size guide`);
+  });
+
   console.log("--- Seeding Selesai dengan Sukses ---");
   await client.end();
 }

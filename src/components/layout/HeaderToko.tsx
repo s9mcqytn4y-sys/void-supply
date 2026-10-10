@@ -6,7 +6,10 @@ import { useKeranjangStore } from "@/features/cart/stores/keranjang.store";
 
 export function HeaderToko() {
   const toggleBuka = useKeranjangStore((state) => state.toggleBuka);
-  const totalItem = useKeranjangStore((state) => state.hitungTotalItem)();
+  // Reaktif terhadap perubahan isi keranjang (state.items) sesuai rekomendasi Zustand
+  const totalItem = useKeranjangStore((state) =>
+    state.items.reduce((total, item) => total + item.jumlah, 0)
+  );
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-neutral-800/90 bg-neutral-950/90 backdrop-blur-md">

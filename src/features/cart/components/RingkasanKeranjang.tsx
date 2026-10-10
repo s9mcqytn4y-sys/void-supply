@@ -16,14 +16,32 @@ export function RingkasanKeranjang() {
   const hitungSubtotalIdr = useKeranjangStore((state) => state.hitungSubtotalIdr);
 
   const drawerRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const totalItem = hitungTotalItem();
   const subtotalIdr = hitungSubtotalIdr();
 
   // Aksesibilitas: Keyboard Escape & Focus Management
   useEffect(() => {
-    if (!apakahBuka) return;
+    if (!apakahBuka) {
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+        previousFocusRef.current = null;
+      }
+      return;
+    }
 
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
+
+    // Auto-focus elemen interaktif pertama saat drawer terbuka
+    requestAnimationFrame(() => {
+      if (drawerRef.current) {
+        const elemenPertama = drawerRef.current.querySelector<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        elemenPertama?.focus();
+      }
+    });
 
     function tanganiKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {

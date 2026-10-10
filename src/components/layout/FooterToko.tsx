@@ -47,8 +47,7 @@ export function FooterToko() {
               KEBIJAKAN RILISAN
             </span>
             <p className="mt-3 text-xs leading-relaxed text-neutral-400">
-              Setiap artikel dirilis dalam jumlah terbatas. Semua klaim gramasi dan konstruksi telah
-              diverifikasi secara fisik sebelum didistribusikan.
+              Setiap artikel dirilis dalam jumlah terbatas berdasarkan spesifikasi teknis dan standar kurasi VOID Supply.
             </p>
           </div>
         </div>

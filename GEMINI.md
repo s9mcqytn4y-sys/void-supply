@@ -185,12 +185,7 @@ Seluruh entitas domain bisnis, antarmuka toko, dan database wajib mengikuti konv
 - `WIREFRAME.md`: Perencanaan wireframe, tata letak, komponen antarmuka, dan interaksi.
 
 <!-- antislop:start -->
-## antislop
-For UI, copy, people, mobile layout, or code comments work, read `antislop.md` (core) and then the skill for the task:
-- UI / visual: `skills/antislop-ui/SKILL.md`
-- Copy & text: `skills/antislop-copywriting/SKILL.md`
-- People: `skills/antislop-human/SKILL.md`
-- Mobile / responsive: `skills/antislop-layoutmobile/SKILL.md`
-- Code comments: `skills/antislop-code/SKILL.md`
-Before starting, ask the user when antislop applies: during the work, or after it is done.
+## 9. Kebijakan Anti-Slop Mandiri (Self-Contained Anti-Slop Specification)
+
+Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas manusia, layout mobile, dan code hygiene) telah terintegrasi secara kanonikal di dalam **Bagian 4** dokumen `GEMINI.md` ini. Dengan demikian, pengujian kualitas, linter, dan evaluasi CI/CD dapat memvalidasi kepatuhan kode dan aset secara mandiri tanpa memerlukan dependensi berkas markdown eksternal yang tidak terlacak dalam repositori publik.
 <!-- antislop:end -->

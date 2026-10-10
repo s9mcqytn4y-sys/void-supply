@@ -154,10 +154,10 @@ export default async function HalamanBeranda() {
               </p>
             </div>
             <div className="border border-neutral-800 bg-neutral-950 p-6">
-              <span className="font-mono text-xs font-semibold text-neutral-400">02 // ATOMIK STOK</span>
-              <h3 className="mt-2 text-base font-bold text-white uppercase">AKURASI INVENTARIS</h3>
+              <span className="font-mono text-xs font-semibold text-neutral-400">02 // EDISI TERBATAS</span>
+              <h3 className="mt-2 text-base font-bold text-white uppercase">KUOTA TERKONTROL</h3>
               <p className="mt-2 text-xs leading-relaxed text-neutral-400">
-                Pengecekan stok sinkron real-time langsung ke kluster basis data tanpa pembatalan sepihak.
+                Penyusunan kurasi rilis edisi terbatas dengan kuota produksi terkontrol pada setiap artikel.
               </p>
             </div>
             <div className="border border-neutral-800 bg-neutral-950 p-6">

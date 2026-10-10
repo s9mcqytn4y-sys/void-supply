@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { HeaderToko } from "@/components/layout/HeaderToko";
 import { FooterToko } from "@/components/layout/FooterToko";
-import { RingkasanKeranjang } from "@/features/cart";
+import { RingkasanKeranjang, CartHydrationProvider } from "@/features/cart";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
@@ -26,10 +26,12 @@ export default function RootLayout({
   return (
     <html lang="id" className="dark">
       <body className="flex min-h-screen flex-col bg-neutral-950 text-neutral-100 antialiased selection:bg-neutral-800 selection:text-white">
-        <HeaderToko />
-        <main className="flex-1">{children}</main>
-        <FooterToko />
-        <RingkasanKeranjang />
+        <CartHydrationProvider>
+          <HeaderToko />
+          <div className="flex-1">{children}</div>
+          <FooterToko />
+          <RingkasanKeranjang />
+        </CartHydrationProvider>
       </body>
     </html>
   );

@@ -16,35 +16,30 @@ Struktur arsitektur situs web VOID Supply dibagi ke dalam 4 domain bisnis utama.
 ```text
 src/app
 │
-├── (public)/                                 -> [PUBLIC DOMAIN]
+├── (toko)/                                   -> [DOMAIN ETALASE & TRANSAKSI]
 │   ├── page.tsx                              -> Home (/)
-│   ├── shop/                                 -> Catalog (/shop)
-│   │   ├── page.tsx                          -> ?category=(all|new-drop|best-seller|archive)
-│   │   └── [slug]/page.tsx                   -> Product Detail (/products/[slug])
+│   ├── katalog/                              -> Katalog Terpadu (/katalog, redirect dari /shop)
+│   │   ├── page.tsx                          -> ?kategori=(all|new-drop|best-seller|archive)
+│   │   └── [slug]/page.tsx                   -> Detail Produk (/katalog/[slug])
+│   ├── checkout/                             -> Alur Pembayaran Terverifikasi (/checkout)
+│   │   └── page.tsx                          -> Single-step Checkout
+│   └── (komponen global)/                    -> Persistent Cart Drawer (Akses 1-Tap Mobile)
+│
+├── (informasi)/                              -> [DOMAIN INFORMASI & BRAND]
 │   ├── collection/page.tsx                   -> Story Campaign (/collection)
 │   ├── about/page.tsx                        -> Filosofi Brand (/about)
 │   ├── faq/page.tsx                          -> Panduan Belanja & Garansi (/faq)
 │   └── contact/page.tsx                      -> Saluran Bantuan (/contact)
 │
-├── (transaction)/                            -> [TRANSACTION DOMAIN]
-│   ├── cart/page.tsx                         -> Dedicated Cart Page (/cart)
-│   ├── checkout/page.tsx                     -> One-Page Guest Checkout (/checkout)
-│   ├── order/[orderId]/page.tsx              -> Payment Result & Invoice (/order/[orderId])
-│   └── track/[orderId]/page.tsx              -> Public Courier Tracking (/track/[orderId])
+├── (pelanggan)/                              -> [DOMAIN PELANGGAN]
+│   ├── akun/page.tsx                         -> Portal Pelanggan (/akun)
+│   └── pesanan/[orderId]/page.tsx            -> Status Pesanan & Pelacakan (/pesanan/[orderId])
 │
-├── (customer)/                               -> [CUSTOMER DOMAIN]
-│   ├── account/page.tsx                      -> Customer Portal (/account)
-│   ├── account/orders/page.tsx               -> Order History (/account/orders)
-│   ├── account/wishlist/page.tsx             -> Saved Wishlist (/account/wishlist)
-│   └── account/address/page.tsx              -> Address Book (/account/address)
-│
-└── admin/                                    -> [ADMIN DOMAIN - Isolated Route]
+└── admin/                                    -> [DOMAIN ADMIN - Rute Terisolasi]
     ├── page.tsx                              -> Dashboard (/admin)
-    ├── products/page.tsx                     -> Katalog & Varian (/admin/products)
-    ├── inventory/page.tsx                    -> Stok Atomik (/admin/inventory)
-    ├── orders/page.tsx                       -> Kelola Resi & Midtrans (/admin/orders)
-    ├── customers/page.tsx                    -> Direktori Pembeli (/admin/customers)
-    └── promotions/page.tsx                   -> Kupon & Pengumuman (/admin/promotions)
+    ├── produk/page.tsx                       -> Katalog & Varian (/admin/produk)
+    ├── inventaris/page.tsx                   -> Manajemen Stok (/admin/inventaris)
+    └── pesanan/page.tsx                      -> Kelola Resi & Midtrans (/admin/pesanan)
 ```
 
 ---

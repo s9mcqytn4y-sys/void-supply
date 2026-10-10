@@ -3,6 +3,10 @@
  * VOID Supply E-Commerce
  */
 
+export const BATAS_MAKSIMAL_PER_SKU = 10;
+
+export type StatusKetersediaanItem = "tersedia" | "stok_kurang" | "habis" | "tidak_ditemukan";
+
 export interface ItemKeranjang {
   readonly varianId: string;
   readonly produkId: string;
@@ -14,6 +18,8 @@ export interface ItemKeranjang {
   readonly warna: string;
   readonly hargaTampilanIdr: number;
   readonly jumlah: number;
+  readonly statusKetersediaan?: StatusKetersediaanItem;
+  readonly stokTersediaServer?: number;
 }
 
 export type InputItemKeranjang = Omit<ItemKeranjang, "jumlah"> & {
@@ -23,4 +29,31 @@ export type InputItemKeranjang = Omit<ItemKeranjang, "jumlah"> & {
 export interface HasilAksiKeranjang {
   sukses: boolean;
   pesan: string;
+}
+
+export interface ItemHasilRekonsiliasi {
+  varianId: string;
+  produkId: string;
+  nama: string;
+  slug: string;
+  gambar: string;
+  sku: string;
+  ukuran: string;
+  warna: string;
+  hargaServerIdr: number;
+  jumlahDiminta: number;
+  jumlahDisetujui: number;
+  beratGram: number;
+  stokAktual: number;
+  status: StatusKetersediaanItem;
+  pesan?: string;
+}
+
+export interface HasilRekonsiliasiKeranjang {
+  sukses: boolean;
+  pesan: string;
+  items: ItemHasilRekonsiliasi[];
+  subtotalServerIdr: number;
+  totalBeratGram: number;
+  apakahAdaPerubahan: boolean;
 }
