@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" fill="none">
+  <path d="M12 28L28 12M28 28L12 12" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="square"/>
+  <text x="38" y="24" fill="#FFFFFF" font-family="monospace" font-size="14" font-weight="900" letter-spacing="3">VOID // SUPPLY</text>
+  <text x="38" y="34" fill="#737373" font-family="monospace" font-size="8" font-weight="600" letter-spacing="1">DROP 04 ARCHIVE</text>
+</svg>

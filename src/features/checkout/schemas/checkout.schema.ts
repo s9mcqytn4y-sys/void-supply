@@ -22,9 +22,7 @@ export const formulirCheckoutSkema = z.object({
     .regex(/^[0-9]+$/, "Kode pos harus berupa angka"),
   catatan: z.string().max(250, "Catatan maksimal 250 karakter").optional(),
   kodeKurir: z.string().min(2, "Pilihan kurir wajib dipilih"),
-  namaKurir: z.string().min(2, "Nama kurir wajib ada"),
-  layananKurir: z.string().min(2, "Layanan kurir wajib ada"),
-  tarifOngkirIdr: z.number().int().nonnegative("Tarif ongkir tidak boleh negatif"),
+  layananKurir: z.string().min(2, "Layanan kurir wajib dipilih"),
   items: z.array(niatItemKeranjangSkema).min(1, "Keranjang belanja tidak boleh kosong"),
 });
 

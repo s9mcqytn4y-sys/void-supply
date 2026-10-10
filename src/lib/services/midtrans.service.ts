@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import midtransClient from "midtrans-client";
 
 /**
@@ -44,6 +45,7 @@ export interface HasilBuatTransaksiSnap {
   token?: string;
   redirectUrl?: string;
   pesan?: string;
+  isMock?: boolean;
 }
 
 /**
@@ -54,13 +56,33 @@ export async function buatTransaksiMidtrans(
   params: ParameterTransaksiMidtrans
 ): Promise<HasilBuatTransaksiSnap> {
   try {
-    // Jika masih menggunakan placeholder dummy key di sandbox, buat simulasi token yang stabil
-    if (serverKey.includes("xxxxxxxxxxxx") || serverKey.startsWith("SB-Mid-server-demo")) {
+    const isKeyPlaceholder =
+      serverKey.includes("xxxxxxxxxxxx") || serverKey.startsWith("SB-Mid-server-demo");
+
+    // Di production, token simulasi dilarang mutlak
+    if (isProduction && isKeyPlaceholder) {
+      return {
+        sukses: false,
+        pesan: "Konfigurasi Gateway Gagal: MIDTRANS_SERVER_KEY produksi belum dikonfigurasi.",
+      };
+    }
+
+    // Di environment development / testing, fallback mock hanya aktif jika flag ALLOW_PAYMENT_MOCK diizinkan
+    const allowMock = process.env.ALLOW_PAYMENT_MOCK === "true" || process.env.NODE_ENV !== "production";
+    if (isKeyPlaceholder) {
+      if (!allowMock) {
+        return {
+          sukses: false,
+          pesan: "Kredensial Midtrans Sandbox tidak valid dan simulasi mock dinonaktifkan.",
+        };
+      }
+
       const tokenSimulasi = `SNAP-SIM-${params.nomorPesanan}`;
       return {
         sukses: true,
         token: tokenSimulasi,
         redirectUrl: `https://app.sandbox.midtrans.com/snap/v2/vtweb/${tokenSimulasi}`,
+        isMock: true,
       };
     }
 
@@ -103,3 +125,27 @@ export async function buatTransaksiMidtrans(
     };
   }
 }
+
+/**
+ * Verifikasi signature hash SHA-512 dari payload Webhook Midtrans
+ * Format formula Midtrans: SHA512(order_id + status_code + gross_amount + ServerKey)
+ */
+export function verifikasiSignatureMidtrans(
+  orderId: string,
+  statusCode: string,
+  grossAmount: string,
+  signatureKey: string,
+  customServerKey?: string
+): boolean {
+  try {
+    const key = customServerKey || serverKey;
+    const inputString = `${orderId}${statusCode}${grossAmount}${key}`;
+    const calculatedHash = crypto.createHash("sha512").update(inputString).digest("hex");
+    return calculatedHash.toLowerCase() === signatureKey.toLowerCase();
+  } catch (err) {
+    console.error("Gagal memverifikasi signature Midtrans:", err);
+    return false;
+  }
+}
+
+

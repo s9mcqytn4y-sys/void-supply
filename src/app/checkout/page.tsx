@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useCallback } from "react";
 import Link from "next/link";
 import { formatRupiah } from "@/lib/utils";
 import { useKeranjangStore } from "@/features/cart";
 import { rekonsiliasiKeranjang } from "@/features/cart/actions/reconciliation.action";
-import { hitungOngkirBiteship, type OpsiKurir } from "@/lib/services/biteship.service";
+import { hitungOngkirServerAction } from "@/features/checkout/actions/ongkir.action";
 import { buatPesanan } from "@/features/checkout";
+import type { OpsiKurir } from "@/lib/services/biteship.service";
 
 export default function HalamanCheckout() {
   const items = useKeranjangStore((state) => state.items);
@@ -17,11 +18,13 @@ export default function HalamanCheckout() {
 
   const [isPending, startTransition] = useTransition();
   const [sedangMemuat, setSedangMemuat] = useState(true);
+  const [sedangHitungOngkir, setSedangHitungOngkir] = useState(false);
   const [pesanNotifikasi, setPesanNotifikasi] = useState<string | null>(null);
+  const [pesanErrorGlobal, setPesanErrorGlobal] = useState<string | null>(null);
   const [opsiKurir, setOpsiKurir] = useState<OpsiKurir[]>([]);
   const [kurirTerpilih, setKurirTerpilih] = useState<OpsiKurir | null>(null);
 
-  // Form State
+  // Form State & In-Field Validation Errors
   const [formData, setFormData] = useState({
     namaLengkap: "Rian Pratama",
     email: "rian.trendsetter@voidsupply.test",
@@ -33,10 +36,46 @@ export default function HalamanCheckout() {
     catatan: "",
   });
 
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
   const [suksesTransaksi, setSuksesTransaksi] = useState<{
     nomorPesanan: string;
     redirectUrl?: string;
   } | null>(null);
+
+  // Fungsi Panggil Server Action Hitung Ongkir
+  const muatTarifOngkir = useCallback(
+    async (kodePos: string, itemDaftar: typeof items) => {
+      if (!kodePos || kodePos.length !== 5 || !/^[0-9]+$/.test(kodePos)) {
+        return;
+      }
+      if (itemDaftar.length === 0) return;
+
+      setSedangHitungOngkir(true);
+      try {
+        const hasil = await hitungOngkirServerAction({
+          kodePosTujuan: kodePos,
+          items: itemDaftar.map((i) => ({ varianId: i.varianId, jumlah: i.jumlah })),
+        });
+
+        if (hasil.sukses && hasil.opsiKurir.length > 0) {
+          setOpsiKurir(hasil.opsiKurir);
+          setKurirTerpilih((prev) => {
+            if (!prev) return hasil.opsiKurir[0];
+            const tetapCocok = hasil.opsiKurir.find(
+              (k) => k.kodeKurir === prev.kodeKurir && k.layanan === prev.layanan
+            );
+            return tetapCocok || hasil.opsiKurir[0];
+          });
+        }
+      } catch (err) {
+        console.error("Gagal menghitung ongkir server:", err);
+      } finally {
+        setSedangHitungOngkir(false);
+      }
+    },
+    []
+  );
 
   // 1. Rekonsiliasi Server Saat Checkout Dimuat
   useEffect(() => {
@@ -57,16 +96,8 @@ export default function HalamanCheckout() {
             );
           }
 
-          // Hitung opsi pengiriman Biteship
-          hitungOngkirBiteship({
-            kodePosTujuan: formData.kodePos,
-            totalBeratGram: hasil.totalBeratGram || 500,
-          }).then((kurir) => {
-            setOpsiKurir(kurir);
-            if (kurir.length > 0) {
-              setKurirTerpilih(kurir[0]);
-            }
-          });
+          // Hitung tarif via Server Action (bukan direct Biteship client call)
+          muatTarifOngkir(formData.kodePos, items);
         }
       })
       .catch((err) => {
@@ -75,21 +106,71 @@ export default function HalamanCheckout() {
       .finally(() => {
         setSedangMemuat(false);
       });
-  }, []);
+  }, [muatTarifOngkir, formData.kodePos, items, terapkanHasilRekonsiliasi]);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Hapus error field saat pengguna mengetik
+    if (formErrors[name]) {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
+
+    // Jika kode pos berubah dan lengkap 5 digit, hitung ulang ongkir server
+    if (name === "kodePos" && value.length === 5 && /^[0-9]+$/.test(value)) {
+      muatTarifOngkir(value, items);
+    }
+  }
+
+  function validasiFormSebelumSubmit(): boolean {
+    const errors: Record<string, string> = {};
+
+    if (!formData.namaLengkap.trim() || formData.namaLengkap.length < 3) {
+      errors.namaLengkap = "Nama lengkap minimal 3 karakter";
+    }
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = "Format email tidak valid";
+    }
+    if (!formData.telepon.trim() || formData.telepon.length < 10) {
+      errors.telepon = "Nomor telepon minimal 10 digit angka";
+    }
+    if (!formData.alamatLengkap.trim() || formData.alamatLengkap.length < 10) {
+      errors.alamatLengkap = "Alamat pengiriman minimal 10 karakter";
+    }
+    if (!formData.kota.trim() || formData.kota.length < 2) {
+      errors.kota = "Nama kota/kabupaten wajib diisi";
+    }
+    if (!formData.provinsi.trim() || formData.provinsi.length < 2) {
+      errors.provinsi = "Nama provinsi wajib diisi";
+    }
+    if (!formData.kodePos.trim() || formData.kodePos.length !== 5 || !/^[0-9]+$/.test(formData.kodePos)) {
+      errors.kodePos = "Kode pos harus terdiri dari 5 digit angka";
+    }
+    if (!kurirTerpilih) {
+      errors.kurir = "Silakan pilih salah satu opsi kurir pengiriman";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   }
 
   function handleSubmitPesanan(e: React.FormEvent) {
     e.preventDefault();
-    if (!kurirTerpilih) {
-      alert("Silakan pilih opsi kurir pengiriman.");
+    setPesanErrorGlobal(null);
+
+    if (!validasiFormSebelumSubmit()) {
       return;
     }
+
+    if (!kurirTerpilih) return;
 
     startTransition(async () => {
       const hasil = await buatPesanan({
@@ -100,11 +181,9 @@ export default function HalamanCheckout() {
         kota: formData.kota,
         provinsi: formData.provinsi,
         kodePos: formData.kodePos,
-        catatan: formData.catatan,
+        catatan: formData.catatan || undefined,
         kodeKurir: kurirTerpilih.kodeKurir,
-        namaKurir: kurirTerpilih.namaKurir,
         layananKurir: kurirTerpilih.layanan,
-        tarifOngkirIdr: kurirTerpilih.tarifIdr,
         items: items.map((i) => ({ varianId: i.varianId, jumlah: i.jumlah })),
       });
 
@@ -115,7 +194,7 @@ export default function HalamanCheckout() {
           redirectUrl: hasil.redirectUrl,
         });
       } else {
-        alert(hasil.pesan);
+        setPesanErrorGlobal(hasil.pesan);
       }
     });
   }
@@ -184,6 +263,14 @@ export default function HalamanCheckout() {
             {pesanNotifikasi}
           </div>
         )}
+        {pesanErrorGlobal && (
+          <div
+            role="alert"
+            className="mt-3 border border-rose-900/60 bg-rose-950/20 p-3 font-mono text-xs text-rose-300"
+          >
+            {pesanErrorGlobal}
+          </div>
+        )}
       </div>
 
       {items.length === 0 ? (
@@ -197,7 +284,7 @@ export default function HalamanCheckout() {
           </Link>
         </div>
       ) : (
-        <form onSubmit={handleSubmitPesanan} className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        <form onSubmit={handleSubmitPesanan} noValidate className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           {/* Kolom Kiri: Data Pengiriman & Pilihan Kurir */}
           <div className="space-y-6 lg:col-span-7">
             {/* 1. Identitas Pembeli */}
@@ -207,37 +294,73 @@ export default function HalamanCheckout() {
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label className="block font-mono text-[11px] text-neutral-400">NAMA LENGKAP</label>
+                  <label htmlFor="input-nama" className="block font-mono text-[11px] text-neutral-400">
+                    NAMA LENGKAP
+                  </label>
                   <input
+                    id="input-nama"
                     type="text"
                     name="namaLengkap"
                     required
+                    aria-invalid={!!formErrors.namaLengkap}
+                    aria-describedby={formErrors.namaLengkap ? "error-namaLengkap" : undefined}
                     value={formData.namaLengkap}
                     onChange={handleInputChange}
-                    className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:border-white focus:outline-none"
+                    className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
+                      formErrors.namaLengkap ? "border-rose-500" : "border-neutral-800 focus:border-white"
+                    }`}
                   />
+                  {formErrors.namaLengkap && (
+                    <p id="error-namaLengkap" className="mt-1 font-mono text-[11px] text-rose-400">
+                      {formErrors.namaLengkap}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] text-neutral-400">EMAIL</label>
+                  <label htmlFor="input-email" className="block font-mono text-[11px] text-neutral-400">
+                    EMAIL
+                  </label>
                   <input
+                    id="input-email"
                     type="email"
                     name="email"
                     required
+                    aria-invalid={!!formErrors.email}
+                    aria-describedby={formErrors.email ? "error-email" : undefined}
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:border-white focus:outline-none"
+                    className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
+                      formErrors.email ? "border-rose-500" : "border-neutral-800 focus:border-white"
+                    }`}
                   />
+                  {formErrors.email && (
+                    <p id="error-email" className="mt-1 font-mono text-[11px] text-rose-400">
+                      {formErrors.email}
+                    </p>
+                  )}
                 </div>
                 <div>
-                  <label className="block font-mono text-[11px] text-neutral-400">NOMOR TELEPON</label>
+                  <label htmlFor="input-telepon" className="block font-mono text-[11px] text-neutral-400">
+                    NOMOR TELEPON
+                  </label>
                   <input
+                    id="input-telepon"
                     type="tel"
                     name="telepon"
                     required
+                    aria-invalid={!!formErrors.telepon}
+                    aria-describedby={formErrors.telepon ? "error-telepon" : undefined}
                     value={formData.telepon}
                     onChange={handleInputChange}
-                    className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:border-white focus:outline-none"
+                    className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
+                      formErrors.telepon ? "border-rose-500" : "border-neutral-800 focus:border-white"
+                    }`}
                   />
+                  {formErrors.telepon && (
+                    <p id="error-telepon" className="mt-1 font-mono text-[11px] text-rose-400">
+                      {formErrors.telepon}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -249,70 +372,129 @@ export default function HalamanCheckout() {
               </h2>
               <div className="mt-4 space-y-4">
                 <div>
-                  <label className="block font-mono text-[11px] text-neutral-400">ALAMAT LENGKAP</label>
+                  <label htmlFor="input-alamat" className="block font-mono text-[11px] text-neutral-400">
+                    ALAMAT LENGKAP
+                  </label>
                   <textarea
+                    id="input-alamat"
                     name="alamatLengkap"
                     rows={2}
                     required
+                    aria-invalid={!!formErrors.alamatLengkap}
+                    aria-describedby={formErrors.alamatLengkap ? "error-alamatLengkap" : undefined}
                     value={formData.alamatLengkap}
                     onChange={handleInputChange}
-                    className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:border-white focus:outline-none"
+                    className={`mt-1 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
+                      formErrors.alamatLengkap ? "border-rose-500" : "border-neutral-800 focus:border-white"
+                    }`}
                   />
+                  {formErrors.alamatLengkap && (
+                    <p id="error-alamatLengkap" className="mt-1 font-mono text-[11px] text-rose-400">
+                      {formErrors.alamatLengkap}
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div>
-                    <label className="block font-mono text-[11px] text-neutral-400">KOTA / KABUPATEN</label>
+                    <label htmlFor="input-kota" className="block font-mono text-[11px] text-neutral-400">
+                      KOTA / KABUPATEN
+                    </label>
                     <input
+                      id="input-kota"
                       type="text"
                       name="kota"
                       required
+                      aria-invalid={!!formErrors.kota}
+                      aria-describedby={formErrors.kota ? "error-kota" : undefined}
                       value={formData.kota}
                       onChange={handleInputChange}
-                      className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:border-white focus:outline-none"
+                      className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
+                        formErrors.kota ? "border-rose-500" : "border-neutral-800 focus:border-white"
+                      }`}
                     />
+                    {formErrors.kota && (
+                      <p id="error-kota" className="mt-1 font-mono text-[11px] text-rose-400">
+                        {formErrors.kota}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block font-mono text-[11px] text-neutral-400">PROVINSI</label>
+                    <label htmlFor="input-provinsi" className="block font-mono text-[11px] text-neutral-400">
+                      PROVINSI
+                    </label>
                     <input
+                      id="input-provinsi"
                       type="text"
                       name="provinsi"
                       required
+                      aria-invalid={!!formErrors.provinsi}
+                      aria-describedby={formErrors.provinsi ? "error-provinsi" : undefined}
                       value={formData.provinsi}
                       onChange={handleInputChange}
-                      className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:border-white focus:outline-none"
+                      className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
+                        formErrors.provinsi ? "border-rose-500" : "border-neutral-800 focus:border-white"
+                      }`}
                     />
+                    {formErrors.provinsi && (
+                      <p id="error-provinsi" className="mt-1 font-mono text-[11px] text-rose-400">
+                        {formErrors.provinsi}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block font-mono text-[11px] text-neutral-400">KODE POS</label>
+                    <label htmlFor="input-kodepos" className="block font-mono text-[11px] text-neutral-400">
+                      KODE POS
+                    </label>
                     <input
+                      id="input-kodepos"
                       type="text"
                       name="kodePos"
                       maxLength={5}
                       required
+                      aria-invalid={!!formErrors.kodePos}
+                      aria-describedby={formErrors.kodePos ? "error-kodePos" : undefined}
                       value={formData.kodePos}
                       onChange={handleInputChange}
-                      className="mt-1 w-full border border-neutral-800 bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:border-white focus:outline-none"
+                      className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
+                        formErrors.kodePos ? "border-rose-500" : "border-neutral-800 focus:border-white"
+                      }`}
                     />
+                    {formErrors.kodePos && (
+                      <p id="error-kodePos" className="mt-1 font-mono text-[11px] text-rose-400">
+                        {formErrors.kodePos}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 3. Pilihan Logistik Kurir (Biteship) */}
+            {/* 3. Pilihan Logistik Kurir (Server-Authoritative Biteship) */}
             <div className="border border-neutral-800 bg-neutral-950 p-6">
-              <h2 className="border-b border-neutral-800 pb-3 font-mono text-xs font-bold text-white uppercase">
-                03 // OPSI KURIR PENGIRIMAN (BITESHIP LOGISTICS)
-              </h2>
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+                <h2 className="font-mono text-xs font-bold text-white uppercase">
+                  03 // OPSI KURIR PENGIRIMAN
+                </h2>
+                {sedangHitungOngkir && (
+                  <span className="font-mono text-[10px] text-neutral-400 animate-pulse">
+                    MENGHITUNG TARIF RESMI...
+                  </span>
+                )}
+              </div>
               <div className="mt-4 space-y-2">
                 {opsiKurir.length === 0 ? (
-                  <p className="font-mono text-xs text-neutral-500">Memuat tarif kurir...</p>
+                  <p className="font-mono text-xs text-neutral-500">
+                    {sedangHitungOngkir ? "Memverifikasi tarif kurir ke server..." : "Masukkan kode pos valid untuk menghitung ongkir."}
+                  </p>
                 ) : (
                   opsiKurir.map((kurir) => {
-                    const isSelected = kurirTerpilih?.kodeKurir === kurir.kodeKurir && kurirTerpilih?.layanan === kurir.layanan;
+                    const isSelected =
+                      kurirTerpilih?.kodeKurir === kurir.kodeKurir &&
+                      kurirTerpilih?.layanan === kurir.layanan;
                     return (
                       <label
                         key={`${kurir.kodeKurir}-${kurir.layanan}`}
-                        className={`flex cursor-pointer items-center justify-between border p-3 font-mono text-xs transition-colors ${
+                        className={`flex min-h-11 cursor-pointer items-center justify-between border p-3 font-mono text-xs transition-colors ${
                           isSelected
                             ? "border-white bg-neutral-900 text-white"
                             : "border-neutral-800 text-neutral-400 hover:border-neutral-700"
@@ -328,13 +510,19 @@ export default function HalamanCheckout() {
                           />
                           <div>
                             <span className="font-bold text-white uppercase">{kurir.namaKurir}</span>
-                            <span className="text-neutral-400"> - {kurir.layanan} ({kurir.estimasiHari})</span>
+                            <span className="text-neutral-400">
+                              {" "}
+                              - {kurir.layanan} ({kurir.estimasiHari})
+                            </span>
                           </div>
                         </div>
                         <span className="font-bold text-white">{formatRupiah(kurir.tarifIdr)}</span>
                       </label>
                     );
                   })
+                )}
+                {formErrors.kurir && (
+                  <p className="mt-2 font-mono text-[11px] text-rose-400">{formErrors.kurir}</p>
                 )}
               </div>
             </div>
@@ -370,7 +558,9 @@ export default function HalamanCheckout() {
                 </div>
                 <div className="flex justify-between text-neutral-400">
                   <span>ONGKOS KIRIM:</span>
-                  <span className="font-bold text-white">{formatRupiah(totalOngkir)}</span>
+                  <span className="font-bold text-white">
+                    {sedangHitungOngkir ? "Menghitung..." : formatRupiah(totalOngkir)}
+                  </span>
                 </div>
                 <div className="flex justify-between border-t border-neutral-800 pt-2 text-sm text-white">
                   <span className="font-bold">TOTAL PEMBAYARAN:</span>
@@ -384,7 +574,9 @@ export default function HalamanCheckout() {
                   disabled={isPending || sedangMemuat || items.length === 0}
                   className="flex min-h-12 w-full items-center justify-center border border-white bg-white font-mono text-xs font-bold text-black uppercase transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {isPending ? "MEMPROSES TRANSAKSI ATOMIK..." : `BAYAR DENGAN MIDTRANS (${formatRupiah(totalAkhir)})`}
+                  {isPending
+                    ? "MEMPROSES TRANSAKSI ATOMIK..."
+                    : `BAYAR DENGAN MIDTRANS (${formatRupiah(totalAkhir)})`}
                 </button>
                 <p className="mt-2 text-center font-mono text-[10px] text-neutral-500">
                   Total gross_amount dihitung dan diverifikasi secara resmi di sisi server.

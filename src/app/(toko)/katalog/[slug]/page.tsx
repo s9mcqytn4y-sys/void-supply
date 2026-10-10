@@ -64,8 +64,59 @@ export default async function HalamanDetailProduk({
   const apakahHabis = totalStok === 0;
   const apakahStokMenipis = totalStok > 0 && totalStok < 15;
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://voidsupply.com";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: produk.nama,
+    image: [produk.gambarUtama, ...produk.galeriGambar],
+    description: produk.deskripsi,
+    sku: produk.varian[0]?.sku || produk.slug,
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "IDR",
+      lowPrice: produk.hargaDasar,
+      highPrice: Math.max(...produk.varian.map((v) => v.harga), produk.hargaDasar),
+      offerCount: produk.varian.length,
+      availability: totalStok > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      seller: {
+        "@type": "Organization",
+        name: "VOID Supply",
+      },
+    },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Beranda",
+          item: baseUrl,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Katalog",
+          item: `${baseUrl}/katalog`,
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: produk.nama,
+          item: `${baseUrl}/katalog/${produk.slug}`,
+        },
+      ],
+    },
+  };
+
   return (
     <main className="mx-auto min-h-screen w-full max-w-7xl bg-neutral-950 px-4 py-8 sm:px-6 lg:px-8">
+      {/* JSON-LD Structured Data untuk SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <article className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
         {/* Kolom Kiri: Galeri Foto Multi-Angle */}
         <section aria-label={`Galeri foto ${produk.nama}`}>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 36" fill="none">
+  <rect width="160" height="36" rx="4" fill="#0A0A0A" stroke="#262626"/>
+  <rect x="14" y="12" width="16" height="12" rx="2" fill="#1C1917" stroke="#EA580C" stroke-width="1.5"/>
+  <path d="M19 12V8C19 6.89543 19.8954 6 21 6H23C24.1046 6 25 6.89543 25 8V12" stroke="#EA580C" stroke-width="1.5"/>
+  <text x="36" y="22" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="700" letter-spacing="1">BITESHIP</text>
+  <text x="104" y="22" fill="#737373" font-family="monospace" font-size="9" font-weight="400">LOGISTICS</text>
+</svg>

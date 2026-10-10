@@ -1,6 +1,6 @@
 "use server";
 
-import { inArray, eq } from "drizzle-orm";
+import { inArray, eq, and, gte, sql } from "drizzle-orm";
 import {
   db,
   produk,
@@ -13,6 +13,7 @@ import {
 } from "@/lib/db";
 import { formulirCheckoutSkema, type FormulirCheckout } from "../schemas/checkout.schema";
 import { buatTransaksiMidtrans } from "@/lib/services/midtrans.service";
+import { hitungOngkirBiteship } from "@/lib/services/biteship.service";
 
 export interface HasilBuatPesanan {
   sukses: boolean;
@@ -23,11 +24,19 @@ export interface HasilBuatPesanan {
 }
 
 /**
- * Server Action: Buat Transaksi Pesanan Atomik (Module 02.13 & 03.0)
- * Menjalankan validasi server-authoritative:
- * 1. Verifikasi harga dan stok langsung ke database PostgreSQL
- * 2. Transaksi atomik (db.transaction) untuk isolasi data dan pencegahan overselling
- * 3. Integrasi Snap token Midtrans dengan total gross_amount resmi dari server
+ * Server Action: Buat Transaksi Pesanan Atomik (Module 02.14 & 03.0)
+ * Alur Transaksi Terverifikasi Dua Fase:
+ * Fase 1: Validasi server-authoritative & Transaksi Database Atomik (<10ms)
+ *   - Penggabungan SKU duplikat
+ *   - Perhitungan berat & verifikasi tarif ongkir resmi Biteship di backend
+ *   - Pengurangan stok bersyarat secara atomik (stok = stok - qty WHERE stok >= qty)
+ *   - Penyimpanan pesanan, item snapshot, pengiriman, dan record pembayaran
+ *   - Commit transaksi database segera untuk melepas lock
+ *
+ * Fase 2: Pemanggilan Gateway Midtrans di luar lock database
+ *   - Request token Snap Midtrans
+ *   - Jika gateway menolak/gagal: jalankan kompensasi rollback stok atomik & batalkan pesanan
+ *   - Jika sukses: perbarui snap token pada record pembayaran
  */
 export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPesanan> {
   // 1. Validasi skema runtime Zod
@@ -42,94 +51,149 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
 
   const data = parseResult.data;
 
+  // 2. Gabungkan SKU / varianId duplikat untuk mencegah anomali stok & kalkulasi
+  const itemGabunganMap = new Map<string, number>();
+  for (const item of data.items) {
+    const jumlahLama = itemGabunganMap.get(item.varianId) || 0;
+    itemGabunganMap.set(item.varianId, jumlahLama + item.jumlah);
+  }
+
+  const daftarVarianIdUnik = Array.from(itemGabunganMap.keys());
+
   try {
-    // Jalankan seluruh mutasi dalam transaksi atomik PostgreSQL
-    const hasilTransaksi = await db.transaction(async (tx) => {
-      const daftarVarianId = data.items.map((i) => i.varianId);
+    // 3. Ambil data varian & produk terkini dari basis data
+    const dataVarianDb = await db
+      .select({
+        varianId: varianProduk.id,
+        produkId: produk.id,
+        namaProduk: produk.nama,
+        sku: varianProduk.sku,
+        ukuran: varianProduk.ukuran,
+        warna: varianProduk.warna,
+        stok: varianProduk.stok,
+        harga: varianProduk.harga,
+        beratGram: varianProduk.beratGram,
+        statusProduk: produk.status,
+      })
+      .from(varianProduk)
+      .innerJoin(produk, eq(varianProduk.produkId, produk.id))
+      .where(inArray(varianProduk.id, daftarVarianIdUnik));
 
-      // Ambil data varian & produk terkini dari basis data
-      const dataVarianDb = await tx
-        .select({
-          varianId: varianProduk.id,
-          produkId: produk.id,
-          namaProduk: produk.nama,
-          sku: varianProduk.sku,
-          ukuran: varianProduk.ukuran,
-          warna: varianProduk.warna,
-          stok: varianProduk.stok,
-          harga: varianProduk.harga,
-          beratGram: varianProduk.beratGram,
-          statusProduk: produk.status,
-        })
-        .from(varianProduk)
-        .innerJoin(produk, eq(varianProduk.produkId, produk.id))
-        .where(inArray(varianProduk.id, daftarVarianId));
+    const varianMap = new Map(dataVarianDb.map((row) => [row.varianId, row]));
 
-      const varianMap = new Map(dataVarianDb.map((row) => [row.varianId, row]));
+    // 4. Validasi ketersediaan artikel & hitung subtotal serta berat server
+    let subtotalServer = 0;
+    let totalBeratServer = 0;
+    const snapshotItem: Array<{
+      varianId: string;
+      namaProduk: string;
+      namaVarian: string;
+      sku: string;
+      hargaSatuan: number;
+      beratGram: number;
+      jumlah: number;
+      subtotalItem: number;
+    }> = [];
 
-      // 2. Validasi stok dan ketersediaan setiap artikel
-      let subtotalServer = 0;
-      let totalBeratServer = 0;
-      const snapshotItem: Array<{
-        varianId: string;
-        namaProduk: string;
-        namaVarian: string;
-        sku: string;
-        hargaSatuan: number;
-        beratGram: number;
-        jumlah: number;
-        subtotalItem: number;
-      }> = [];
+    for (const [varianId, jumlah] of itemGabunganMap.entries()) {
+      const itemDb = varianMap.get(varianId);
 
-      for (const niat of data.items) {
-        const itemDb = varianMap.get(niat.varianId);
-
-        if (!itemDb) {
-          throw new Error(`Artikel dengan ID varian '${niat.varianId}' tidak ditemukan di katalog.`);
-        }
-
-        if (itemDb.statusProduk !== "aktif") {
-          throw new Error(`Artikel '${itemDb.namaProduk}' sedang tidak aktif atau diarsipkan.`);
-        }
-
-        if (itemDb.stok < niat.jumlah) {
-          throw new Error(
-            `Stok untuk '${itemDb.namaProduk} (${itemDb.ukuran})' tidak mencukupi (Tersisa: ${itemDb.stok}, Diminta: ${niat.jumlah}).`
-          );
-        }
-
-        const subtotalItem = itemDb.harga * niat.jumlah;
-        subtotalServer += subtotalItem;
-        totalBeratServer += itemDb.beratGram * niat.jumlah;
-
-        snapshotItem.push({
-          varianId: itemDb.varianId,
-          namaProduk: itemDb.namaProduk,
-          namaVarian: `${itemDb.ukuran} / ${itemDb.warna}`,
-          sku: itemDb.sku,
-          hargaSatuan: itemDb.harga,
-          beratGram: itemDb.beratGram,
-          jumlah: niat.jumlah,
-          subtotalItem,
-        });
-
-        // 3. Kurangi stok varian secara atomik
-        await tx
-          .update(varianProduk)
-          .set({ stok: itemDb.stok - niat.jumlah })
-          .where(eq(varianProduk.id, itemDb.varianId));
+      if (!itemDb) {
+        return {
+          sukses: false,
+          pesan: `Artikel dengan ID varian '${varianId}' tidak ditemukan di katalog.`,
+        };
       }
 
-      // 4. Hitung total akhir server
-      const totalOngkir = data.tarifOngkirIdr;
-      const totalAkhir = subtotalServer + totalOngkir;
+      if (itemDb.statusProduk !== "aktif") {
+        return {
+          sukses: false,
+          pesan: `Artikel '${itemDb.namaProduk}' sedang tidak aktif atau diarsipkan.`,
+        };
+      }
 
-      // 5. Generate Nomor Pesanan Unik (Format VOID-YYYYMMDD-XXXXX)
-      const tanggalFormat = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-      const acak = Math.floor(10000 + Math.random() * 90000);
-      const nomorPesanan = `VOID-${tanggalFormat}-${acak}`;
+      if (itemDb.stok < jumlah) {
+        return {
+          sukses: false,
+          pesan: `Stok untuk '${itemDb.namaProduk} (${itemDb.ukuran})' tidak mencukupi (Tersisa: ${itemDb.stok}, Diminta: ${jumlah}).`,
+        };
+      }
 
-      // 6. Buat atau update profil pelanggan
+      const subtotalItem = itemDb.harga * jumlah;
+      subtotalServer += subtotalItem;
+      totalBeratServer += itemDb.beratGram * jumlah;
+
+      snapshotItem.push({
+        varianId: itemDb.varianId,
+        namaProduk: itemDb.namaProduk,
+        namaVarian: `${itemDb.ukuran} / ${itemDb.warna}`,
+        sku: itemDb.sku,
+        hargaSatuan: itemDb.harga,
+        beratGram: itemDb.beratGram,
+        jumlah,
+        subtotalItem,
+      });
+    }
+
+    // 5. Hitung tarif ongkir resmi secara server-authoritative via Biteship service
+    const opsiOngkir = await hitungOngkirBiteship({
+      kodePosTujuan: data.kodePos,
+      totalBeratGram: totalBeratServer,
+    });
+
+    const opsiCocok =
+      opsiOngkir.find(
+        (o) =>
+          o.kodeKurir.toLowerCase() === data.kodeKurir.toLowerCase() &&
+          o.layanan.toLowerCase() === data.layananKurir.toLowerCase()
+      ) ||
+      opsiOngkir.find((o) => o.kodeKurir.toLowerCase() === data.kodeKurir.toLowerCase()) ||
+      opsiOngkir[0];
+
+    if (!opsiCocok) {
+      return {
+        sukses: false,
+        pesan: "Layanan logistik tidak tersedia untuk kode pos tujuan yang dimasukkan.",
+      };
+    }
+
+    const totalOngkir = opsiCocok.tarifIdr;
+    const namaKurir = opsiCocok.namaKurir;
+    const layananKurir = opsiCocok.layanan;
+    const estimasiHari = opsiCocok.estimasiHari;
+    const totalAkhir = subtotalServer + totalOngkir;
+
+    // 6. Generate Nomor Pesanan Unik (Format VOID-YYYYMMDD-XXXXX)
+    const tanggalFormat = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const acak = Math.floor(10000 + Math.random() * 90000);
+    const nomorPesanan = `VOID-${tanggalFormat}-${acak}`;
+
+    // 7. FASE 1: Mutasi Basis Data Atomik Cepat (<10ms)
+    let pesananId = "";
+    await db.transaction(async (tx) => {
+      // 7a. Pengurangan stok bersyarat secara atomik (pencegahan overselling saat konkurensi)
+      for (const item of snapshotItem) {
+        const [updated] = await tx
+          .update(varianProduk)
+          .set({
+            stok: sql`${varianProduk.stok} - ${item.jumlah}`,
+          })
+          .where(
+            and(
+              eq(varianProduk.id, item.varianId),
+              gte(varianProduk.stok, item.jumlah)
+            )
+          )
+          .returning({ id: varianProduk.id });
+
+        if (!updated) {
+          throw new Error(
+            `Stok untuk '${item.namaProduk} (${item.namaVarian})' tidak mencukupi atau telah dibeli oleh pengguna lain.`
+          );
+        }
+      }
+
+      // 7b. Simpan atau perbarui profil pelanggan
       let pelangganId: string | undefined;
       const [pelangganEksis] = await tx
         .select({ id: pelanggan.id })
@@ -155,7 +219,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         pelangganId = pelangganBaru?.id;
       }
 
-      // 7. Simpan Entitas Pesanan
+      // 7c. Simpan Entitas Pesanan
       const [pesananBaru] = await tx
         .insert(pesanan)
         .values({
@@ -173,7 +237,9 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         })
         .returning({ id: pesanan.id });
 
-      // 8. Simpan Snapshot Item Pesanan
+      pesananId = pesananBaru.id;
+
+      // 7d. Simpan Snapshot Item Pesanan Imutabel
       for (const item of snapshotItem) {
         await tx.insert(itemPesanan).values({
           pesananId: pesananBaru.id,
@@ -188,11 +254,11 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         });
       }
 
-      // 9. Simpan Entitas Pengiriman
+      // 7e. Simpan Entitas Pengiriman Terverifikasi Server
       await tx.insert(pengiriman).values({
         pesananId: pesananBaru.id,
-        kurir: data.namaKurir,
-        layanan: data.layananKurir,
+        kurir: namaKurir,
+        layanan: layananKurir,
         biayaOngkir: totalOngkir,
         beratTotalGram: totalBeratServer,
         alamatLengkap: data.alamatLengkap,
@@ -201,66 +267,102 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         kodePos: data.kodePos,
         namaPenerima: data.namaLengkap,
         teleponPenerima: data.telepon,
-        estimasiHari: "2-3 Hari",
+        estimasiHari: estimasiHari || "2-3 Hari",
         statusPengiriman: "menunggu_resi",
       });
 
-      // 10. Request Sesi Pembayaran Midtrans Snap
-      const midtransResponse = await buatTransaksiMidtrans({
-        nomorPesanan,
-        totalAkhirIdr: totalAkhir,
-        items: [
-          ...snapshotItem.map((s) => ({
-            id: s.sku,
-            price: s.hargaSatuan,
-            quantity: s.jumlah,
-            name: s.namaProduk,
-          })),
-          {
-            id: `SHIPPING-${data.kodeKurir.toUpperCase()}`,
-            price: totalOngkir,
-            quantity: 1,
-            name: `Ongkos Kirim ${data.namaKurir} (${data.layananKurir})`,
-          },
-        ],
-        pelanggan: {
-          namaLengkap: data.namaLengkap,
-          email: data.email,
-          telepon: data.telepon,
-          alamat: `${data.alamatLengkap}, ${data.kota}, ${data.provinsi} ${data.kodePos}`,
-        },
-      });
-
-      // 11. Simpan Entitas Pembayaran
+      // 7f. Simpan Entitas Pembayaran Awal
       await tx.insert(pembayaran).values({
         pesananId: pesananBaru.id,
         gateway: "midtrans",
         gatewayOrderId: nomorPesanan,
         statusPembayaran: "menunggu_pembayaran",
         jumlahBayar: totalAkhir,
-        snapToken: midtransResponse.token,
-        snapRedirectUrl: midtransResponse.redirectUrl,
+      });
+    });
+
+    // 8. FASE 2: Request Gateway Pembayaran Midtrans Snap (di luar DB lock)
+    const midtransResponse = await buatTransaksiMidtrans({
+      nomorPesanan,
+      totalAkhirIdr: totalAkhir,
+      items: [
+        ...snapshotItem.map((s) => ({
+          id: s.sku,
+          price: s.hargaSatuan,
+          quantity: s.jumlah,
+          name: s.namaProduk,
+        })),
+        {
+          id: `SHIPPING-${data.kodeKurir.toUpperCase()}`,
+          price: totalOngkir,
+          quantity: 1,
+          name: `Ongkos Kirim ${namaKurir} (${layananKurir})`,
+        },
+      ],
+      pelanggan: {
+        namaLengkap: data.namaLengkap,
+        email: data.email,
+        telepon: data.telepon,
+        alamat: `${data.alamatLengkap}, ${data.kota}, ${data.provinsi} ${data.kodePos}`,
+      },
+    });
+
+    // 9. Penanganan jika Midtrans Gagal: Transaksi Kompensasi Rollback Stok
+    if (!midtransResponse.sukses || !midtransResponse.token) {
+      console.error("Gagal mendapatkan sesi pembayaran Midtrans:", midtransResponse.pesan);
+
+      // Kembalikan stok yang sempat didekremen & ubah status pesanan menjadi dibatalkan
+      await db.transaction(async (tx) => {
+        for (const item of snapshotItem) {
+          await tx
+            .update(varianProduk)
+            .set({ stok: sql`${varianProduk.stok} + ${item.jumlah}` })
+            .where(eq(varianProduk.id, item.varianId));
+        }
+
+        await tx
+          .update(pesanan)
+          .set({ statusPesanan: "dibatalkan" })
+          .where(eq(pesanan.id, pesananId));
+
+        await tx
+          .update(pembayaran)
+          .set({ statusPembayaran: "gagal" })
+          .where(eq(pembayaran.pesananId, pesananId));
       });
 
       return {
-        nomorPesanan,
-        snapToken: midtransResponse.token,
-        redirectUrl: midtransResponse.redirectUrl,
+        sukses: false,
+        pesan:
+          midtransResponse.pesan ||
+          "Gagal menghubungkan ke gateway pembayaran. Pesanan Anda tidak diproses dan stok dikembalikan.",
       };
-    });
+    }
+
+    // 10. Pembaruan Token Snap pada Entitas Pembayaran
+    await db
+      .update(pembayaran)
+      .set({
+        snapToken: midtransResponse.token,
+        snapRedirectUrl: midtransResponse.redirectUrl,
+      })
+      .where(eq(pembayaran.pesananId, pesananId));
 
     return {
       sukses: true,
       pesan: "Pesanan berhasil dibuat. Melanjutkan ke pembayaran.",
-      nomorPesanan: hasilTransaksi.nomorPesanan,
-      snapToken: hasilTransaksi.snapToken,
-      redirectUrl: hasilTransaksi.redirectUrl,
+      nomorPesanan,
+      snapToken: midtransResponse.token,
+      redirectUrl: midtransResponse.redirectUrl,
     };
   } catch (error) {
     console.error("Galat proses buat pesanan:", error);
     return {
       sukses: false,
-      pesan: error instanceof Error ? error.message : "Terjadi kesalahan sistem saat memproses transaksi.",
+      pesan:
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan sistem saat memproses transaksi.",
     };
   }
 }

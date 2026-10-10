@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 36" fill="none">
+  <rect width="160" height="36" rx="4" fill="#0A0A0A" stroke="#262626"/>
+  <circle cx="22" cy="18" r="8" fill="#002554"/>
+  <path d="M19 14L25 18L19 22V14Z" fill="#00A2E8"/>
+  <text x="36" y="22" fill="#FFFFFF" font-family="monospace" font-size="11" font-weight="700" letter-spacing="1">MIDTRANS</text>
+  <text x="108" y="22" fill="#737373" font-family="monospace" font-size="9" font-weight="400">SNAP</text>
+</svg>

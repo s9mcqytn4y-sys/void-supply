@@ -20,6 +20,7 @@ export interface KeranjangState {
   apakahBuka: boolean;
   apakahHydrated: boolean;
   sedangRekonsiliasi: boolean;
+  terakhirDiubah: number;
 
   // Aksi-aksi Keranjang
   tambahItem: (item: InputItemKeranjang) => HasilAksiKeranjang;
@@ -44,6 +45,7 @@ export const useKeranjangStore = create<KeranjangState>()(
       apakahBuka: false,
       apakahHydrated: false,
       sedangRekonsiliasi: false,
+      terakhirDiubah: 0,
 
       setBuka: (buka: boolean) => set({ apakahBuka: buka }),
       toggleBuka: () => set((state) => ({ apakahBuka: !state.apakahBuka })),
@@ -74,6 +76,7 @@ export const useKeranjangStore = create<KeranjangState>()(
             items: state.items.map((x) =>
               x.varianId === itemBaru.varianId ? { ...x, jumlah: totalAkumulasi } : x
             ),
+            terakhirDiubah: Date.now(),
           });
 
           return {
@@ -84,6 +87,7 @@ export const useKeranjangStore = create<KeranjangState>()(
 
         set({
           items: [...state.items, itemBaru],
+          terakhirDiubah: Date.now(),
         });
 
         return {
@@ -111,6 +115,7 @@ export const useKeranjangStore = create<KeranjangState>()(
 
         set({
           items: state.items.map((x) => (x.varianId === varianId ? { ...x, jumlah } : x)),
+          terakhirDiubah: Date.now(),
         });
 
         return {
@@ -122,12 +127,14 @@ export const useKeranjangStore = create<KeranjangState>()(
       hapusItem: (varianId: string) => {
         set((state) => ({
           items: state.items.filter((x) => x.varianId !== varianId),
+          terakhirDiubah: Date.now(),
         }));
       },
 
       kosongkan: () => {
-        set({ items: [] });
+        set({ items: [], terakhirDiubah: Date.now() });
       },
+
 
       terapkanHasilRekonsiliasi: (hasil: HasilRekonsiliasiKeranjang) => {
         if (!hasil.sukses) return;

@@ -189,3 +189,31 @@ Seluruh entitas domain bisnis, antarmuka toko, dan database wajib mengikuti konv
 
 Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas manusia, layout mobile, dan code hygiene) telah terintegrasi secara kanonikal di dalam **Bagian 4** dokumen `GEMINI.md` ini. Dengan demikian, pengujian kualitas, linter, dan evaluasi CI/CD dapat memvalidasi kepatuhan kode dan aset secara mandiri tanpa memerlukan dependensi berkas markdown eksternal yang tidak terlacak dalam repositori publik.
 <!-- antislop:end -->
+
+---
+
+## 10. Arsitektur Integritas Transaksi & Keamanan Checkout (Module 02.14)
+
+1. **Two-Phase Reservation Pattern**:
+   - Fase 1: Validasi server-authoritative dan transaksi basis data atomik berdurasi sangat singkat (<10ms). Pengurangan stok dilakukan secara bersyarat atomik (`stok = sql`${varianProduk.stok} - ${jumlah}`` dengan guard `stok >= jumlah`). Transaksi database langsung di-commit untuk melepas kunci baris (row lock).
+   - Fase 2: Pemanggilan gateway pembayaran Midtrans Snap dilakukan di luar transaksi basis data. Jika gateway gagal atau menolak, sistem mengeksekusi transaksi kompensasi untuk mengembalikan stok dan membatalkan pesanan.
+
+2. **Server-Authoritative Shipping Logistics**:
+   - Seluruh pemanggilan Biteship Logistics API dipindahkan dari Client Component ke Server Action (`hitungOngkirServerAction`).
+   - Browser dilarang mendikte tarif ongkir (`tarifOngkirIdr` dihapus dari formulir client). Server menghitung berat fisik riil dari database dan memverifikasi opsi tarif resmi.
+
+3. **Deduplikasi SKU & Payload Normalization**:
+   - Payload checkout yang memuat varian ID ganda digabungkan secara otomatis pada tingkat server sebelum evaluasi ketersediaan stok.
+
+4. **Idempotent Midtrans Webhook & Auto-Release Stok**:
+   - Route handler `/api/midtrans/webhook` memverifikasi keaslian notifikasi menggunakan formula kriptografis SHA-512 `SHA512(order_id + status_code + gross_amount + serverKey)`.
+   - Idempotency guard memastikan webhook berulang untuk pesanan yang sudah berstatus final tidak diproses ulang.
+   - Status kegagalan, pembatalan, atau kedaluwarsa (`expire`, `cancel`, `deny`) secara otomatis memicu pemulihan kuota stok varian ke basis data PostgreSQL secara atomik.
+
+5. **Isolasi Lingkungan Gateway & Flag Guard**:
+   - Token simulasi (`SNAP-SIM-*`) dilarang keras di lingkungan produksi. Di lingkungan pengujian lokal, simulasi hanya aktif apabila diizinkan via konfigurasi eksplisit `ALLOW_PAYMENT_MOCK=true`.
+
+6. **Hydration Lifecycle & Race Condition Guard**:
+   - Provider keranjang belanja (`CartHydrationProvider.tsx`) menunggu penyelesaian `useKeranjangStore.persist.rehydrate()` sebelum mengaktifkan status hidrasi.
+   - Menggunakan timestamp perbandingan `terakhirDiubah` untuk mencegah hasil rekonsiliasi jaringan yang lambat menimpa modifikasi keranjang terbaru dari pengguna.
+
