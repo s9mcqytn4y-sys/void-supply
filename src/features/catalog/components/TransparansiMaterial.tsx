@@ -12,27 +12,32 @@ export interface PropertiTransparansiMaterial {
 export function TransparansiMaterial({ kategori, spesifikasi }: PropertiTransparansiMaterial) {
   const [tabAktif, setTabAktif] = useState<"material" | "konstruksi" | "perawatan">("material");
 
-  // Fallback data terstruktur jika spesifikasi belum diisi
-  const dataMaterial = spesifikasi?.material ?? {
-    komposisi: "100% Katun Pilihan",
-    gramasi: "Standar Industri",
-    pewarnaan: "Tahan Luntur",
-    finishing: "Pre-shrunk Wash",
-  };
+  // Jika spesifikasi belum tercatat, tampilkan state unverified yang jujur (Anti-Slop R-17, R-36)
+  if (!spesifikasi) {
+    return (
+      <div className="border border-neutral-800 bg-neutral-950 p-5">
+        <div className="mb-3 flex items-center justify-between border-b border-neutral-800 pb-3">
+          <h3 className="font-mono text-xs font-semibold tracking-wider text-neutral-300 uppercase">
+            TRANSPARANSI GARMEN // {kategori}
+          </h3>
+          <span className="font-mono text-[10px] text-amber-400">STATUS KURASI</span>
+        </div>
+        <div className="border border-dashed border-neutral-800 p-5 text-center text-xs text-neutral-400">
+          <p className="font-mono font-semibold text-neutral-300 uppercase">
+            SPESIFIKASI GARMEN SEDANG DIVERIFIKASI
+          </p>
+          <p className="mt-1 leading-relaxed">
+            Data teknis uji material (gramasi kain, ketahanan pewarnaan, dan konstruksi perangkat keras)
+            sedang diverifikasi oleh tim kurasi VOID Supply sebelum dirilis secara publik.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
-  const dataKonstruksi = spesifikasi?.konstruksi ?? {
-    jahitan: "Jahitan Rantai Ganda",
-    kerahRib: "Rib Elastis Tahan Bentuk",
-    teknikGrafis: "Sablon Presisi Tinggi",
-    label: "Woven Label Lembut",
-  };
-
-  const dataPerawatan = spesifikasi?.perawatan ?? {
-    suhuCuci: "Air Dingin Maksimal 30°C",
-    bahanKimia: "Tanpa Pemutih Klorin",
-    pengeringan: "Jemur di Tempat Teduh",
-    penyetrikaan: "Suhu Sedang",
-  };
+  const dataMaterial = spesifikasi.material;
+  const dataKonstruksi = spesifikasi.konstruksi;
+  const dataPerawatan = spesifikasi.perawatan;
 
   return (
     <div className="border border-neutral-800 bg-neutral-950 p-5">
@@ -40,7 +45,7 @@ export function TransparansiMaterial({ kategori, spesifikasi }: PropertiTranspar
         <h3 className="font-mono text-xs font-semibold tracking-wider text-neutral-300 uppercase">
           TRANSPARANSI GARMEN // {kategori}
         </h3>
-        <span className="font-mono text-[10px] text-neutral-400">SPEK NYATA</span>
+        <span className="font-mono text-[10px] text-emerald-400">SPEK TERVERIFIKASI</span>
       </div>
 
       {/* Tab Buttons */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
 import type { DimensiUkuranGarmen } from "../types/product.type";
@@ -17,23 +17,65 @@ export function PanduanUkuran({
   panduanUkuran,
 }: PropertiPanduanUkuran) {
   const [apakahBuka, setApakahBuka] = useState(false);
+  const tombolPemicuRef = useRef<HTMLButtonElement>(null);
+  const kontainerDialogRef = useRef<HTMLDivElement>(null);
 
-  // Keyboard accessibility: Tutup modal saat tombol Escape ditekan (Sesuai R-32)
+  // Aksesibilitas: Focus Trap & Restore Focus saat modal buka/tutup (Sesuai WCAG AA & R-32)
   useEffect(() => {
+    if (!apakahBuka) return;
+
+    document.body.style.overflow = "hidden";
+
+    // Fokuskan modal saat pertama kali terbuka
+    const elemenFokusSebelumnya = document.activeElement as HTMLElement | null;
+    const fokusables = kontainerDialogRef.current?.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (fokusables && fokusables.length > 0) {
+      fokusables[0].focus();
+    }
+
     function tanganiKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && apakahBuka) {
+      if (e.key === "Escape") {
         setApakahBuka(false);
+        return;
+      }
+
+      // Focus trap dengan tombol Tab
+      if (e.key === "Tab" && kontainerDialogRef.current) {
+        const daftarFokus = kontainerDialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!daftarFokus || daftarFokus.length === 0) return;
+
+        const elemenPertama = daftarFokus[0];
+        const elemenTerakhir = daftarFokus[daftarFokus.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === elemenPertama) {
+            e.preventDefault();
+            elemenTerakhir.focus();
+          }
+        } else {
+          if (document.activeElement === elemenTerakhir) {
+            e.preventDefault();
+            elemenPertama.focus();
+          }
+        }
       }
     }
-    if (apakahBuka) {
-      document.body.style.overflow = "hidden";
-      window.addEventListener("keydown", tanganiKeyDown);
-    } else {
-      document.body.style.overflow = "";
-    }
+
+    window.addEventListener("keydown", tanganiKeyDown);
+
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", tanganiKeyDown);
+      // Restore focus ke tombol pembuka
+      if (tombolPemicuRef.current) {
+        tombolPemicuRef.current.focus();
+      } else if (elemenFokusSebelumnya) {
+        elemenFokusSebelumnya.focus();
+      }
     };
   }, [apakahBuka]);
 
@@ -51,6 +93,7 @@ export function PanduanUkuran({
   return (
     <>
       <button
+        ref={tombolPemicuRef}
         type="button"
         onClick={() => setApakahBuka(true)}
         className="inline-flex items-center gap-1.5 font-mono text-xs text-neutral-400 underline underline-offset-4 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
@@ -70,6 +113,7 @@ export function PanduanUkuran({
           onClick={() => setApakahBuka(false)}
         >
           <div
+            ref={kontainerDialogRef}
             className="relative w-full max-w-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl sm:p-8"
             onClick={(e) => e.stopPropagation()}
           >

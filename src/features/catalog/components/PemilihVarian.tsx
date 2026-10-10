@@ -5,9 +5,14 @@ import type { VarianProdukItem, DimensiUkuranGarmen } from "../types/product.typ
 import { dapatDibeli } from "../types/product.type";
 import { Button } from "@/components/ui/button";
 import { PanduanUkuran } from "./PanduanUkuran";
+import { useKeranjangStore } from "@/features/cart/stores/keranjang.store";
 
 export interface PropertiPemilihVarian {
   kategori: string;
+  produkId?: string;
+  slug?: string;
+  gambarUtama?: string;
+  hargaDasar?: number;
   namaProduk?: string;
   panduanUkuran?: readonly DimensiUkuranGarmen[] | null;
   varian: readonly VarianProdukItem[];
@@ -16,11 +21,18 @@ export interface PropertiPemilihVarian {
 
 export function PemilihVarian({
   kategori,
+  produkId,
+  slug = "",
+  gambarUtama = "/images/products/drop-04/void-tee-01-front.webp",
+  hargaDasar = 0,
   namaProduk,
   panduanUkuran,
   varian,
   apakahHabisTotal,
 }: PropertiPemilihVarian) {
+  const tambahItem = useKeranjangStore((state) => state.tambahItem);
+  const setBukaKeranjang = useKeranjangStore((state) => state.setBuka);
+
   // Cari varian default pertama yang memiliki stok
   const varianPertamaTersedia = varian.find((v) => v.stok > 0);
   const [varianTerpilihId, setVarianTerpilihId] = useState<string | null>(
@@ -34,6 +46,7 @@ export function PemilihVarian({
   // Client State: Kuantitas Pembelian
   const [kuantitas, setKuantitas] = useState<number>(apakahVarianHabis ? 0 : 1);
   const [pesanStatus, setPesanStatus] = useState<string | null>(null);
+  const [apakahPesanSukses, setApakahPesanSukses] = useState<boolean>(true);
 
   // Penanganan perubahan seleksi varian
   const tanganiPilihVarian = (idVarian: string) => {
@@ -44,6 +57,28 @@ export function PemilihVarian({
       setKuantitas(1);
     } else {
       setKuantitas(0);
+    }
+  };
+
+  // Aksesibilitas Keyboard Radio Group (WAI-ARIA Pattern: Panah Kiri/Kanan/Atas/Bawah)
+  const tanganiRadioKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    indexSekarang: number
+  ) => {
+    let indexTarget = -1;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+      e.preventDefault();
+      indexTarget = (indexSekarang + 1) % varian.length;
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+      e.preventDefault();
+      indexTarget = (indexSekarang - 1 + varian.length) % varian.length;
+    }
+
+    if (indexTarget !== -1) {
+      const target = varian[indexTarget];
+      if (target && target.stok > 0) {
+        tanganiPilihVarian(target.id);
+      }
     }
   };
 
@@ -62,9 +97,26 @@ export function PemilihVarian({
   const tanganiTambahKeranjang = () => {
     if (!varianAktif || !apakahBisaBeli) return;
 
-    setPesanStatus(
-      `${kuantitas}x ${namaProduk ?? "Artikel"} (Ukuran: ${varianAktif.ukuran}, SKU: ${varianAktif.sku}) siap ditambahkan. Arsitektur keranjang belanja Zustand sedang dipersiapkan untuk Modul 02.12.`
-    );
+    const hasil = tambahItem({
+      varianId: varianAktif.id,
+      produkId: produkId ?? "",
+      nama: namaProduk ?? "Artikel VOID",
+      slug,
+      gambar: gambarUtama,
+      sku: varianAktif.sku,
+      ukuran: varianAktif.ukuran,
+      warna: varianAktif.warna,
+      hargaTampilanIdr: varianAktif.harga || hargaDasar,
+      jumlah: kuantitas,
+    });
+
+    setPesanStatus(hasil.pesan);
+    setApakahPesanSukses(hasil.sukses);
+
+    if (hasil.sukses) {
+      // Tampilkan notifikasi lalu buka slide-over keranjang belanja
+      setBukaKeranjang(true);
+    }
   };
 
   return (
@@ -88,7 +140,7 @@ export function PemilihVarian({
           aria-label="Pilihan ukuran produk"
           className="grid grid-cols-5 gap-2 sm:gap-3"
         >
-          {varian.map((v) => {
+          {varian.map((v, idx) => {
             const isTersedia = v.stok > 0;
             const isSelected = v.id === varianTerpilihId;
 
@@ -107,6 +159,7 @@ export function PemilihVarian({
                 aria-checked={isSelected}
                 disabled={!isTersedia}
                 onClick={() => tanganiPilihVarian(v.id)}
+                onKeyDown={(e) => tanganiRadioKeyDown(e, idx)}
                 className={`flex min-h-11 flex-col items-center justify-center border font-mono text-xs font-semibold tracking-wider uppercase transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${buttonStateClass}`}
               >
                 <span>{v.ukuran}</span>
@@ -176,7 +229,11 @@ export function PemilihVarian({
         <div
           role="status"
           aria-live="polite"
-          className="border-l-2 border-emerald-400 bg-neutral-900/90 p-3 font-mono text-xs text-neutral-200"
+          className={`border-l-2 bg-neutral-900/90 p-3 font-mono text-xs ${
+            apakahPesanSukses
+              ? "border-emerald-400 text-neutral-200"
+              : "border-rose-500 text-rose-300"
+          }`}
         >
           {pesanStatus}
         </div>

@@ -5,7 +5,7 @@ import { ambilDaftarKatalog } from "@/features/catalog/server";
 import { KartuProduk } from "@/features/catalog";
 
 export const metadata: Metadata = {
-  title: "VOID Supply | Curated Streetwear & Technical Apparel",
+  title: "VOID Supply | Curated Heavyweight Streetwear",
   description:
     "Etalase busana streetwear independen dan apparel teknikal. Rilisan terbatas Drop 04: Night Transmission dengan transparansi material dan konstruksi presisi.",
 };
@@ -19,52 +19,80 @@ export default async function HalamanBeranda() {
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      {/* 1. Hero Editorial Streetwear */}
+      {/* 1. Hero Section: Split Editorial Streetwear (Mobile Fit & Desktop Precision) */}
       <section
         aria-label="Highlight Koleksi Drop 04"
-        className="relative mx-auto flex min-h-[85vh] w-full max-w-7xl flex-col justify-end px-4 pt-20 pb-12 sm:px-6 lg:px-8"
+        className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16"
       >
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          <Image
-            src="/images/lookbook/drop-04-editorial-hero.webp"
-            alt="Lookbook Editorial VOID Supply Drop 04 Night Transmission"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center brightness-60"
-          />
-          <div className="absolute inset-0 bg-linear-to-t from-neutral-950 via-neutral-950/60 to-transparent" />
-        </div>
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-12">
+          {/* Kolom Teks & Narasi Editorial (5 Kolom Desktop) */}
+          <div className="order-2 flex flex-col justify-center lg:order-1 lg:col-span-5">
+            <div className="mb-4 inline-flex w-fit items-center gap-2 border border-neutral-800 bg-neutral-900/90 px-3 py-1 font-mono text-[11px] tracking-widest text-neutral-300 uppercase">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              RILISAN TERBATAS // DROP 04
+            </div>
 
-        <div className="relative z-10 max-w-3xl">
-          <div className="mb-4 inline-flex items-center gap-2 border border-neutral-700/80 bg-neutral-900/90 px-3 py-1 font-mono text-[11px] tracking-widest text-neutral-300 uppercase backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            RILISAN TERBATAS // DROP 04 : NIGHT TRANSMISSION
+            <h1 className="font-mono text-3xl font-black tracking-tighter text-white uppercase sm:text-5xl lg:text-5xl xl:text-6xl">
+              FUNCTIONAL <br className="hidden sm:inline" />
+              RESISTANCE.
+            </h1>
+
+            <p className="mt-4 max-w-lg text-xs leading-relaxed text-neutral-300 sm:text-sm">
+              Eksplorasi garmen streetwear perkotaan berbobot berat. Katun combed 16s berdensitas tinggi 235 GSM,
+              nilon ripstop tahan cuaca, serta fleece loopback 420 GSM berstruktur kokoh untuk mobilitas iklim nokturnal.
+            </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3 sm:mt-8 sm:gap-4">
+              <Link
+                href="/katalog"
+                className="inline-flex min-h-11 items-center justify-center border border-white bg-white px-6 py-2.5 font-mono text-xs font-semibold tracking-wider text-black uppercase transition-colors hover:bg-neutral-200 active:bg-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                JELAJAHI KATALOG
+              </Link>
+              <Link
+                href="#manifesto"
+                className="inline-flex min-h-11 items-center justify-center border border-neutral-800 bg-neutral-900 px-6 py-2.5 font-mono text-xs font-semibold tracking-wider text-neutral-300 uppercase transition-colors hover:border-neutral-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              >
+                BACA MANIFESTO
+              </Link>
+            </div>
+
+            {/* Spek Cepat Grid */}
+            <div className="mt-8 grid grid-cols-3 border-t border-neutral-900 pt-6 font-mono text-[11px]">
+              <div>
+                <span className="text-neutral-400">GRAMASI</span>
+                <p className="font-bold text-white">235 - 420 GSM</p>
+              </div>
+              <div>
+                <span className="text-neutral-400">KONSTRUKSI</span>
+                <p className="font-bold text-white">DOUBLE CHAIN</p>
+              </div>
+              <div>
+                <span className="text-neutral-400">STATUS DROP</span>
+                <p className="font-bold text-emerald-400">TERSEDIA</p>
+              </div>
+            </div>
           </div>
 
-          <h1 className="type-display text-white">
-            FUNCTIONAL <br />
-            RESISTANCE.
-          </h1>
+          {/* Kolom Frame Editorial Visual (7 Kolom Desktop) */}
+          <div className="order-1 lg:order-2 lg:col-span-7">
+            <div className="group relative overflow-hidden border border-neutral-800 bg-neutral-900 shadow-2xl">
+              <div className="relative aspect-4/3 w-full sm:aspect-16/10 lg:aspect-4/3">
+                <Image
+                  src="/images/lookbook/drop-04-editorial-hero.webp"
+                  alt="Lookbook Editorial Model VOID Supply Drop 04 Night Transmission"
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 55vw"
+                  className="object-cover object-center transition-transform duration-500 group-hover:scale-102"
+                />
+              </div>
 
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-neutral-300 sm:text-base">
-            Eksplorasi garmen streetwear perkotaan berbobot berat. Konstruksi combed 16s 235 GSM,
-            ripstop tahan cuaca, dan siluet boxy terstruktur untuk mobilitas tanpa kompromi.
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center gap-4">
-            <Link
-              href="/katalog"
-              className="inline-flex min-h-11 items-center justify-center border border-white bg-white px-6 py-2.5 font-mono text-xs font-semibold tracking-wider text-black uppercase transition-colors hover:bg-neutral-200 active:bg-neutral-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              JELAJAHI KATALOG // DROP 04
-            </Link>
-            <Link
-              href="#manifesto"
-              className="inline-flex min-h-11 items-center justify-center border border-neutral-700 bg-neutral-900/80 px-6 py-2.5 font-mono text-xs font-semibold tracking-wider text-neutral-300 uppercase backdrop-blur-sm transition-colors hover:border-neutral-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            >
-              BACA MANIFESTO
-            </Link>
+              {/* Tag Caption Editorial Brutalist */}
+              <div className="absolute right-3 bottom-3 border border-neutral-800/90 bg-neutral-950/85 px-2.5 py-1 font-mono text-[10px] tracking-wider text-neutral-300 uppercase backdrop-blur-xs">
+                LOOK 01 // NIGHT TRANSMISSION
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -111,7 +139,7 @@ export default async function HalamanBeranda() {
           <h2 className="mt-3 text-2xl font-black tracking-tight text-white uppercase sm:text-4xl">
             TANPA GIMMICK. HANYA MATERIAL BERMUTU TINGGI.
           </h2>
-          <p className="mt-6 text-sm leading-relaxed text-neutral-300 sm:text-base">
+          <p className="mt-6 text-xs leading-relaxed text-neutral-300 sm:text-sm">
             Kami menolak fast-fashion yang lekas rusak. Setiap helai artikel VOID Supply dirancang
             dengan spesifikasi gramasi kain nyata, jahitan rantai berulang, dan ketahanan uji pakai
             panjang. Tidak ada testimoni rekaan, tidak ada klaim kosong.

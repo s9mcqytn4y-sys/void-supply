@@ -9,11 +9,12 @@ const client = postgres(connectionString, { max: 1 });
 const db = drizzle(client, { schema });
 
 async function seed() {
-  console.log("--- Memulai Seeding Database VOID Supply (Module 02.11) ---");
+  if (process.env.NODE_ENV === "production") {
+    console.error("❌ Peringatan Keamanan: Seeding dilarang keras dijalankan pada environment produksi untuk melindungi data transaksi dan pelanggan!");
+    process.exit(1);
+  }
 
-  // Pastikan kolom baru spesifikasi dan panduan_ukuran ada
-  await client`ALTER TABLE produk ADD COLUMN IF NOT EXISTS spesifikasi jsonb;`;
-  await client`ALTER TABLE produk ADD COLUMN IF NOT EXISTS panduan_ukuran jsonb;`;
+  console.log("--- Memulai Seeding Database VOID Supply (Development Mode) ---");
 
   // 1. Bersihkan Data Lama
   await db.delete(schema.produkKeKoleksi);

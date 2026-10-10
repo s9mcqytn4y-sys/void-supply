@@ -90,6 +90,10 @@ export default async function HalamanDetailProduk({
 
           <PemilihVarian
             kategori={produk.kategori}
+            produkId={produk.id}
+            slug={produk.slug}
+            gambarUtama={produk.gambarUtama}
+            hargaDasar={produk.hargaDasar}
             namaProduk={produk.nama}
             panduanUkuran={produk.panduanUkuran}
             varian={produk.varian}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 40" width="240" height="40" fill="none">
+  <!-- Monogram VOID V Icon -->
+  <rect width="36" height="36" y="2" fill="#000000" stroke="#262626" stroke-width="1.5"/>
+  <path d="M7 9 L18 31 L29 9 L23.5 9 L18 20.5 L12.5 9 Z" fill="#FFFFFF"/>
+  <!-- Typography Wordmark VOID SUPPLY -->
+  <text x="48" y="26" fill="#FFFFFF" font-family="monospace, -apple-system, sans-serif" font-size="16" font-weight="900" letter-spacing="3.5">VOID SUPPLY</text>
+</svg>

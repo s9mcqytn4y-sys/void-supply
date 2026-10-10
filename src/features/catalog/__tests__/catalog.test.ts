@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { formatRupiah } from "@/lib/utils";
 import { catalogService } from "../services/catalog.service";
 import { productRepository } from "../repositories/product.repository";
-import { dapatDibeli } from "../types/product.type";
+import { dapatDibeli, type ProdukDenganRelasi } from "../types/product.type";
 import { pilihVarianSkema } from "../schemas/product.schema";
 
 describe("Modul Katalog // Layanan & Validasi Bisnis", () => {
@@ -26,13 +26,15 @@ describe("Modul Katalog // Layanan & Validasi Bisnis", () => {
         slug: "void-heavyweight-tee-01",
         deskripsi: "Kaos combed 16s 235 GSM.",
         hargaDasar: 389000,
-        status: "active" as const,
+        status: "aktif" as const,
         gambarUtama: "/images/products/drop-04/void-tee-01-front.webp",
         galeriGambar: [
           "/images/products/drop-04/void-tee-01-front.webp",
           "/images/products/drop-04/void-tee-01-back.webp",
         ],
         kategoriId: "kat-01",
+        spesifikasi: null,
+        panduanUkuran: null,
         dibuatPada: new Date(),
         diperbaruiPada: new Date(),
         kategoriRelasi: {
@@ -50,7 +52,7 @@ describe("Modul Katalog // Layanan & Validasi Bisnis", () => {
             produkId: "prod-01",
             ukuran: "M",
             warna: "Hitam",
-            sku: "VOID-D04-TEE-M",
+            sku: "VOID-D04-TEE-BLK-M",
             stok: 10,
             beratGram: 450,
             harga: 389000,
@@ -62,7 +64,7 @@ describe("Modul Katalog // Layanan & Validasi Bisnis", () => {
             produkId: "prod-01",
             ukuran: "L",
             warna: "Hitam",
-            sku: "VOID-D04-TEE-L",
+            sku: "VOID-D04-TEE-BLK-L",
             stok: 0,
             beratGram: 480,
             harga: 389000,
@@ -70,11 +72,9 @@ describe("Modul Katalog // Layanan & Validasi Bisnis", () => {
             diperbaruiPada: new Date(),
           },
         ],
-      };
+      } as unknown as ProdukDenganRelasi;
 
-      vi.spyOn(productRepository, "temukanBerdasarkanSlug").mockResolvedValue(
-        mockProdukDb as any
-      );
+      vi.spyOn(productRepository, "temukanBerdasarkanSlug").mockResolvedValue(mockProdukDb);
 
       const hasil = await catalogService.ambilDetailProduk("void-heavyweight-tee-01");
 
@@ -106,10 +106,12 @@ describe("Modul Katalog // Layanan & Validasi Bisnis", () => {
           slug: "void-modular-bomber",
           deskripsi: "Bomber jacket ripstop.",
           hargaDasar: 1150000,
-          status: "active" as const,
+          status: "aktif" as const,
           gambarUtama: "/images/products/drop-04/bomber-front.webp",
           galeriGambar: [],
           kategoriId: "kat-02",
+          spesifikasi: null,
+          panduanUkuran: null,
           dibuatPada: new Date(),
           diperbaruiPada: new Date(),
           kategoriRelasi: {
@@ -126,8 +128,8 @@ describe("Modul Katalog // Layanan & Validasi Bisnis", () => {
               id: "var-03",
               produkId: "prod-02",
               ukuran: "M",
-              warna: "Olive",
-              sku: "VOID-D04-BMB-M",
+              warna: "Olive Drab",
+              sku: "VOID-D04-BMB-OLV-M",
               stok: 5,
               beratGram: 850,
               harga: 1150000,
@@ -136,11 +138,9 @@ describe("Modul Katalog // Layanan & Validasi Bisnis", () => {
             },
           ],
         },
-      ];
+      ] as unknown as ProdukDenganRelasi[];
 
-      vi.spyOn(productRepository, "temukanSemuaAktif").mockResolvedValue(
-        mockDaftar as any
-      );
+      vi.spyOn(productRepository, "temukanSemuaAktif").mockResolvedValue(mockDaftar);
 
       const daftar = await catalogService.ambilDaftarKatalog();
 
