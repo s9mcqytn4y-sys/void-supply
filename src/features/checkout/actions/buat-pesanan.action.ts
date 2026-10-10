@@ -14,6 +14,7 @@ import {
 import { formulirCheckoutSkema, type FormulirCheckout } from "../schemas/checkout.schema";
 import { buatTransaksiMidtrans } from "@/lib/services/midtrans.service";
 import { hitungOngkirBiteship } from "@/lib/services/biteship.service";
+import { gabungkanNiatItem } from "@/features/cart";
 
 export interface HasilBuatPesanan {
   sukses: boolean;
@@ -24,19 +25,20 @@ export interface HasilBuatPesanan {
 }
 
 /**
- * Server Action: Buat Transaksi Pesanan Atomik (Module 02.14 & 03.0)
- * Alur Transaksi Terverifikasi Dua Fase:
- * Fase 1: Validasi server-authoritative & Transaksi Database Atomik (<10ms)
- *   - Penggabungan SKU duplikat
- *   - Perhitungan berat & verifikasi tarif ongkir resmi Biteship di backend
+ * Server Action: Buat Transaksi Pesanan Atomik (Module 02.15)
+ * Alur Transaksi Dua Fase:
+ * Fase 1: Validasi server-authoritative & Transaksi Database Atomik
+ *   - Penggabungan SKU duplikat & penegakan kuota maksimal 10 unit per SKU
+ *   - Perhitungan berat & verifikasi tarif resmi Biteship dari origin Johar Baru, Jakarta Pusat (10560)
+ *   - Penolakan tegas (strict error) jika kurir/layanan tidak ditemukan
  *   - Pengurangan stok bersyarat secara atomik (stok = stok - qty WHERE stok >= qty)
- *   - Penyimpanan pesanan, item snapshot, pengiriman, dan record pembayaran
- *   - Commit transaksi database segera untuk melepas lock
+ *   - Penyimpanan pesanan (status: menunggu_pembayaran), item snapshot, pengiriman, dan record pembayaran
+ *   - Commit transaksi database segera untuk melepas row lock
  *
  * Fase 2: Pemanggilan Gateway Midtrans di luar lock database
  *   - Request token Snap Midtrans
  *   - Jika gateway menolak/gagal: jalankan kompensasi rollback stok atomik & batalkan pesanan
- *   - Jika sukses: perbarui snap token pada record pembayaran
+ *   - Jika sukses: simpan snap token pada record pembayaran
  */
 export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPesanan> {
   // 1. Validasi skema runtime Zod
@@ -51,14 +53,17 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
 
   const data = parseResult.data;
 
-  // 2. Gabungkan SKU / varianId duplikat untuk mencegah anomali stok & kalkulasi
-  const itemGabunganMap = new Map<string, number>();
-  for (const item of data.items) {
-    const jumlahLama = itemGabunganMap.get(item.varianId) || 0;
-    itemGabunganMap.set(item.varianId, jumlahLama + item.jumlah);
+  // 2. Gabungkan SKU / varianId duplikat & validasi batas maksimal per SKU
+  const hasilGabung = gabungkanNiatItem(data.items);
+  if (!hasilGabung.sukses || hasilGabung.itemTergabung.length === 0) {
+    return {
+      sukses: false,
+      pesan: hasilGabung.pesanGalat || "Format item keranjang belanja tidak valid.",
+    };
   }
 
-  const daftarVarianIdUnik = Array.from(itemGabunganMap.keys());
+  const itemDaftar = hasilGabung.itemTergabung;
+  const daftarVarianIdUnik = itemDaftar.map((i) => i.varianId);
 
   try {
     // 3. Ambil data varian & produk terkini dari basis data
@@ -95,13 +100,13 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
       subtotalItem: number;
     }> = [];
 
-    for (const [varianId, jumlah] of itemGabunganMap.entries()) {
-      const itemDb = varianMap.get(varianId);
+    for (const item of itemDaftar) {
+      const itemDb = varianMap.get(item.varianId);
 
       if (!itemDb) {
         return {
           sukses: false,
-          pesan: `Artikel dengan ID varian '${varianId}' tidak ditemukan di katalog.`,
+          pesan: `Artikel dengan ID varian '${item.varianId}' tidak ditemukan di katalog.`,
         };
       }
 
@@ -112,16 +117,16 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         };
       }
 
-      if (itemDb.stok < jumlah) {
+      if (itemDb.stok < item.jumlah) {
         return {
           sukses: false,
-          pesan: `Stok untuk '${itemDb.namaProduk} (${itemDb.ukuran})' tidak mencukupi (Tersisa: ${itemDb.stok}, Diminta: ${jumlah}).`,
+          pesan: `Stok untuk '${itemDb.namaProduk} (${itemDb.ukuran})' tidak mencukupi (Tersisa: ${itemDb.stok}, Diminta: ${item.jumlah}).`,
         };
       }
 
-      const subtotalItem = itemDb.harga * jumlah;
+      const subtotalItem = itemDb.harga * item.jumlah;
       subtotalServer += subtotalItem;
-      totalBeratServer += itemDb.beratGram * jumlah;
+      totalBeratServer += itemDb.beratGram * item.jumlah;
 
       snapshotItem.push({
         varianId: itemDb.varianId,
@@ -130,7 +135,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         sku: itemDb.sku,
         hargaSatuan: itemDb.harga,
         beratGram: itemDb.beratGram,
-        jumlah,
+        jumlah: item.jumlah,
         subtotalItem,
       });
     }
@@ -141,19 +146,17 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
       totalBeratGram: totalBeratServer,
     });
 
-    const opsiCocok =
-      opsiOngkir.find(
-        (o) =>
-          o.kodeKurir.toLowerCase() === data.kodeKurir.toLowerCase() &&
-          o.layanan.toLowerCase() === data.layananKurir.toLowerCase()
-      ) ||
-      opsiOngkir.find((o) => o.kodeKurir.toLowerCase() === data.kodeKurir.toLowerCase()) ||
-      opsiOngkir[0];
+    // Validasi ketat (strict matching): Tolak jika layanan yang dipilih tidak cocok persis
+    const opsiCocok = opsiOngkir.find(
+      (o) =>
+        o.kodeKurir.toLowerCase() === data.kodeKurir.toLowerCase() &&
+        o.layanan.toLowerCase() === data.layananKurir.toLowerCase()
+    );
 
     if (!opsiCocok) {
       return {
         sukses: false,
-        pesan: "Layanan logistik tidak tersedia untuk kode pos tujuan yang dimasukkan.",
+        pesan: `Layanan pengiriman '${data.kodeKurir.toUpperCase()} (${data.layananKurir})' tidak tersedia untuk rute tujuan ${data.kota} (${data.kodePos}). Silakan pilih layanan kurir resmi yang tersedia.`,
       };
     }
 
@@ -168,7 +171,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
     const acak = Math.floor(10000 + Math.random() * 90000);
     const nomorPesanan = `VOID-${tanggalFormat}-${acak}`;
 
-    // 7. FASE 1: Mutasi Basis Data Atomik Cepat (<10ms)
+    // 7. FASE 1: Mutasi Basis Data Atomik Cepat
     let pesananId = "";
     await db.transaction(async (tx) => {
       // 7a. Pengurangan stok bersyarat secara atomik (pencegahan overselling saat konkurensi)
@@ -219,7 +222,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         pelangganId = pelangganBaru?.id;
       }
 
-      // 7c. Simpan Entitas Pesanan
+      // 7c. Simpan Entitas Pesanan (status: menunggu_pembayaran)
       const [pesananBaru] = await tx
         .insert(pesanan)
         .values({
@@ -267,7 +270,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         kodePos: data.kodePos,
         namaPenerima: data.namaLengkap,
         teleponPenerima: data.telepon,
-        estimasiHari: estimasiHari || "2-3 Hari",
+        estimasiHari: estimasiHari || "1-2 Hari",
         statusPengiriman: "menunggu_resi",
       });
 

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { formatRupiah, cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GambarProduk } from "./GambarProduk";
 import type { ProdukRingkasan } from "../types/product.type";
@@ -12,7 +11,7 @@ export interface PropertiKartuProduk {
 
 export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
   return (
-    <Card className="group relative flex flex-col border-neutral-800 bg-neutral-950 transition-all duration-300 hover:border-neutral-600">
+    <article className="group relative flex flex-col border border-neutral-800 bg-neutral-950 transition-all duration-300 hover:border-neutral-600">
       {/* 1. Image Dominance: Wadah Rasio Editorial 4:5 */}
       <Link
         href={`/katalog/${produk.slug}`}
@@ -28,7 +27,7 @@ export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
           labelBadge="DROP 04"
         />
 
-        {/* Quick Size Selector Overlay: Tampak di mobile, hover & keyboard focus di desktop */}
+        {/* Size Availability Preview: Tampak di mobile, hover & keyboard focus di desktop */}
         {!produk.apakahHabis && (
           <div className="absolute inset-x-0 bottom-0 z-10 flex flex-wrap justify-center gap-1.5 bg-linear-to-t from-black/95 via-black/80 to-transparent p-3 transition-all duration-300 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:group-focus-within:translate-y-0 sm:group-focus-within:opacity-100">
             {produk.varian.map((v) => {
@@ -96,12 +95,13 @@ export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
             aria-label={`Buka halaman produk ${produk.nama}`}
             className={`flex min-h-11 w-full items-center justify-between border-t border-neutral-800 px-4 py-2.5 font-mono text-xs font-semibold tracking-wider uppercase transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none ${tombolCtaClass}`}
           >
-            <span>{produk.apakahHabis ? "LIHAT ARSIP // HABIS" : "DETAIL PRODUK"}</span>
+            <span>{produk.apakahHabis ? "LIHAT DETAIL (STOK HABIS)" : "DETAIL PRODUK"}</span>
             <span aria-hidden="true">→</span>
           </Link>
         );
       })()}
-    </Card>
+
+    </article>
   );
 }
 

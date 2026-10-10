@@ -217,3 +217,36 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
    - Provider keranjang belanja (`CartHydrationProvider.tsx`) menunggu penyelesaian `useKeranjangStore.persist.rehydrate()` sebelum mengaktifkan status hidrasi.
    - Menggunakan timestamp perbandingan `terakhirDiubah` untuk mencegah hasil rekonsiliasi jaringan yang lambat menimpa modifikasi keranjang terbaru dari pengguna.
 
+---
+
+## 11. Payment Lifecycle State Machine & Release Hardening (Module 02.15)
+
+1. **Payment State Machine & Compare-and-Set Atomic Transition**:
+   - Alur status resmi: `menunggu_pembayaran` -> `dibayar` / `kadaluwarsa` / `dibatalkan`.
+   - Webhook menerapkan Compare-and-Set bersyarat di level database:
+     `UPDATE pesanan SET status_pesanan = $status WHERE id = $id AND status_pesanan = 'menunggu_pembayaran'`.
+   - Pemulihan stok atomik hanya dieksekusi jika kueri di atas mengembalikan baris yang terpengaruh (`rowCount > 0`). Hal ini mencegah race condition dan pemulihan stok ganda saat webhook paralel atau berulang tiba.
+
+2. **Verifikasi Nominal Pembayaran (`gross_amount`)**:
+   - Route handler webhook `/api/midtrans/webhook` memverifikasi bahwa `Math.round(Number(gross_amount))` cocok persis dengan `pesanan.totalAkhir`. Ketidakcocokan nominal ditolak dengan HTTP 422 Unprocessable Entity sebelum ada perubahan status.
+
+3. **Penegakan Batasan Kuota SKU (Max 10)**:
+   - Helper domain murni `gabungkanNiatItem` di `src/features/cart/utils/cart.helper.ts` menggabungkan item dengan varian sama dan memvalidasi bahwa total akumulasi kuantitas tidak melebihi 10 unit per SKU. Pelanggaran batas membatalkan pembuatan pesanan dengan pesan error domain yang jelas.
+
+4. **Strict Origin Logistics & Anti-Fallback Diam-diam**:
+   - Origin fulfillment resmi ditetapkan di Johar Baru, Jakarta Pusat (Kode Pos `10560`).
+   - Server Action checkout menolak pesanan jika kurir atau layanan yang diminta pembeli tidak ditemukan dalam daftar penawaran resmi Biteship, tanpa melakukan pergantian kurir secara diam-diam.
+
+5. **Pembersihan Copy Slop & UX Integrity**:
+   - Formulir checkout dikosongkan secara default untuk pembeli baru (tidak lagi meng-hardcode data persona contoh).
+   - Seluruh teks teknis/misleading seperti "Transaksi Terverifikasi" diganti dengan label jujur: "Checkout Aman", "Menunggu Pembayaran", dan "Lanjut ke Pembayaran".
+   - Tombol bayar di-disable secara ketat saat proses kalkulasi ongkir (`sedangHitungOngkir`) masih berlangsung atau kurir belum dipilih.
+
+6. **Playwright E2E & CI Release Gate**:
+   - Pengujian browser Playwright Chromium ditambahkan ke GitHub Actions CI (`.github/workflows/ci.yml`).
+   - Seluruh assertion bersyarat (`if (await isVisible())`) dihilangkan dari skenario pengujian kritis, memastikan pengujian gagal secara eksplisit bila komponen wajib tidak ditemukan di DOM.
+
+7. **Asset Slop Remediation**:
+   - Enam pasangan foto produk yang sebelumnya memiliki Git SHA/ukuran byte identik telah diganti dengan aset foto WebP beresolusi tinggi yang unik (rear view dan macro detail) untuk seluruh katalog Drop 04.
+
+

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { verifikasiSignatureMidtrans } from "@/lib/services/midtrans.service";
 import { formulirCheckoutSkema } from "../schemas/checkout.schema";
+import { gabungkanNiatItem } from "@/features/cart";
 
 describe("Module 02.14: Checkout Integrity & Security Suite", () => {
   describe("1. Formulir Checkout Runtime Zod Validation", () => {
@@ -116,23 +117,35 @@ describe("Module 02.14: Checkout Integrity & Security Suite", () => {
     });
   });
 
-  describe("3. Deduplikasi SKU / Varian ID Logic", () => {
-    it("menggabungkan quantity ketika varianId yang sama dikirim berulang", () => {
+  describe("3. Deduplikasi SKU & Batas Kuota Pembelian (gabungkanNiatItem)", () => {
+    it("menggabungkan kuantitas ketika varianId yang sama dikirim berulang", () => {
       const rawItems = [
         { varianId: "var-1", jumlah: 2 },
         { varianId: "var-2", jumlah: 1 },
         { varianId: "var-1", jumlah: 3 },
       ];
 
-      const itemGabunganMap = new Map<string, number>();
-      for (const item of rawItems) {
-        const jumlahLama = itemGabunganMap.get(item.varianId) || 0;
-        itemGabunganMap.set(item.varianId, jumlahLama + item.jumlah);
-      }
+      const hasil = gabungkanNiatItem(rawItems);
+      expect(hasil.sukses).toBe(true);
+      expect(hasil.itemTergabung).toHaveLength(2);
 
-      expect(itemGabunganMap.size).toBe(2);
-      expect(itemGabunganMap.get("var-1")).toBe(5);
-      expect(itemGabunganMap.get("var-2")).toBe(1);
+      const var1 = hasil.itemTergabung.find((i) => i.varianId === "var-1");
+      const var2 = hasil.itemTergabung.find((i) => i.varianId === "var-2");
+
+      expect(var1?.jumlah).toBe(5);
+      expect(var2?.jumlah).toBe(1);
+    });
+
+    it("menolak pesanan jika akumulasi kuantitas SKU melebihi batas 10 unit", () => {
+      const payloadMelebihiBatas = [
+        { varianId: "var-hoodie", jumlah: 6 },
+        { varianId: "var-hoodie", jumlah: 5 }, // total akumulasi = 11 unit (> 10)
+      ];
+
+      const hasil = gabungkanNiatItem(payloadMelebihiBatas);
+      expect(hasil.sukses).toBe(false);
+      expect(hasil.pesanGalat).toContain("melebihi batas maksimal 10 unit");
     });
   });
 });
+

@@ -10,7 +10,7 @@ const BITESHIP_API_KEY =
   process.env.BITESHIP_API_KEY_SANDBOX ||
   "biteship_test.xxxxxxxxxxxx";
 
-const ORIGIN_POSTAL_CODE = process.env.BITESHIP_ORIGIN_POSTAL_CODE || "55281";
+const ORIGIN_POSTAL_CODE = process.env.BITESHIP_ORIGIN_POSTAL_CODE || "10560"; // Johar Baru, Jakarta Pusat
 
 export interface OpsiKurir {
   namaKurir: string;
@@ -27,40 +27,40 @@ export interface ParameterCekOngkir {
 
 /**
  * Hitung Estimasi Ongkir Biteship
- * Menggunakan API Biteship jika key terpasang, atau fallback kalkulator berbasis zona & berat jika dalam sandbox test mode.
+ * Menggunakan API Biteship jika key terpasang, atau kalkulasi tarif deterministik jika dalam development sandbox.
  */
 export async function hitungOngkirBiteship(
   params: ParameterCekOngkir
 ): Promise<OpsiKurir[]> {
   const beratKg = Math.max(1, Math.ceil(params.totalBeratGram / 1000));
-
-  // Jika API key adalah placeholder sandbox, berikan kalkulasi tarif deterministik berdasarkan berat
-  if (
+  const isKeyPlaceholder =
     !BITESHIP_API_KEY ||
     BITESHIP_API_KEY.includes("xxxxxxxxxxxx") ||
-    BITESHIP_API_KEY.startsWith("biteship_test.demo")
-  ) {
+    BITESHIP_API_KEY.startsWith("biteship_test.demo");
+
+  // Jika API key adalah placeholder sandbox pada environment dev/test
+  if (isKeyPlaceholder) {
     return [
       {
         namaKurir: "JNE",
         kodeKurir: "jne",
         layanan: "Reguler",
-        estimasiHari: "2-3 Hari",
-        tarifIdr: 18000 * beratKg,
+        estimasiHari: "1-2 Hari",
+        tarifIdr: 10000 * beratKg,
       },
       {
         namaKurir: "SiCepat",
         kodeKurir: "sicepat",
         layanan: "BEST (Next Day)",
         estimasiHari: "1 Hari",
-        tarifIdr: 28000 * beratKg,
+        tarifIdr: 16000 * beratKg,
       },
       {
         namaKurir: "J&T",
         kodeKurir: "jnt",
         layanan: "EZ",
-        estimasiHari: "2-3 Hari",
-        tarifIdr: 19000 * beratKg,
+        estimasiHari: "1-2 Hari",
+        tarifIdr: 11000 * beratKg,
       },
     ];
   }
@@ -91,34 +91,32 @@ export async function hitungOngkirBiteship(
     );
 
     const data = response.data;
-    if (data && Array.isArray(data.pricing)) {
-      return data.pricing.map((p: { courier_name: string; courier_code: string; courier_service_name: string; duration: string; price: number }) => ({
-        namaKurir: p.courier_name,
-        kodeKurir: p.courier_code,
-        layanan: p.courier_service_name,
-        estimasiHari: p.duration,
-        tarifIdr: p.price,
-      }));
+    if (data && Array.isArray(data.pricing) && data.pricing.length > 0) {
+      return data.pricing.map(
+        (p: {
+          courier_name: string;
+          courier_code: string;
+          courier_service_name: string;
+          duration: string;
+          price: number;
+        }) => ({
+          namaKurir: p.courier_name,
+          kodeKurir: p.courier_code,
+          layanan: p.courier_service_name,
+          estimasiHari: p.duration,
+          tarifIdr: p.price,
+        })
+      );
     }
 
-    throw new Error("Format respons Biteship tidak sesuai.");
+    throw new Error("Tidak ada opsi logistik yang tersedia untuk rute tujuan ini.");
   } catch (error) {
-    console.warn("⚠️ Biteship API timeout/gagal, menggunakan kalkulasi tarif fallback:", error);
-    return [
-      {
-        namaKurir: "JNE",
-        kodeKurir: "jne",
-        layanan: "Reguler",
-        estimasiHari: "2-3 Hari",
-        tarifIdr: 18000 * beratKg,
-      },
-      {
-        namaKurir: "SiCepat",
-        kodeKurir: "sicepat",
-        layanan: "BEST",
-        estimasiHari: "1-2 Hari",
-        tarifIdr: 25000 * beratKg,
-      },
-    ];
+    console.error("Gagal memanggil API resmi Biteship:", error);
+    throw new Error(
+      error instanceof Error
+        ? `Layanan ongkos kirim gagal: ${error.message}`
+        : "Gagal menghubungkan ke server logistik resmi Biteship."
+    );
   }
 }
+

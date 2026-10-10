@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("E2E: Alur Keranjang & Hidrasi Multi-Platform (Module 02.13 & 02.14)", () => {
+test.describe("E2E: Alur Keranjang & Hidrasi Multi-Platform (Module 02.15)", () => {
   test("menambahkan produk ke keranjang, persist saat refresh, dan navigasi checkout", async ({
     page,
   }) => {
@@ -14,32 +14,31 @@ test.describe("E2E: Alur Keranjang & Hidrasi Multi-Platform (Module 02.13 & 02.1
     await kartuProduk.click();
 
     // 3. Verifikasi masuk ke Product Detail Page
-    await expect(page.locator("h1")).toBeVisible();
+    const judulProduk = page.locator("h1");
+    await expect(judulProduk).toBeVisible();
 
-    // 4. Pilih ukuran varian (jika tombol ukuran tersedia)
-    const tombolUkuran = page.locator('button:has-text("M"), button:has-text("L"), button:has-text("S")').first();
-    if (await tombolUkuran.isVisible()) {
-      await tombolUkuran.click();
-    }
+    // 4. Pilih ukuran varian menggunakan selector role radio
+    const tombolUkuran = page.locator('button[role="radio"]:not([disabled])').first();
+    await expect(tombolUkuran).toBeVisible();
+    await tombolUkuran.click();
 
     // 5. Klik tombol Tambah ke Keranjang
-    const tombolTambah = page.locator('button:has-text("TAMBAHKAN KE KERANJANG"), button:has-text("TAMBAH KE KERANJANG")');
-    if (await tombolTambah.isVisible()) {
-      await tombolTambah.click();
+    const tombolTambah = page.locator('button:has-text("TAMBAHKAN KE KERANJANG"), button:has-text("TAMBAH KE KERANJANG")').first();
+    await expect(tombolTambah).toBeVisible();
+    await tombolTambah.click();
 
-      // 6. Verifikasi Drawer Keranjang terbuka dan item tercatat
-      await expect(page.locator('text="KERANJANG BELANJA"')).toBeVisible();
+    // 6. Verifikasi Drawer Keranjang terbuka dan item tercatat
+    const judulDrawer = page.locator('text="KERANJANG BELANJA"');
+    await expect(judulDrawer).toBeVisible();
 
-      // 7. Refresh halaman untuk memverifikasi LocalStorage rehydration
-      await page.reload();
+    // 7. Refresh halaman untuk memverifikasi LocalStorage rehydration
+    await page.reload();
 
-      // 8. Buka keranjang lagi lewat header badge
-      const tombolKeranjangHeader = page.locator('button[aria-label*="Keranjang"]');
-      if (await tombolKeranjangHeader.isVisible()) {
-        await tombolKeranjangHeader.click();
-        await expect(page.locator('text="KERANJANG BELANJA"')).toBeVisible();
-      }
-    }
+    // 8. Buka keranjang lagi lewat header badge
+    const tombolKeranjangHeader = page.locator('button[aria-label*="keranjang" i], button:has-text("BAG")').first();
+    await expect(tombolKeranjangHeader).toBeVisible();
+    await tombolKeranjangHeader.click();
+    await expect(judulDrawer).toBeVisible();
   });
 
   test("halaman checkout responsive dan bebas horizontal scrollbar pada mobile viewport", async ({

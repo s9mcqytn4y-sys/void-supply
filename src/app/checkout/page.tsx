@@ -24,15 +24,15 @@ export default function HalamanCheckout() {
   const [opsiKurir, setOpsiKurir] = useState<OpsiKurir[]>([]);
   const [kurirTerpilih, setKurirTerpilih] = useState<OpsiKurir | null>(null);
 
-  // Form State & In-Field Validation Errors
+  // Form State: Kosong secara default untuk kenyamanan pembeli baru
   const [formData, setFormData] = useState({
-    namaLengkap: "Rian Pratama",
-    email: "rian.trendsetter@voidsupply.test",
-    telepon: "081298765432",
-    alamatLengkap: "Jl. Kemang Timur No. 42, Bangka, Mampang Prapatan",
-    kota: "Jakarta Selatan",
-    provinsi: "DKI Jakarta",
-    kodePos: "12730",
+    namaLengkap: "",
+    email: "",
+    telepon: "",
+    alamatLengkap: "",
+    kota: "",
+    provinsi: "",
+    kodePos: "",
     catatan: "",
   });
 
@@ -67,6 +67,9 @@ export default function HalamanCheckout() {
             );
             return tetapCocok || hasil.opsiKurir[0];
           });
+        } else {
+          setOpsiKurir([]);
+          setKurirTerpilih(null);
         }
       } catch (err) {
         console.error("Gagal menghitung ongkir server:", err);
@@ -92,12 +95,13 @@ export default function HalamanCheckout() {
           if (hasil.apakahAdaPerubahan) {
             terapkanHasilRekonsiliasi(hasil);
             setPesanNotifikasi(
-              "Perhatian: Ketersediaan atau harga artikel telah diverifikasi ulang dengan basis data."
+              "Perhatian: Ketersediaan atau harga artikel telah diverifikasi ulang dengan stok terkini."
             );
           }
 
-          // Hitung tarif via Server Action (bukan direct Biteship client call)
-          muatTarifOngkir(formData.kodePos, items);
+          if (formData.kodePos.length === 5) {
+            muatTarifOngkir(formData.kodePos, items);
+          }
         }
       })
       .catch((err) => {
@@ -210,19 +214,18 @@ export default function HalamanCheckout() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center border border-emerald-500/40 bg-emerald-950/20 font-mono text-2xl text-emerald-400">
             ✓
           </div>
-          <span className="mt-6 inline-block font-mono text-[11px] font-semibold tracking-widest text-emerald-400 uppercase">
-            TRANSAKSI ATOMIK TERCATAT
+          <span className="mt-6 inline-block font-mono text-[11px] font-semibold tracking-widest text-amber-400 uppercase">
+            STATUS: MENUNGGU PEMBAYARAN
           </span>
           <h1 className="mt-2 font-mono text-2xl font-black text-white uppercase sm:text-3xl">
             PESANAN BERHASIL DIBUAT
           </h1>
-          <p className="mt-4 font-mono text-xs text-neutral-400">
-            Nomor Pesanan Resmi:{" "}
+          <p className="mt-4 font-mono text-xs text-neutral-300">
+            Nomor Pesanan:{" "}
             <span className="font-bold text-white">{suksesTransaksi.nomorPesanan}</span>
           </p>
           <p className="mt-2 text-xs leading-relaxed text-neutral-400">
-            Sesi pembayaran terverifikasi Midtrans Snap telah diinisialisasi.
-            Stok inventaris telah diamankan secara atomik pada database PostgreSQL VOID Supply.
+            Pesanan Anda telah tercatat pada sistem. Silakan selesaikan pembayaran melalui Midtrans Snap dalam batas waktu 15 menit agar stok tidak dibatalkan otomatis.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -253,10 +256,10 @@ export default function HalamanCheckout() {
       {/* Header Checkout Bebas Distraksi */}
       <div className="mb-8 border-b border-neutral-800 pb-4">
         <span className="font-mono text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
-          ETALASE PEMBAYARAN // TRANSAKSI TERVERIFIKASI
+          CHECKOUT AMAN // ALAMAT & PEMBAYARAN
         </span>
         <h1 className="mt-1 font-mono text-2xl font-black text-white uppercase sm:text-3xl">
-          CHECKOUT TRANSAKSI
+          INFORMASI PEMESANAN
         </h1>
         {pesanNotifikasi && (
           <div className="mt-3 border border-amber-900/60 bg-amber-950/20 p-3 font-mono text-xs text-amber-300">
@@ -294,7 +297,7 @@ export default function HalamanCheckout() {
               </h2>
               <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label htmlFor="input-nama" className="block font-mono text-[11px] text-neutral-400">
+                  <label htmlFor="input-nama" className="block font-mono text-[11px] text-neutral-300">
                     NAMA LENGKAP
                   </label>
                   <input
@@ -302,6 +305,7 @@ export default function HalamanCheckout() {
                     type="text"
                     name="namaLengkap"
                     required
+                    placeholder="Masukkan nama lengkap Anda"
                     aria-invalid={!!formErrors.namaLengkap}
                     aria-describedby={formErrors.namaLengkap ? "error-namaLengkap" : undefined}
                     value={formData.namaLengkap}
@@ -317,7 +321,7 @@ export default function HalamanCheckout() {
                   )}
                 </div>
                 <div>
-                  <label htmlFor="input-email" className="block font-mono text-[11px] text-neutral-400">
+                  <label htmlFor="input-email" className="block font-mono text-[11px] text-neutral-300">
                     EMAIL
                   </label>
                   <input
@@ -325,6 +329,7 @@ export default function HalamanCheckout() {
                     type="email"
                     name="email"
                     required
+                    placeholder="nama@email.com"
                     aria-invalid={!!formErrors.email}
                     aria-describedby={formErrors.email ? "error-email" : undefined}
                     value={formData.email}
@@ -340,7 +345,7 @@ export default function HalamanCheckout() {
                   )}
                 </div>
                 <div>
-                  <label htmlFor="input-telepon" className="block font-mono text-[11px] text-neutral-400">
+                  <label htmlFor="input-telepon" className="block font-mono text-[11px] text-neutral-300">
                     NOMOR TELEPON
                   </label>
                   <input
@@ -348,6 +353,7 @@ export default function HalamanCheckout() {
                     type="tel"
                     name="telepon"
                     required
+                    placeholder="08xxxxxxxxxx"
                     aria-invalid={!!formErrors.telepon}
                     aria-describedby={formErrors.telepon ? "error-telepon" : undefined}
                     value={formData.telepon}
@@ -372,7 +378,7 @@ export default function HalamanCheckout() {
               </h2>
               <div className="mt-4 space-y-4">
                 <div>
-                  <label htmlFor="input-alamat" className="block font-mono text-[11px] text-neutral-400">
+                  <label htmlFor="input-alamat" className="block font-mono text-[11px] text-neutral-300">
                     ALAMAT LENGKAP
                   </label>
                   <textarea
@@ -380,6 +386,7 @@ export default function HalamanCheckout() {
                     name="alamatLengkap"
                     rows={2}
                     required
+                    placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan/kecamatan"
                     aria-invalid={!!formErrors.alamatLengkap}
                     aria-describedby={formErrors.alamatLengkap ? "error-alamatLengkap" : undefined}
                     value={formData.alamatLengkap}
@@ -396,7 +403,7 @@ export default function HalamanCheckout() {
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div>
-                    <label htmlFor="input-kota" className="block font-mono text-[11px] text-neutral-400">
+                    <label htmlFor="input-kota" className="block font-mono text-[11px] text-neutral-300">
                       KOTA / KABUPATEN
                     </label>
                     <input
@@ -404,6 +411,7 @@ export default function HalamanCheckout() {
                       type="text"
                       name="kota"
                       required
+                      placeholder="Contoh: Jakarta Pusat"
                       aria-invalid={!!formErrors.kota}
                       aria-describedby={formErrors.kota ? "error-kota" : undefined}
                       value={formData.kota}
@@ -419,7 +427,7 @@ export default function HalamanCheckout() {
                     )}
                   </div>
                   <div>
-                    <label htmlFor="input-provinsi" className="block font-mono text-[11px] text-neutral-400">
+                    <label htmlFor="input-provinsi" className="block font-mono text-[11px] text-neutral-300">
                       PROVINSI
                     </label>
                     <input
@@ -427,6 +435,7 @@ export default function HalamanCheckout() {
                       type="text"
                       name="provinsi"
                       required
+                      placeholder="Contoh: DKI Jakarta"
                       aria-invalid={!!formErrors.provinsi}
                       aria-describedby={formErrors.provinsi ? "error-provinsi" : undefined}
                       value={formData.provinsi}
@@ -442,7 +451,7 @@ export default function HalamanCheckout() {
                     )}
                   </div>
                   <div>
-                    <label htmlFor="input-kodepos" className="block font-mono text-[11px] text-neutral-400">
+                    <label htmlFor="input-kodepos" className="block font-mono text-[11px] text-neutral-300">
                       KODE POS
                     </label>
                     <input
@@ -451,6 +460,7 @@ export default function HalamanCheckout() {
                       name="kodePos"
                       maxLength={5}
                       required
+                      placeholder="5 digit angka"
                       aria-invalid={!!formErrors.kodePos}
                       aria-describedby={formErrors.kodePos ? "error-kodePos" : undefined}
                       value={formData.kodePos}
@@ -483,8 +493,10 @@ export default function HalamanCheckout() {
               </div>
               <div className="mt-4 space-y-2">
                 {opsiKurir.length === 0 ? (
-                  <p className="font-mono text-xs text-neutral-500">
-                    {sedangHitungOngkir ? "Memverifikasi tarif kurir ke server..." : "Masukkan kode pos valid untuk menghitung ongkir."}
+                  <p className="font-mono text-xs text-neutral-400">
+                    {sedangHitungOngkir
+                      ? "Memverifikasi tarif kurir ke server..."
+                      : "Masukkan kode pos 5 digit untuk memuat opsi kurir resmi."}
                   </p>
                 ) : (
                   opsiKurir.map((kurir) => {
@@ -571,15 +583,21 @@ export default function HalamanCheckout() {
               <div className="mt-6">
                 <button
                   type="submit"
-                  disabled={isPending || sedangMemuat || items.length === 0}
+                  disabled={
+                    isPending ||
+                    sedangMemuat ||
+                    sedangHitungOngkir ||
+                    items.length === 0 ||
+                    !kurirTerpilih
+                  }
                   className="flex min-h-12 w-full items-center justify-center border border-white bg-white font-mono text-xs font-bold text-black uppercase transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isPending
-                    ? "MEMPROSES TRANSAKSI ATOMIK..."
-                    : `BAYAR DENGAN MIDTRANS (${formatRupiah(totalAkhir)})`}
+                    ? "MENYIAPKAN PESANAN ANDA..."
+                    : `LANJUT KE PEMBAYARAN (${formatRupiah(totalAkhir)})`}
                 </button>
-                <p className="mt-2 text-center font-mono text-[10px] text-neutral-500">
-                  Total gross_amount dihitung dan diverifikasi secara resmi di sisi server.
+                <p className="mt-2 text-center font-mono text-[10px] text-neutral-400">
+                  Pengiriman resmi dari Johar Baru, Jakarta Pusat // Garansi Transaksi Resmi
                 </p>
               </div>
             </div>
