@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { ambilDaftarKatalog, GridProduk } from "@/features/catalog";
+import { ambilDaftarKatalog } from "@/features/catalog/server";
+import { GridProduk } from "@/features/catalog";
 
 export const metadata: Metadata = {
   title: "Katalog | Drop 04: Night Transmission | VOID Supply",

@@ -22,7 +22,7 @@ export function GridProduk({ produk }: PropertiGridProduk) {
       className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4"
     >
       {produk.map((item, index) => (
-        <KartuProduk key={item.id} produk={item} priority={index < 4} />
+        <KartuProduk key={item.id} produk={item} priority={index < 2} />
       ))}
     </section>
   );

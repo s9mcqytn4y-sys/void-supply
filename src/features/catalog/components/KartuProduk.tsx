@@ -28,14 +28,14 @@ export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
           labelBadge="DROP 04"
         />
 
-        {/* Quick Size Selector Overlay saat Hover (Desktop) / Focus */}
+        {/* Quick Size Selector Overlay: Tampak di mobile, hover & keyboard focus di desktop */}
         {!produk.apakahHabis && (
-          <div className="absolute inset-x-0 bottom-0 z-10 flex translate-y-2 flex-wrap justify-center gap-1.5 bg-linear-to-t from-black/95 via-black/80 to-transparent p-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          <div className="absolute inset-x-0 bottom-0 z-10 flex flex-wrap justify-center gap-1.5 bg-linear-to-t from-black/95 via-black/80 to-transparent p-3 transition-all duration-300 sm:translate-y-2 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:group-focus-within:translate-y-0 sm:group-focus-within:opacity-100">
             {produk.varian.map((v) => {
               const isTersedia = v.stok > 0;
               const pillStateClass = isTersedia
-                ? "border-neutral-600 bg-neutral-900/90 text-neutral-200 hover:border-white hover:text-white"
-                : "cursor-not-allowed border-neutral-800 bg-neutral-950/80 text-neutral-600 line-through";
+                ? "border-neutral-600 bg-neutral-900/90 text-neutral-200"
+                : "border-neutral-800 bg-neutral-950/80 text-neutral-500 line-through";
 
               return (
                 <span
@@ -78,24 +78,24 @@ export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
           <span className="font-mono text-sm font-semibold text-neutral-200">
             {formatRupiah(produk.hargaDasar)}
           </span>
-          <span className="font-mono text-[11px] text-neutral-500">
+          <span className="font-mono text-[11px] text-neutral-400">
             {produk.apakahHabis ? "0 Unit" : `${produk.totalStok} Tersedia`}
           </span>
         </div>
       </div>
 
-      {/* 3. Decisive Call To Action: 44px Minimum Tap Target */}
+      {/* 3. Decisive Call To Action: 44px Minimum Tap Target dengan affordance konsisten */}
       <Link
         href={`/katalog/${produk.slug}`}
         aria-label={`Buka halaman produk ${produk.nama}`}
         className={cn(
           "flex min-h-11 w-full items-center justify-between border-t border-neutral-800 px-4 py-2.5 font-mono text-xs font-semibold tracking-wider uppercase transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none",
           produk.apakahHabis
-            ? "cursor-not-allowed bg-neutral-900/60 text-neutral-500"
-            : "bg-neutral-950 text-neutral-300 hover:bg-white hover:text-black group-hover:border-neutral-700"
+            ? "bg-neutral-900 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200"
+            : "bg-neutral-950 text-neutral-200 hover:bg-white hover:text-black group-hover:border-neutral-700"
         )}
       >
-        <span>{produk.apakahHabis ? "ARCHIVED" : "VIEW PRODUCT"}</span>
+        <span>{produk.apakahHabis ? "LIHAT ARSIP // HABIS" : "DETAIL PRODUK"}</span>
         <span aria-hidden="true">→</span>
       </Link>
     </Card>

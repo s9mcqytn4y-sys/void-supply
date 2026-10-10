@@ -4,8 +4,8 @@
   --color-void-black: #0a0a0a;
   --color-void-card: #121212;
   --color-void-border: #262626;
-  --color-void-gray: #737373;
-  --color-void-muted: #737373;
+  --color-void-gray: #a3a3a3;
+  --color-void-muted: #a3a3a3;
   --color-void-light: #ededed;
   --color-void-white: #ffffff;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -54,7 +54,7 @@
   letter-spacing: 0.05em;
   line-height: 1.4;
   font-size: 0.75rem;
-  color: #737373;
+  color: #a3a3a3;
 }
 
 .type-label {

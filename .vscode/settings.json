@@ -195,5 +195,10 @@
       "askForPassword": false,
       "connectionTimeout": 15
     }
-  ]
+  ],
+
+  // Default Browser Preview & Debugging (Google Chrome)
+  "browser-preview.browser": "chrome",
+  "browser-preview.chromeExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "liveServer.settings.CustomBrowser": "chrome"
 }
