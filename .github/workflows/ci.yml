@@ -56,13 +56,13 @@ jobs:
       - name: Run ESLint Linter
         run: npm run lint
 
-      - name: Run Unit Tests
-        run: npm test
-
       - name: Push Schema & Seed Test Database
         run: |
           npx drizzle-kit push
           npm run db:seed
+
+      - name: Run Tests (Unit & Integration)
+        run: npm test
 
       - name: Build Next.js Application
         run: npm run build
