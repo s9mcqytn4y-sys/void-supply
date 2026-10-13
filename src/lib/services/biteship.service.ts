@@ -38,13 +38,17 @@ export async function hitungOngkirBiteship(
     BITESHIP_API_KEY.includes("xxxxxxxxxxxx") ||
     BITESHIP_API_KEY.startsWith("biteship_test.demo");
 
-  // Di lingkungan produksi, dilarang mutlak menggunakan estimasi simulasi
-  if (process.env.NODE_ENV === "production" && isKeyPlaceholder) {
-    throw new Error("Konfigurasi Logistik Gagal: BITESHIP_API_KEY produksi belum dikonfigurasi.");
-  }
+  const isRealProduction =
+    process.env.NODE_ENV === "production" &&
+    process.env.CI !== "true" &&
+    process.env.VERCEL_ENV === "production";
 
-  // Jika API key adalah placeholder sandbox pada environment dev/test
+  // Di lingkungan produksi sesungguhnya atau jika izin mock tidak aktif, tolak mutlak (fail closed)
   if (isKeyPlaceholder) {
+    if (isRealProduction || process.env.ALLOW_PAYMENT_MOCK !== "true") {
+      throw new Error("Konfigurasi Logistik Gagal: BITESHIP_API_KEY resmi belum dikonfigurasi.");
+    }
+
     return [
       {
         namaKurir: "JNE",
@@ -119,8 +123,8 @@ export async function hitungOngkirBiteship(
     console.error("Gagal memanggil API resmi Biteship:", error);
 
     // Di non-production dengan izin mock aktif, gunakan fallback jika kuota sandbox Biteship habis
-    if (process.env.NODE_ENV !== "production" && process.env.ALLOW_PAYMENT_MOCK === "true") {
-      console.warn("Menggunakan opsi logistik simulasi dev/test karena kuota saldo Biteship habis.");
+    if (!isRealProduction && process.env.ALLOW_PAYMENT_MOCK === "true") {
+      console.warn("Menggunakan opsi logistik simulasi dev/CI karena kuota saldo Biteship habis.");
       return [
         {
           namaKurir: "JNE",

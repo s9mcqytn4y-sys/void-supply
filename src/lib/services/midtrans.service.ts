@@ -59,16 +59,22 @@ export async function buatTransaksiMidtrans(
     const isKeyPlaceholder =
       serverKey.includes("xxxxxxxxxxxx") || serverKey.startsWith("SB-Mid-server-demo");
 
-    // Di production, token simulasi dilarang mutlak
-    if (isProduction && isKeyPlaceholder) {
+    const isRealProduction =
+      isProduction ||
+      (process.env.NODE_ENV === "production" &&
+        process.env.CI !== "true" &&
+        process.env.VERCEL_ENV === "production");
+
+    // Di production nyata, token simulasi dilarang mutlak
+    if (isRealProduction && isKeyPlaceholder) {
       return {
         sukses: false,
         pesan: "Konfigurasi Gateway Gagal: MIDTRANS_SERVER_KEY produksi belum dikonfigurasi.",
       };
     }
 
-    // Di environment non-production, fallback mock HANYA aktif jika flag ALLOW_PAYMENT_MOCK bernilai true secara eksplisit
-    const allowMock = process.env.ALLOW_PAYMENT_MOCK === "true" && process.env.NODE_ENV !== "production";
+    // Di luar environment production nyata, fallback mock HANYA aktif jika flag ALLOW_PAYMENT_MOCK bernilai true secara eksplisit
+    const allowMock = process.env.ALLOW_PAYMENT_MOCK === "true" && !isRealProduction;
     if (isKeyPlaceholder) {
       if (!allowMock) {
         return {
