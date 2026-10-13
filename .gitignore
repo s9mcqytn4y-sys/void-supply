@@ -39,4 +39,5 @@ next-env.d.ts
 # Agentic & AI Workspace
 .agents/
 .system_generated/
+.playwright-mcp/
 

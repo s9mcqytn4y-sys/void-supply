@@ -45,12 +45,15 @@ VOID Supply/
 │       ├── opportunity-gap.md     # Analisis celah peluang desain yang belum diselesaikan kompetitor
 │       └── ux-principles.md       # Enam prinsip desain pengalaman pengguna inti VOID Supply
 ├── src/
-│   ├── app/                 # Halaman Next.js 16 App Router (store, checkout, api)
+│   ├── app/                 # Halaman Next.js 16 App Router (katalog, checkout, pesanan, cron, webhook)
 │   ├── components/          # UI primitives & komponen antarmuka bersama
 │   ├── features/            # Feature-based architecture
-│   │   └── catalog/         # Modul katalog (components, repositories, services, schemas, types)
-│   ├── lib/                 # Utilitas sistem & layer database
+│   │   ├── catalog/         # Modul katalog (components, repositories, services, schemas, types)
+│   │   ├── cart/            # Modul keranjang belanja (store, drawer, persistence, actions)
+│   │   └── checkout/        # Modul checkout (actions, components, hooks, services, schemas)
+│   ├── lib/                 # Utilitas sistem, gateway (Midtrans, Biteship), dan layer database Drizzle
 │   │   ├── db/              # Drizzle ORM schema, client connection, dan seeding
+│   │   ├── services/        # Service adapter Midtrans Snap & Biteship Logistics API
 │   │   └── utils/           # Fungsi helper format mata uang & classNames
 │   └── types/               # Tipe TypeScript global & domain kontrak
 ├── .editorconfig            # Standarisasi indentasi & format berkas

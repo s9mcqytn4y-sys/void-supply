@@ -59,4 +59,39 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
       }
     }
   });
+
+  test("berhasil melakukan checkout dan diarahkan ke halaman status pesanan kanonikal", async ({
+    page,
+  }) => {
+    await page.goto("/checkout");
+
+    // Isi formulir pengiriman pembeli
+    await page.locator('input[name="namaLengkap"]').fill("Rian Pratama");
+    await page.locator('input[name="email"]').fill("rian.trendsetter@voidsupply.test");
+    await page.locator('input[name="telepon"]').fill("081298765432");
+    await page
+      .locator('textarea[name="alamatLengkap"]')
+      .fill("Jl. Senopati No. 42, Kebayoran Baru");
+    await page.locator('input[name="kota"]').fill("Jakarta Selatan");
+    await page.locator('input[name="provinsi"]').fill("DKI Jakarta");
+    await page.locator('input[name="kodePos"]').fill("12190");
+
+    // Tunggu opsi kurir muncul dan pilih salah satu
+    const pilihanRadioKurir = page.locator('input[type="radio"][name="kurir"]').first();
+    await expect(pilihanRadioKurir).toBeVisible({ timeout: 10000 });
+    await pilihanRadioKurir.check();
+
+    // Verifikasi tombol submit aktif dan klik
+    const tombolBayar = page.locator('button:has-text("LANJUT KE PEMBAYARAN")');
+    await expect(tombolBayar).toBeEnabled();
+    await tombolBayar.click();
+
+    // Verifikasi navigasi ke /pesanan/VOID-...
+    await expect(page).toHaveURL(/\/pesanan\/VOID-/, { timeout: 15000 });
+    await expect(page.locator('text="STATUS: MENUNGGU PEMBAYARAN"')).toBeVisible();
+    await expect(
+      page.locator('text="BATAS WAKTU SELESAIKAN PEMBAYARAN"')
+    ).toBeVisible();
+  });
 });
+

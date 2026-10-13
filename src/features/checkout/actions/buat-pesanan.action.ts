@@ -66,6 +66,38 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
   const daftarVarianIdUnik = itemDaftar.map((i) => i.varianId);
 
   try {
+    // 2b. Idempotency Check: Jika idempotensiKey ada dan pesanan sudah tercatat, kembalikan pesanan eksis
+    if (data.idempotensiKey) {
+      const [pesananEksis] = await db
+        .select({
+          id: pesanan.id,
+          nomorPesanan: pesanan.nomorPesanan,
+          statusPesanan: pesanan.statusPesanan,
+        })
+        .from(pesanan)
+        .where(eq(pesanan.idempotensiKey, data.idempotensiKey))
+        .limit(1);
+
+      if (pesananEksis) {
+        const [pembayaranEksis] = await db
+          .select({
+            snapToken: pembayaran.snapToken,
+            snapRedirectUrl: pembayaran.snapRedirectUrl,
+          })
+          .from(pembayaran)
+          .where(eq(pembayaran.pesananId, pesananEksis.id))
+          .limit(1);
+
+        return {
+          sukses: true,
+          pesan: "Pesanan telah tercatat sebelumnya (idempotent).",
+          nomorPesanan: pesananEksis.nomorPesanan,
+          snapToken: pembayaranEksis?.snapToken || undefined,
+          redirectUrl: pembayaranEksis?.snapRedirectUrl || undefined,
+        };
+      }
+    }
+
     // 3. Ambil data varian & produk terkini dari basis data
     const dataVarianDb = await db
       .select({
@@ -223,6 +255,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
       }
 
       // 7c. Simpan Entitas Pesanan (status: menunggu_pembayaran)
+      const kedaluwarsaPada = new Date(Date.now() + 15 * 60 * 1000); // 15 menit jendela reservasi
       const [pesananBaru] = await tx
         .insert(pesanan)
         .values({
@@ -237,6 +270,8 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
           totalDiskon: 0,
           totalAkhir,
           catatan: data.catatan,
+          idempotensiKey: data.idempotensiKey || null,
+          kedaluwarsaPada,
         })
         .returning({ id: pesanan.id });
 

@@ -249,4 +249,34 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
 7. **Asset Slop Remediation**:
    - Enam pasangan foto produk yang sebelumnya memiliki Git SHA/ukuran byte identik telah diganti dengan aset foto WebP beresolusi tinggi yang unik (rear view dan macro detail) untuk seluruh katalog Drop 04.
 
+---
+
+## 12. Final Release Hardening & Operasional Transaksi (Module 02.15 Complete)
+
+1. **Scheduled Expiry & Recovery Reservasi Stok 15 Menit**:
+   - Endpoint Route Handler `/api/cron/kadaluwarsa-pesanan` diproteksi `CRON_SECRET` untuk membatalkan pesanan yang belum dibayar dalam 15 menit dan memulihkan stok ke `varian_produk` via Compare-and-Set atomik.
+   - Pemeriksaan pasif (*lazy check*) dieksekusi secara otomatis saat rute `/pesanan/[nomorPesanan]` dimuat pembeli.
+
+2. **Checkout Idempotency Key**:
+   - Kolom `idempotensi_key` (varchar 64 unik) ditambahkan pada tabel `pesanan`.
+   - Client checkout membuat token UUID saat form dimuat; submit berulang atau retry jaringan mengembalikan pesanan eksis tanpa dekremen stok ganda.
+
+3. **Halaman Kanonikal Status Pesanan (`/pesanan/[nomorPesanan]`)**:
+   - Halaman Server Component dengan metadata SEO noindex.
+   - Dilengkapi timer countdown 15 menit, ringkasan pesanan, tombol pembayaran Snap, dan polling status otomatis via Server Action (interval 5 detik hingga status final tercapai atau batas 2 menit).
+   - Pengalihan permanen `/order/:path*` diarahkan ke `/pesanan/:path*` di `next.config.ts`.
+
+4. **Isolasi Mock & Penolakan Fallback (Strict Fail-Closed)**:
+   - Midtrans mock `SNAP-SIM-*` dibatasi ketat hanya aktif jika `ALLOW_PAYMENT_MOCK=true` DAN bukan di production.
+   - Layanan Biteship menolak fallback estimasi di production bila kunci tidak terpasang.
+   - `ongkir.action.ts` menolak permintaan jika artikel varian tidak ditemukan di basis data (menghapus fallback 500 gram).
+
+5. **Dekomposisi Bersih & Anti-Bloat Checkout**:
+   - Berkas `src/app/checkout/page.tsx` didekomposisi dari 610 baris menjadi <90 baris sebagai orchestrator ramping.
+   - Logika form dipisahkan ke `useCheckout.ts`, UI dipecah menjadi `FormulirPengiriman.tsx`, `PilihanKurir.tsx`, dan `RingkasanPesananCheckout.tsx`.
+
+6. **Automated Concurrency & Webhook Matrix Tests**:
+   - Vitest suite `concurrency.test.ts` memverifikasi perlindungan anti-overselling saat dua pembeli berebut 1 unit stok terakhir, idempotensi order, dan recovery stok.
+   - Vitest suite `webhook.test.ts` memvalidasi matrix respons HTTP 400, 403, 404, dan 422.
+
 

@@ -190,6 +190,8 @@ export const pesanan = pgTable(
     totalDiskon: integer("total_diskon").default(0).notNull(),
     totalAkhir: integer("total_akhir").notNull(),
     catatan: text("catatan"),
+    idempotensiKey: varchar("idempotensi_key", { length: 64 }).unique(),
+    kedaluwarsaPada: timestamp("kedaluwarsa_pada", { withTimezone: true }),
     dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
     diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
   },

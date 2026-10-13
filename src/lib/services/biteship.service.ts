@@ -38,6 +38,11 @@ export async function hitungOngkirBiteship(
     BITESHIP_API_KEY.includes("xxxxxxxxxxxx") ||
     BITESHIP_API_KEY.startsWith("biteship_test.demo");
 
+  // Di lingkungan produksi, dilarang mutlak menggunakan estimasi simulasi
+  if (process.env.NODE_ENV === "production" && isKeyPlaceholder) {
+    throw new Error("Konfigurasi Logistik Gagal: BITESHIP_API_KEY produksi belum dikonfigurasi.");
+  }
+
   // Jika API key adalah placeholder sandbox pada environment dev/test
   if (isKeyPlaceholder) {
     return [
@@ -112,6 +117,35 @@ export async function hitungOngkirBiteship(
     throw new Error("Tidak ada opsi logistik yang tersedia untuk rute tujuan ini.");
   } catch (error) {
     console.error("Gagal memanggil API resmi Biteship:", error);
+
+    // Di non-production dengan izin mock aktif, gunakan fallback jika kuota sandbox Biteship habis
+    if (process.env.NODE_ENV !== "production" && process.env.ALLOW_PAYMENT_MOCK === "true") {
+      console.warn("Menggunakan opsi logistik simulasi dev/test karena kuota saldo Biteship habis.");
+      return [
+        {
+          namaKurir: "JNE",
+          kodeKurir: "jne",
+          layanan: "Reguler",
+          estimasiHari: "1-2 Hari",
+          tarifIdr: 10000 * beratKg,
+        },
+        {
+          namaKurir: "SiCepat",
+          kodeKurir: "sicepat",
+          layanan: "BEST (Next Day)",
+          estimasiHari: "1 Hari",
+          tarifIdr: 16000 * beratKg,
+        },
+        {
+          namaKurir: "J&T",
+          kodeKurir: "jnt",
+          layanan: "EZ",
+          estimasiHari: "1-2 Hari",
+          tarifIdr: 11000 * beratKg,
+        },
+      ];
+    }
+
     throw new Error(
       error instanceof Error
         ? `Layanan ongkos kirim gagal: ${error.message}`

@@ -54,7 +54,15 @@ export async function hitungOngkirServerAction(
 
     let totalBeratGram = 0;
     for (const item of items) {
-      const beratSatuan = beratMap.get(item.varianId) || 500;
+      const beratSatuan = beratMap.get(item.varianId);
+      if (!beratSatuan) {
+        return {
+          sukses: false,
+          pesan: "Satu atau lebih artikel pesanan tidak ditemukan di basis data katalog.",
+          totalBeratGram: 0,
+          opsiKurir: [],
+        };
+      }
       totalBeratGram += beratSatuan * item.jumlah;
     }
 

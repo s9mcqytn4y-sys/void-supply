@@ -21,6 +21,7 @@ export const formulirCheckoutSkema = z.object({
     .length(5, "Kode pos harus terdiri dari 5 digit angka")
     .regex(/^[0-9]+$/, "Kode pos harus berupa angka"),
   catatan: z.string().max(250, "Catatan maksimal 250 karakter").optional(),
+  idempotensiKey: z.string().max(64, "Kunci idempotensi maksimal 64 karakter").optional(),
   kodeKurir: z.string().min(2, "Pilihan kurir wajib dipilih"),
   layananKurir: z.string().min(2, "Layanan kurir wajib dipilih"),
   items: z.array(niatItemKeranjangSkema).min(1, "Keranjang belanja tidak boleh kosong"),

@@ -1,255 +1,32 @@
 "use client";
 
-import { useEffect, useState, useTransition, useCallback } from "react";
 import Link from "next/link";
-import { formatRupiah } from "@/lib/utils";
-import { useKeranjangStore } from "@/features/cart";
-import { rekonsiliasiKeranjang } from "@/features/cart/actions/reconciliation.action";
-import { hitungOngkirServerAction } from "@/features/checkout/actions/ongkir.action";
-import { buatPesanan } from "@/features/checkout";
-import type { OpsiKurir } from "@/lib/services/biteship.service";
+import {
+  useCheckout,
+  FormulirPengiriman,
+  PilihanKurir,
+  RingkasanPesananCheckout,
+} from "@/features/checkout";
 
 export default function HalamanCheckout() {
-  const items = useKeranjangStore((state) => state.items);
-  const kosongkanKeranjang = useKeranjangStore((state) => state.kosongkan);
-  const terapkanHasilRekonsiliasi = useKeranjangStore(
-    (state) => state.terapkanHasilRekonsiliasi
-  );
-
-  const [isPending, startTransition] = useTransition();
-  const [sedangMemuat, setSedangMemuat] = useState(true);
-  const [sedangHitungOngkir, setSedangHitungOngkir] = useState(false);
-  const [pesanNotifikasi, setPesanNotifikasi] = useState<string | null>(null);
-  const [pesanErrorGlobal, setPesanErrorGlobal] = useState<string | null>(null);
-  const [opsiKurir, setOpsiKurir] = useState<OpsiKurir[]>([]);
-  const [kurirTerpilih, setKurirTerpilih] = useState<OpsiKurir | null>(null);
-
-  // Form State: Kosong secara default untuk kenyamanan pembeli baru
-  const [formData, setFormData] = useState({
-    namaLengkap: "",
-    email: "",
-    telepon: "",
-    alamatLengkap: "",
-    kota: "",
-    provinsi: "",
-    kodePos: "",
-    catatan: "",
-  });
-
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-
-  const [suksesTransaksi, setSuksesTransaksi] = useState<{
-    nomorPesanan: string;
-    redirectUrl?: string;
-  } | null>(null);
-
-  // Fungsi Panggil Server Action Hitung Ongkir
-  const muatTarifOngkir = useCallback(
-    async (kodePos: string, itemDaftar: typeof items) => {
-      if (!kodePos || kodePos.length !== 5 || !/^[0-9]+$/.test(kodePos)) {
-        return;
-      }
-      if (itemDaftar.length === 0) return;
-
-      setSedangHitungOngkir(true);
-      try {
-        const hasil = await hitungOngkirServerAction({
-          kodePosTujuan: kodePos,
-          items: itemDaftar.map((i) => ({ varianId: i.varianId, jumlah: i.jumlah })),
-        });
-
-        if (hasil.sukses && hasil.opsiKurir.length > 0) {
-          setOpsiKurir(hasil.opsiKurir);
-          setKurirTerpilih((prev) => {
-            if (!prev) return hasil.opsiKurir[0];
-            const tetapCocok = hasil.opsiKurir.find(
-              (k) => k.kodeKurir === prev.kodeKurir && k.layanan === prev.layanan
-            );
-            return tetapCocok || hasil.opsiKurir[0];
-          });
-        } else {
-          setOpsiKurir([]);
-          setKurirTerpilih(null);
-        }
-      } catch (err) {
-        console.error("Gagal menghitung ongkir server:", err);
-      } finally {
-        setSedangHitungOngkir(false);
-      }
-    },
-    []
-  );
-
-  // 1. Rekonsiliasi Server Saat Checkout Dimuat
-  useEffect(() => {
-    if (items.length === 0) {
-      setSedangMemuat(false);
-      return;
-    }
-
-    rekonsiliasiKeranjang({
-      items: items.map((i) => ({ varianId: i.varianId, jumlah: i.jumlah })),
-    })
-      .then((hasil) => {
-        if (hasil.sukses) {
-          if (hasil.apakahAdaPerubahan) {
-            terapkanHasilRekonsiliasi(hasil);
-            setPesanNotifikasi(
-              "Perhatian: Ketersediaan atau harga artikel telah diverifikasi ulang dengan stok terkini."
-            );
-          }
-
-          if (formData.kodePos.length === 5) {
-            muatTarifOngkir(formData.kodePos, items);
-          }
-        }
-      })
-      .catch((err) => {
-        console.error("Gagal rekonsiliasi checkout:", err);
-      })
-      .finally(() => {
-        setSedangMemuat(false);
-      });
-  }, [muatTarifOngkir, formData.kodePos, items, terapkanHasilRekonsiliasi]);
-
-  function handleInputChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Hapus error field saat pengguna mengetik
-    if (formErrors[name]) {
-      setFormErrors((prev) => {
-        const next = { ...prev };
-        delete next[name];
-        return next;
-      });
-    }
-
-    // Jika kode pos berubah dan lengkap 5 digit, hitung ulang ongkir server
-    if (name === "kodePos" && value.length === 5 && /^[0-9]+$/.test(value)) {
-      muatTarifOngkir(value, items);
-    }
-  }
-
-  function validasiFormSebelumSubmit(): boolean {
-    const errors: Record<string, string> = {};
-
-    if (!formData.namaLengkap.trim() || formData.namaLengkap.length < 3) {
-      errors.namaLengkap = "Nama lengkap minimal 3 karakter";
-    }
-    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      errors.email = "Format email tidak valid";
-    }
-    if (!formData.telepon.trim() || formData.telepon.length < 10) {
-      errors.telepon = "Nomor telepon minimal 10 digit angka";
-    }
-    if (!formData.alamatLengkap.trim() || formData.alamatLengkap.length < 10) {
-      errors.alamatLengkap = "Alamat pengiriman minimal 10 karakter";
-    }
-    if (!formData.kota.trim() || formData.kota.length < 2) {
-      errors.kota = "Nama kota/kabupaten wajib diisi";
-    }
-    if (!formData.provinsi.trim() || formData.provinsi.length < 2) {
-      errors.provinsi = "Nama provinsi wajib diisi";
-    }
-    if (!formData.kodePos.trim() || formData.kodePos.length !== 5 || !/^[0-9]+$/.test(formData.kodePos)) {
-      errors.kodePos = "Kode pos harus terdiri dari 5 digit angka";
-    }
-    if (!kurirTerpilih) {
-      errors.kurir = "Silakan pilih salah satu opsi kurir pengiriman";
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  }
-
-  function handleSubmitPesanan(e: React.FormEvent) {
-    e.preventDefault();
-    setPesanErrorGlobal(null);
-
-    if (!validasiFormSebelumSubmit()) {
-      return;
-    }
-
-    if (!kurirTerpilih) return;
-
-    startTransition(async () => {
-      const hasil = await buatPesanan({
-        namaLengkap: formData.namaLengkap,
-        email: formData.email,
-        telepon: formData.telepon,
-        alamatLengkap: formData.alamatLengkap,
-        kota: formData.kota,
-        provinsi: formData.provinsi,
-        kodePos: formData.kodePos,
-        catatan: formData.catatan || undefined,
-        kodeKurir: kurirTerpilih.kodeKurir,
-        layananKurir: kurirTerpilih.layanan,
-        items: items.map((i) => ({ varianId: i.varianId, jumlah: i.jumlah })),
-      });
-
-      if (hasil.sukses && hasil.nomorPesanan) {
-        kosongkanKeranjang();
-        setSuksesTransaksi({
-          nomorPesanan: hasil.nomorPesanan,
-          redirectUrl: hasil.redirectUrl,
-        });
-      } else {
-        setPesanErrorGlobal(hasil.pesan);
-      }
-    });
-  }
-
-  const subtotal = items.reduce((acc, i) => acc + i.hargaTampilanIdr * i.jumlah, 0);
-  const totalOngkir = kurirTerpilih?.tarifIdr || 0;
-  const totalAkhir = subtotal + totalOngkir;
-
-  if (suksesTransaksi) {
-    return (
-      <main className="mx-auto min-h-[75vh] max-w-2xl px-4 py-16 text-center sm:px-6">
-        <div className="border border-neutral-800 bg-neutral-950 p-8 sm:p-12">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center border border-emerald-500/40 bg-emerald-950/20 font-mono text-2xl text-emerald-400">
-            ✓
-          </div>
-          <span className="mt-6 inline-block font-mono text-[11px] font-semibold tracking-widest text-amber-400 uppercase">
-            STATUS: MENUNGGU PEMBAYARAN
-          </span>
-          <h1 className="mt-2 font-mono text-2xl font-black text-white uppercase sm:text-3xl">
-            PESANAN BERHASIL DIBUAT
-          </h1>
-          <p className="mt-4 font-mono text-xs text-neutral-300">
-            Nomor Pesanan:{" "}
-            <span className="font-bold text-white">{suksesTransaksi.nomorPesanan}</span>
-          </p>
-          <p className="mt-2 text-xs leading-relaxed text-neutral-400">
-            Pesanan Anda telah tercatat pada sistem. Silakan selesaikan pembayaran melalui Midtrans Snap dalam batas waktu 15 menit agar stok tidak dibatalkan otomatis.
-          </p>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            {suksesTransaksi.redirectUrl && (
-              <a
-                href={suksesTransaksi.redirectUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center justify-center border border-white bg-white px-6 font-mono text-xs font-bold text-black uppercase transition-colors hover:bg-neutral-200"
-              >
-                BAYAR SEKARANG (MIDTRANS SNAP)
-              </a>
-            )}
-            <Link
-              href="/katalog"
-              className="inline-flex min-h-11 items-center justify-center border border-neutral-800 bg-neutral-900 px-6 font-mono text-xs font-semibold text-white uppercase transition-colors hover:border-neutral-700"
-            >
-              KEMBALI KE KATALOG
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
-  }
+  const {
+    items,
+    isPending,
+    sedangMemuat,
+    sedangHitungOngkir,
+    pesanNotifikasi,
+    pesanErrorGlobal,
+    opsiKurir,
+    kurirTerpilih,
+    setKurirTerpilih,
+    formData,
+    formErrors,
+    handleInputChange,
+    handleSubmitPesanan,
+    subtotal,
+    totalOngkir,
+    totalAkhir,
+  } = useCheckout();
 
   return (
     <main className="mx-auto min-h-[75vh] max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
@@ -276,9 +53,11 @@ export default function HalamanCheckout() {
         )}
       </div>
 
-      {items.length === 0 ? (
+      {items.length === 0 && !sedangMemuat ? (
         <div className="border border-neutral-800 bg-neutral-950 p-12 text-center">
-          <p className="font-mono text-xs text-neutral-400">KERANJANG BELANJA ANDA KOSONG</p>
+          <p className="font-mono text-xs text-neutral-400">
+            KERANJANG BELANJA ANDA KOSONG
+          </p>
           <Link
             href="/katalog"
             className="mt-6 inline-flex min-h-11 items-center justify-center border border-white bg-white px-6 font-mono text-xs font-bold text-black uppercase transition-colors hover:bg-neutral-200"
@@ -287,320 +66,40 @@ export default function HalamanCheckout() {
           </Link>
         </div>
       ) : (
-        <form onSubmit={handleSubmitPesanan} noValidate className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          {/* Kolom Kiri: Data Pengiriman & Pilihan Kurir */}
+        <form
+          onSubmit={handleSubmitPesanan}
+          noValidate
+          className="grid grid-cols-1 gap-8 lg:grid-cols-12"
+        >
+          {/* Kolom Kiri: Informasi Penerima, Alamat & Pilihan Kurir */}
           <div className="space-y-6 lg:col-span-7">
-            {/* 1. Identitas Pembeli */}
-            <div className="border border-neutral-800 bg-neutral-950 p-6">
-              <h2 className="border-b border-neutral-800 pb-3 font-mono text-xs font-bold text-white uppercase">
-                01 // INFORMASI PENERIMA
-              </h2>
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2">
-                  <label htmlFor="input-nama" className="block font-mono text-[11px] text-neutral-300">
-                    NAMA LENGKAP
-                  </label>
-                  <input
-                    id="input-nama"
-                    type="text"
-                    name="namaLengkap"
-                    required
-                    placeholder="Masukkan nama lengkap Anda"
-                    aria-invalid={!!formErrors.namaLengkap}
-                    aria-describedby={formErrors.namaLengkap ? "error-namaLengkap" : undefined}
-                    value={formData.namaLengkap}
-                    onChange={handleInputChange}
-                    className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
-                      formErrors.namaLengkap ? "border-rose-500" : "border-neutral-800 focus:border-white"
-                    }`}
-                  />
-                  {formErrors.namaLengkap && (
-                    <p id="error-namaLengkap" className="mt-1 font-mono text-[11px] text-rose-400">
-                      {formErrors.namaLengkap}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="input-email" className="block font-mono text-[11px] text-neutral-300">
-                    EMAIL
-                  </label>
-                  <input
-                    id="input-email"
-                    type="email"
-                    name="email"
-                    required
-                    placeholder="nama@email.com"
-                    aria-invalid={!!formErrors.email}
-                    aria-describedby={formErrors.email ? "error-email" : undefined}
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
-                      formErrors.email ? "border-rose-500" : "border-neutral-800 focus:border-white"
-                    }`}
-                  />
-                  {formErrors.email && (
-                    <p id="error-email" className="mt-1 font-mono text-[11px] text-rose-400">
-                      {formErrors.email}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="input-telepon" className="block font-mono text-[11px] text-neutral-300">
-                    NOMOR TELEPON
-                  </label>
-                  <input
-                    id="input-telepon"
-                    type="tel"
-                    name="telepon"
-                    required
-                    placeholder="08xxxxxxxxxx"
-                    aria-invalid={!!formErrors.telepon}
-                    aria-describedby={formErrors.telepon ? "error-telepon" : undefined}
-                    value={formData.telepon}
-                    onChange={handleInputChange}
-                    className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
-                      formErrors.telepon ? "border-rose-500" : "border-neutral-800 focus:border-white"
-                    }`}
-                  />
-                  {formErrors.telepon && (
-                    <p id="error-telepon" className="mt-1 font-mono text-[11px] text-rose-400">
-                      {formErrors.telepon}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
+            <FormulirPengiriman
+              formData={formData}
+              formErrors={formErrors}
+              onInputChange={handleInputChange}
+            />
 
-            {/* 2. Alamat Pengiriman */}
-            <div className="border border-neutral-800 bg-neutral-950 p-6">
-              <h2 className="border-b border-neutral-800 pb-3 font-mono text-xs font-bold text-white uppercase">
-                02 // ALAMAT PENGIRIMAN
-              </h2>
-              <div className="mt-4 space-y-4">
-                <div>
-                  <label htmlFor="input-alamat" className="block font-mono text-[11px] text-neutral-300">
-                    ALAMAT LENGKAP
-                  </label>
-                  <textarea
-                    id="input-alamat"
-                    name="alamatLengkap"
-                    rows={2}
-                    required
-                    placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan/kecamatan"
-                    aria-invalid={!!formErrors.alamatLengkap}
-                    aria-describedby={formErrors.alamatLengkap ? "error-alamatLengkap" : undefined}
-                    value={formData.alamatLengkap}
-                    onChange={handleInputChange}
-                    className={`mt-1 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
-                      formErrors.alamatLengkap ? "border-rose-500" : "border-neutral-800 focus:border-white"
-                    }`}
-                  />
-                  {formErrors.alamatLengkap && (
-                    <p id="error-alamatLengkap" className="mt-1 font-mono text-[11px] text-rose-400">
-                      {formErrors.alamatLengkap}
-                    </p>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div>
-                    <label htmlFor="input-kota" className="block font-mono text-[11px] text-neutral-300">
-                      KOTA / KABUPATEN
-                    </label>
-                    <input
-                      id="input-kota"
-                      type="text"
-                      name="kota"
-                      required
-                      placeholder="Contoh: Jakarta Pusat"
-                      aria-invalid={!!formErrors.kota}
-                      aria-describedby={formErrors.kota ? "error-kota" : undefined}
-                      value={formData.kota}
-                      onChange={handleInputChange}
-                      className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
-                        formErrors.kota ? "border-rose-500" : "border-neutral-800 focus:border-white"
-                      }`}
-                    />
-                    {formErrors.kota && (
-                      <p id="error-kota" className="mt-1 font-mono text-[11px] text-rose-400">
-                        {formErrors.kota}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label htmlFor="input-provinsi" className="block font-mono text-[11px] text-neutral-300">
-                      PROVINSI
-                    </label>
-                    <input
-                      id="input-provinsi"
-                      type="text"
-                      name="provinsi"
-                      required
-                      placeholder="Contoh: DKI Jakarta"
-                      aria-invalid={!!formErrors.provinsi}
-                      aria-describedby={formErrors.provinsi ? "error-provinsi" : undefined}
-                      value={formData.provinsi}
-                      onChange={handleInputChange}
-                      className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
-                        formErrors.provinsi ? "border-rose-500" : "border-neutral-800 focus:border-white"
-                      }`}
-                    />
-                    {formErrors.provinsi && (
-                      <p id="error-provinsi" className="mt-1 font-mono text-[11px] text-rose-400">
-                        {formErrors.provinsi}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label htmlFor="input-kodepos" className="block font-mono text-[11px] text-neutral-300">
-                      KODE POS
-                    </label>
-                    <input
-                      id="input-kodepos"
-                      type="text"
-                      name="kodePos"
-                      maxLength={5}
-                      required
-                      placeholder="5 digit angka"
-                      aria-invalid={!!formErrors.kodePos}
-                      aria-describedby={formErrors.kodePos ? "error-kodePos" : undefined}
-                      value={formData.kodePos}
-                      onChange={handleInputChange}
-                      className={`mt-1 min-h-11 w-full border bg-neutral-900 px-3 py-2 font-mono text-xs text-white focus:outline-none ${
-                        formErrors.kodePos ? "border-rose-500" : "border-neutral-800 focus:border-white"
-                      }`}
-                    />
-                    {formErrors.kodePos && (
-                      <p id="error-kodePos" className="mt-1 font-mono text-[11px] text-rose-400">
-                        {formErrors.kodePos}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Pilihan Logistik Kurir (Server-Authoritative Biteship) */}
-            <div className="border border-neutral-800 bg-neutral-950 p-6">
-              <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
-                <h2 className="font-mono text-xs font-bold text-white uppercase">
-                  03 // OPSI KURIR PENGIRIMAN
-                </h2>
-                {sedangHitungOngkir && (
-                  <span className="font-mono text-[10px] text-neutral-400 animate-pulse">
-                    MENGHITUNG TARIF RESMI...
-                  </span>
-                )}
-              </div>
-              <div className="mt-4 space-y-2">
-                {opsiKurir.length === 0 ? (
-                  <p className="font-mono text-xs text-neutral-400">
-                    {sedangHitungOngkir
-                      ? "Memverifikasi tarif kurir ke server..."
-                      : "Masukkan kode pos 5 digit untuk memuat opsi kurir resmi."}
-                  </p>
-                ) : (
-                  opsiKurir.map((kurir) => {
-                    const isSelected =
-                      kurirTerpilih?.kodeKurir === kurir.kodeKurir &&
-                      kurirTerpilih?.layanan === kurir.layanan;
-                    return (
-                      <label
-                        key={`${kurir.kodeKurir}-${kurir.layanan}`}
-                        className={`flex min-h-11 cursor-pointer items-center justify-between border p-3 font-mono text-xs transition-colors ${
-                          isSelected
-                            ? "border-white bg-neutral-900 text-white"
-                            : "border-neutral-800 text-neutral-400 hover:border-neutral-700"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            name="kurir"
-                            checked={isSelected}
-                            onChange={() => setKurirTerpilih(kurir)}
-                            className="accent-white"
-                          />
-                          <div>
-                            <span className="font-bold text-white uppercase">{kurir.namaKurir}</span>
-                            <span className="text-neutral-400">
-                              {" "}
-                              - {kurir.layanan} ({kurir.estimasiHari})
-                            </span>
-                          </div>
-                        </div>
-                        <span className="font-bold text-white">{formatRupiah(kurir.tarifIdr)}</span>
-                      </label>
-                    );
-                  })
-                )}
-                {formErrors.kurir && (
-                  <p className="mt-2 font-mono text-[11px] text-rose-400">{formErrors.kurir}</p>
-                )}
-              </div>
-            </div>
+            <PilihanKurir
+              opsiKurir={opsiKurir}
+              kurirTerpilih={kurirTerpilih}
+              onPilihKurir={setKurirTerpilih}
+              sedangHitungOngkir={sedangHitungOngkir}
+              errorKurir={formErrors.kurir}
+            />
           </div>
 
           {/* Kolom Kanan: Ringkasan Biaya & Eksekusi Pembayaran */}
           <div className="lg:col-span-5">
-            <div className="sticky top-24 border border-neutral-800 bg-neutral-950 p-6">
-              <h2 className="border-b border-neutral-800 pb-3 font-mono text-xs font-bold text-white uppercase">
-                RINGKASAN PESANAN ({items.reduce((acc, i) => acc + i.jumlah, 0)} ARTIKEL)
-              </h2>
-
-              <ul className="mt-4 divide-y divide-neutral-900 border border-neutral-800 bg-neutral-900/30 p-3 font-mono text-xs">
-                {items.map((item) => (
-                  <li key={item.varianId} className="flex items-center justify-between py-2">
-                    <div className="pr-2">
-                      <p className="font-bold text-white">{item.nama}</p>
-                      <p className="text-[11px] text-neutral-400">
-                        {item.ukuran} // {item.warna} x {item.jumlah}
-                      </p>
-                    </div>
-                    <span className="font-bold text-white">
-                      {formatRupiah(item.hargaTampilanIdr * item.jumlah)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-4 space-y-2 border-t border-neutral-800 pt-4 font-mono text-xs">
-                <div className="flex justify-between text-neutral-400">
-                  <span>SUBTOTAL PRODUK:</span>
-                  <span className="font-bold text-white">{formatRupiah(subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-neutral-400">
-                  <span>ONGKOS KIRIM:</span>
-                  <span className="font-bold text-white">
-                    {sedangHitungOngkir ? "Menghitung..." : formatRupiah(totalOngkir)}
-                  </span>
-                </div>
-                <div className="flex justify-between border-t border-neutral-800 pt-2 text-sm text-white">
-                  <span className="font-bold">TOTAL PEMBAYARAN:</span>
-                  <span className="font-black text-emerald-400">{formatRupiah(totalAkhir)}</span>
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <button
-                  type="submit"
-                  disabled={
-                    isPending ||
-                    sedangMemuat ||
-                    sedangHitungOngkir ||
-                    items.length === 0 ||
-                    !kurirTerpilih
-                  }
-                  className="flex min-h-12 w-full items-center justify-center border border-white bg-white font-mono text-xs font-bold text-black uppercase transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isPending
-                    ? "MENYIAPKAN PESANAN ANDA..."
-                    : `LANJUT KE PEMBAYARAN (${formatRupiah(totalAkhir)})`}
-                </button>
-                <p className="mt-2 text-center font-mono text-[10px] text-neutral-400">
-                  Pengiriman resmi dari Johar Baru, Jakarta Pusat // Garansi Transaksi Resmi
-                </p>
-              </div>
-            </div>
+            <RingkasanPesananCheckout
+              items={items}
+              subtotal={subtotal}
+              totalOngkir={totalOngkir}
+              totalAkhir={totalAkhir}
+              sedangHitungOngkir={sedangHitungOngkir}
+              isPending={isPending}
+              sedangMemuat={sedangMemuat}
+              kurirDipilih={!!kurirTerpilih}
+            />
           </div>
         </form>
       )}

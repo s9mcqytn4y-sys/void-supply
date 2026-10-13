@@ -67,13 +67,13 @@ export async function buatTransaksiMidtrans(
       };
     }
 
-    // Di environment development / testing, fallback mock hanya aktif jika flag ALLOW_PAYMENT_MOCK diizinkan
-    const allowMock = process.env.ALLOW_PAYMENT_MOCK === "true" || process.env.NODE_ENV !== "production";
+    // Di environment non-production, fallback mock HANYA aktif jika flag ALLOW_PAYMENT_MOCK bernilai true secara eksplisit
+    const allowMock = process.env.ALLOW_PAYMENT_MOCK === "true" && process.env.NODE_ENV !== "production";
     if (isKeyPlaceholder) {
       if (!allowMock) {
         return {
           sukses: false,
-          pesan: "Kredensial Midtrans Sandbox tidak valid dan simulasi mock dinonaktifkan.",
+          pesan: "Kredensial Midtrans Sandbox tidak valid dan simulasi mock dinonaktifkan (ALLOW_PAYMENT_MOCK=false).",
         };
       }
 

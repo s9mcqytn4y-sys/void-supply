@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
         destination: "/katalog/:slug*",
         permanent: true,
       },
+      {
+        source: "/order/:path*",
+        destination: "/pesanan/:path*",
+        permanent: true,
+      },
     ];
   },
 };
