@@ -279,4 +279,38 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
    - Vitest suite `concurrency.test.ts` memverifikasi perlindungan anti-overselling saat dua pembeli berebut 1 unit stok terakhir, idempotensi order, dan recovery stok.
    - Vitest suite `webhook.test.ts` memvalidasi matrix respons HTTP 400, 403, 404, dan 422.
 
+---
+
+## 13. Audit Remediation, IDOR Access Token & Workspace MCP (Module 02.15 Production Gate)
+
+1. **SEC-01 (Strict Fail-Closed Cron Authentication)**:
+   - Endpoint `/api/cron/kadaluwarsa-pesanan` mewajibkan kehadiran `CRON_SECRET` di lingkungan server. Jika variabel tidak ada atau kosong, request ditolak langsung dengan HTTP 500.
+   - Header `Authorization: Bearer <token>` diverifikasi secara presisi. Kegagalan autentikasi mengembalikan HTTP 401 Unauthorized.
+   - Response payload tidak membocorkan nomor pesanan individual ke pemanggil publik.
+
+2. **SEC-02 (IDOR Protection via High-Entropy Access Token)**:
+   - Kolom `token_akses` (UUID v4 berentropi 122-bit) ditambahkan ke tabel `pesanan`.
+   - Token dikirimkan kembali ke klien checkout via URL parameter aman `?token=<uuid>` dan disimpan untuk verifikasi status.
+   - Tanpa token yang valid, antarmuka `/pesanan/[nomorPesanan]` dan Server Action `ambilStatusPesanan` menyamarkan seluruh PII pelanggan (nama, email, nomor telepon) dan menonaktifkan trigger pembayaran Snap.
+
+3. **PAY-01 & PAY-02 (Atomic Stock Compensation & Parallel Idempotency)**:
+   - Jalur kegagalan Midtrans di `buat-pesanan.action.ts` menerapkan rollback stok bersyarat Compare-and-Set atomik untuk mencegah race condition.
+   - Penanganan benturan kunci unik PostgreSQL (kode `23505`) pada `idempotensi_key` memastikan request paralel bersamaan mengembalikan pesanan yang berhasil dibuat tanpa melemparkan error 500 atau mengurangi stok ganda.
+
+4. **OPS-01 & OPS-02 (Deployment Cron & Gateway Inquire Before Expiry)**:
+   - `vercel.json` dikonfigurasi dengan entri scheduler otomatis `*/5 * * * *` menuju `/api/cron/kadaluwarsa-pesanan`.
+   - Layanan pembatalan pesanan `reservasi.service.ts` memverifikasi status pembayaran langsung ke gateway Midtrans (`cekStatusTransaksiMidtrans`) sebelum membatalkan pesanan kedaluwarsa, mencegah pembatalan order yang telah berhasil dibayar di gateway.
+
+5. **Visual Assets Drop 04 & UI Enhancement**:
+   - Menambahkan aset visual orisinal streetwear beresolusi tinggi ke UI:
+     - `drop-04-editorial-campaign.jpg`: Kampanye editorial lookbook estetika beton brutalis monokromatik di homepage.
+     - `fabric-density-macro.jpg`: Makro tekstur rajut 450 GSM French Terry dan jahitan rantai ganda pada komponen transparansi material produk.
+     - `void-drop04-seal.jpg`: Segel sertifikasi otentikasi Archive Edition Drop 04.
+
+6. **Workspace MCP Integration (`.vscode/mcp.json`)**:
+   - Dikonfigurasi server resmi untuk efisiensi agen dan developer:
+     - `context7`: Dokumentasi termutakhir framework (Next.js 16, React 19, Drizzle ORM, Zustand).
+     - `playwright`: Verifikasi headless browser aktual dan pengujian antarmuka real-time.
+     - `chrome-devtools`: Profiling performa Core Web Vitals, waterfall jaringan, dan inspeksi layout.
+
 

@@ -8,18 +8,22 @@ import { batalkanPesananKedaluwarsa } from "@/features/checkout/services/reserva
  */
 async function handleCron(req: Request) {
   try {
-    const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret || cronSecret.trim().length === 0) {
+      console.error("[CRON KADALUWARSA] CRON_SECRET belum dikonfigurasi pada environment server.");
+      return NextResponse.json(
+        { error: "Konfigurasi keamanan gagal: CRON_SECRET belum dikonfigurasi di server." },
+        { status: 500 }
+      );
+    }
 
-    // Jika CRON_SECRET terkonfigurasi, validasi header authorization
-    if (cronSecret) {
-      const token = authHeader?.replace(/^Bearer\s+/i, "");
-      if (token !== cronSecret) {
-        return NextResponse.json(
-          { error: "Akses tidak diizinkan: Kredensial cron secret tidak valid." },
-          { status: 401 }
-        );
-      }
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader?.replace(/^Bearer\s+/i, "")?.trim();
+    if (!token || token !== cronSecret) {
+      return NextResponse.json(
+        { error: "Akses tidak diizinkan: Kredensial cron secret tidak valid." },
+        { status: 401 }
+      );
     }
 
     const hasil = await batalkanPesananKedaluwarsa();
@@ -27,7 +31,6 @@ async function handleCron(req: Request) {
     return NextResponse.json({
       status: "ok",
       jumlahDibatalkan: hasil.jumlahDibatalkan,
-      pesanan: hasil.daftarNomorPesanan,
       pesan: hasil.pesan,
       dieksekusiPada: new Date().toISOString(),
     });

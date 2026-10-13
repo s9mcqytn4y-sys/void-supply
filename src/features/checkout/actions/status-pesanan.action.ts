@@ -6,6 +6,7 @@ import { batalkanPesananKedaluwarsa } from "../services/reservasi.service";
 
 export interface DetailStatusPesanan {
   nomorPesanan: string;
+  isAuthorized: boolean;
   statusPesanan: "menunggu_pembayaran" | "diproses" | "dikirim" | "selesai" | "dibatalkan";
   statusPembayaran: "menunggu_pembayaran" | "berhasil" | "kadaluarsa" | "gagal" | "dikembalikan";
   totalAkhir: number;
@@ -45,12 +46,32 @@ export interface HasilAmbilStatusPesanan {
   data?: DetailStatusPesanan;
 }
 
+function sensorNama(nama: string): string {
+  if (!nama) return "***";
+  const kata = nama.trim().split(" ");
+  return kata.map((k) => (k.length > 1 ? `${k[0]}***` : k)).join(" ");
+}
+
+function sensorEmail(email: string): string {
+  if (!email || !email.includes("@")) return "***@***.com";
+  const [user, domain] = email.split("@");
+  const maskedUser = user.length > 2 ? `${user.slice(0, 2)}***` : `${user[0]}***`;
+  return `${maskedUser}@${domain}`;
+}
+
+function sensorTelepon(telp: string): string {
+  if (!telp || telp.length < 6) return "******";
+  return `${telp.slice(0, 4)}****${telp.slice(-3)}`;
+}
+
 /**
  * Server Action: Ambil Status Pesanan & Eksekusi Lazy Expiry Check
  * Digunakan oleh halaman status pesanan dan polling client untuk mendapatkan status real-time.
+ * Menjamin pencegahan kebocoran data (SEC-02 IDOR Prevention).
  */
 export async function ambilStatusPesanan(
-  nomorPesanan: string
+  nomorPesanan: string,
+  tokenAkses?: string
 ): Promise<HasilAmbilStatusPesanan> {
   try {
     if (!nomorPesanan || typeof nomorPesanan !== "string") {
@@ -108,11 +129,17 @@ export async function ambilStatusPesanan(
       .from(itemPesanan)
       .where(eq(itemPesanan.pesananId, pesananDb.id));
 
+    // Evaluasi otorisasi (SEC-02): Jika pesanan memiliki tokenAkses, token wajib cocok
+    const isAuthorized = !pesananDb.tokenAkses || (Boolean(tokenAkses) && tokenAkses === pesananDb.tokenAkses);
+
     return {
       sukses: true,
-      pesan: "Detail pesanan berhasil diambil.",
+      pesan: isAuthorized
+        ? "Detail pesanan berhasil diambil."
+        : "Detail pesanan ditampilkan dalam mode terlindungi (PII disamarkan).",
       data: {
         nomorPesanan: pesananDb.nomorPesanan,
+        isAuthorized,
         statusPesanan: statusPesananSaatIni,
         statusPembayaran: pembayaranDb?.statusPembayaran || "menunggu_pembayaran",
         totalAkhir: pesananDb.totalAkhir,
@@ -120,22 +147,22 @@ export async function ambilStatusPesanan(
         totalOngkir: pesananDb.totalOngkir,
         dibuatPada: pesananDb.dibuatPada.toISOString(),
         kedaluwarsaPada: batasKedaluwarsa.toISOString(),
-        namaPelanggan: pesananDb.namaPelanggan,
-        emailPelanggan: pesananDb.emailPelanggan,
-        teleponPelanggan: pesananDb.teleponPelanggan,
+        namaPelanggan: isAuthorized ? pesananDb.namaPelanggan : sensorNama(pesananDb.namaPelanggan),
+        emailPelanggan: isAuthorized ? pesananDb.emailPelanggan : sensorEmail(pesananDb.emailPelanggan),
+        teleponPelanggan: isAuthorized ? pesananDb.teleponPelanggan : sensorTelepon(pesananDb.teleponPelanggan),
         kurir: pengirimanDb
           ? {
               nama: pengirimanDb.kurir,
               layanan: pengirimanDb.layanan,
               estimasiHari: pengirimanDb.estimasiHari,
-              nomorResi: pengirimanDb.nomorResi,
+              nomorResi: isAuthorized ? pengirimanDb.nomorResi : undefined,
             }
           : undefined,
         pembayaran: pembayaranDb
           ? {
               metode: pembayaranDb.metodePembayaran,
-              snapToken: pembayaranDb.snapToken,
-              snapRedirectUrl: pembayaranDb.snapRedirectUrl,
+              snapToken: isAuthorized ? pembayaranDb.snapToken : undefined,
+              snapRedirectUrl: isAuthorized ? pembayaranDb.snapRedirectUrl : undefined,
               dibayarPada: pembayaranDb.dibayarPada?.toISOString() || null,
             }
           : undefined,

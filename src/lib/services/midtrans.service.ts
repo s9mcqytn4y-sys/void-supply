@@ -154,4 +154,60 @@ export function verifikasiSignatureMidtrans(
   }
 }
 
+/**
+ * Periksa Status Transaksi Langsung ke Gateway Midtrans (OPS-02)
+ * Digunakan untuk rekonsiliasi sebelum eksekusi pembatalan kadaluwarsa.
+ */
+export async function cekStatusTransaksiMidtrans(nomorPesanan: string): Promise<{
+  ditemukan: boolean;
+  statusTransaksi?: string;
+  fraudStatus?: string;
+  apakahSudahDibayar: boolean;
+}> {
+  try {
+    const baseUrl = isProduction
+      ? "https://api.midtrans.com"
+      : "https://api.sandbox.midtrans.com";
+
+    const authHeader = `Basic ${Buffer.from(`${serverKey}:`).toString("base64")}`;
+
+    const res = await fetch(`${baseUrl}/v2/${encodeURIComponent(nomorPesanan)}/status`, {
+      method: "GET",
+      headers: {
+        Authorization: authHeader,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      return {
+        ditemukan: false,
+        apakahSudahDibayar: false,
+      };
+    }
+
+    const data = await res.json();
+    const status = data?.transaction_status as string | undefined;
+    const fraud = data?.fraud_status as string | undefined;
+
+    const sudahDibayar =
+      status === "settlement" ||
+      (status === "capture" && fraud === "accept");
+
+    return {
+      ditemukan: true,
+      statusTransaksi: status,
+      fraudStatus: fraud,
+      apakahSudahDibayar: Boolean(sudahDibayar),
+    };
+  } catch {
+    return {
+      ditemukan: false,
+      apakahSudahDibayar: false,
+    };
+  }
+}
+
+
 

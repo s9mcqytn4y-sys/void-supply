@@ -7,6 +7,9 @@ interface PropsHalamanStatusPesanan {
   params: Promise<{
     nomorPesanan: string;
   }>;
+  searchParams: Promise<{
+    token?: string;
+  }>;
 }
 
 export async function generateMetadata({
@@ -25,9 +28,12 @@ export async function generateMetadata({
 
 export default async function HalamanStatusPesanan({
   params,
+  searchParams,
 }: PropsHalamanStatusPesanan) {
   const { nomorPesanan } = await params;
-  const hasil = await ambilStatusPesanan(nomorPesanan);
+  const { token } = await searchParams;
+  const tokenAksesStr = typeof token === "string" ? token.trim() : undefined;
+  const hasil = await ambilStatusPesanan(nomorPesanan, tokenAksesStr);
 
   if (!hasil.sukses || !hasil.data) {
     return (
@@ -58,7 +64,7 @@ export default async function HalamanStatusPesanan({
 
   return (
     <main className="mx-auto min-h-[75vh] max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <KartuStatusPesanan pesananAwal={hasil.data} />
+      <KartuStatusPesanan pesananAwal={hasil.data} tokenAkses={tokenAksesStr} />
     </main>
   );
 }

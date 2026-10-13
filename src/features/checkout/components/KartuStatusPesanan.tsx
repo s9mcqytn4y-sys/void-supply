@@ -10,9 +10,13 @@ import {
 
 interface PropsKartuStatusPesanan {
   pesananAwal: DetailStatusPesanan;
+  tokenAkses?: string;
 }
 
-export function KartuStatusPesanan({ pesananAwal }: PropsKartuStatusPesanan) {
+export function KartuStatusPesanan({
+  pesananAwal,
+  tokenAkses,
+}: PropsKartuStatusPesanan) {
   const [pesanan, setPesanan] = useState<DetailStatusPesanan>(pesananAwal);
   const [sedangMenyinkronkan, setSedangMenyinkronkan] = useState(false);
   const [sisaWaktuDetik, setSisaWaktuDetik] = useState<number>(() => {
@@ -48,7 +52,7 @@ export function KartuStatusPesanan({ pesananAwal }: PropsKartuStatusPesanan) {
   const sinkronkanStatus = useCallback(async () => {
     setSedangMenyinkronkan(true);
     try {
-      const hasil = await ambilStatusPesanan(pesanan.nomorPesanan);
+      const hasil = await ambilStatusPesanan(pesanan.nomorPesanan, tokenAkses);
       if (hasil.sukses && hasil.data) {
         setPesanan(hasil.data);
       }
@@ -57,7 +61,7 @@ export function KartuStatusPesanan({ pesananAwal }: PropsKartuStatusPesanan) {
     } finally {
       setSedangMenyinkronkan(false);
     }
-  }, [pesanan.nomorPesanan]);
+  }, [pesanan.nomorPesanan, tokenAkses]);
 
   // Polling Status Otomatis setiap 5 detik (maksimal 2 menit = 24 polling)
   useEffect(() => {
@@ -73,7 +77,7 @@ export function KartuStatusPesanan({ pesananAwal }: PropsKartuStatusPesanan) {
         return;
       }
 
-      const hasil = await ambilStatusPesanan(pesanan.nomorPesanan);
+      const hasil = await ambilStatusPesanan(pesanan.nomorPesanan, tokenAkses);
       if (hasil.sukses && hasil.data) {
         setPesanan(hasil.data);
         if (hasil.data.statusPesanan !== "menunggu_pembayaran") {
@@ -83,7 +87,7 @@ export function KartuStatusPesanan({ pesananAwal }: PropsKartuStatusPesanan) {
     }, 5000);
 
     return () => clearInterval(intervalPolling);
-  }, [pesanan.nomorPesanan, pesanan.statusPesanan]);
+  }, [pesanan.nomorPesanan, pesanan.statusPesanan, tokenAkses]);
 
   const menit = Math.floor(sisaWaktuDetik / 60);
   const detik = sisaWaktuDetik % 60;
@@ -161,7 +165,7 @@ export function KartuStatusPesanan({ pesananAwal }: PropsKartuStatusPesanan) {
               </div>
             </div>
 
-            {pesanan.pembayaran?.snapRedirectUrl && (
+            {pesanan.isAuthorized && pesanan.pembayaran?.snapRedirectUrl && (
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <a
                   href={pesanan.pembayaran.snapRedirectUrl}
@@ -171,6 +175,12 @@ export function KartuStatusPesanan({ pesananAwal }: PropsKartuStatusPesanan) {
                 >
                   BAYAR SEKARANG (MIDTRANS SNAP)
                 </a>
+              </div>
+            )}
+
+            {!pesanan.isAuthorized && (
+              <div className="mt-4 border border-neutral-800 bg-neutral-900/60 p-3 font-mono text-[11px] text-neutral-400">
+                DATA PRIBADI TERPROTEKSI: Informasi pelanggan dan link pembayaran disamarkan demi privasi. Akses melalui tautan checkout resmi untuk otorisasi penuh.
               </div>
             )}
           </div>

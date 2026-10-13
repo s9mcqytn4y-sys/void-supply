@@ -20,6 +20,7 @@ export interface HasilBuatPesanan {
   sukses: boolean;
   pesan: string;
   nomorPesanan?: string;
+  tokenAkses?: string;
   snapToken?: string;
   redirectUrl?: string;
 }
@@ -72,6 +73,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         .select({
           id: pesanan.id,
           nomorPesanan: pesanan.nomorPesanan,
+          tokenAkses: pesanan.tokenAkses,
           statusPesanan: pesanan.statusPesanan,
         })
         .from(pesanan)
@@ -92,6 +94,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
           sukses: true,
           pesan: "Pesanan telah tercatat sebelumnya (idempotent).",
           nomorPesanan: pesananEksis.nomorPesanan,
+          tokenAkses: pesananEksis.tokenAkses || undefined,
           snapToken: pembayaranEksis?.snapToken || undefined,
           redirectUrl: pembayaranEksis?.snapRedirectUrl || undefined,
         };
@@ -205,6 +208,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
 
     // 7. FASE 1: Mutasi Basis Data Atomik Cepat
     let pesananId = "";
+    let tokenAksesPesanan = "";
     await db.transaction(async (tx) => {
       // 7a. Pengurangan stok bersyarat secara atomik (pencegahan overselling saat konkurensi)
       for (const item of snapshotItem) {
@@ -256,6 +260,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
 
       // 7c. Simpan Entitas Pesanan (status: menunggu_pembayaran)
       const kedaluwarsaPada = new Date(Date.now() + 15 * 60 * 1000); // 15 menit jendela reservasi
+      const tokenAkses = crypto.randomUUID();
       const [pesananBaru] = await tx
         .insert(pesanan)
         .values({
@@ -271,11 +276,13 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
           totalAkhir,
           catatan: data.catatan,
           idempotensiKey: data.idempotensiKey || null,
+          tokenAkses,
           kedaluwarsaPada,
         })
-        .returning({ id: pesanan.id });
+        .returning({ id: pesanan.id, tokenAkses: pesanan.tokenAkses });
 
       pesananId = pesananBaru.id;
+      tokenAksesPesanan = pesananBaru.tokenAkses || tokenAkses;
 
       // 7d. Simpan Snapshot Item Pesanan Imutabel
       for (const item of snapshotItem) {
@@ -345,28 +352,36 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
       },
     });
 
-    // 9. Penanganan jika Midtrans Gagal: Transaksi Kompensasi Rollback Stok
+    // 9. Penanganan jika Midtrans Gagal: Transaksi Kompensasi Rollback Stok (Compare-and-Set)
     if (!midtransResponse.sukses || !midtransResponse.token) {
       console.error("Gagal mendapatkan sesi pembayaran Midtrans:", midtransResponse.pesan);
 
-      // Kembalikan stok yang sempat didekremen & ubah status pesanan menjadi dibatalkan
+      // Kembalikan stok yang sempat didekremen secara compare-and-set
       await db.transaction(async (tx) => {
-        for (const item of snapshotItem) {
-          await tx
-            .update(varianProduk)
-            .set({ stok: sql`${varianProduk.stok} + ${item.jumlah}` })
-            .where(eq(varianProduk.id, item.varianId));
-        }
-
-        await tx
+        const [dibatalkan] = await tx
           .update(pesanan)
           .set({ statusPesanan: "dibatalkan" })
-          .where(eq(pesanan.id, pesananId));
+          .where(
+            and(
+              eq(pesanan.id, pesananId),
+              eq(pesanan.statusPesanan, "menunggu_pembayaran")
+            )
+          )
+          .returning({ id: pesanan.id });
 
-        await tx
-          .update(pembayaran)
-          .set({ statusPembayaran: "gagal" })
-          .where(eq(pembayaran.pesananId, pesananId));
+        if (dibatalkan) {
+          for (const item of snapshotItem) {
+            await tx
+              .update(varianProduk)
+              .set({ stok: sql`${varianProduk.stok} + ${item.jumlah}` })
+              .where(eq(varianProduk.id, item.varianId));
+          }
+
+          await tx
+            .update(pembayaran)
+            .set({ statusPembayaran: "gagal" })
+            .where(eq(pembayaran.pesananId, pesananId));
+        }
       });
 
       return {
@@ -390,10 +405,54 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
       sukses: true,
       pesan: "Pesanan berhasil dibuat. Melanjutkan ke pembayaran.",
       nomorPesanan,
+      tokenAkses: tokenAksesPesanan,
       snapToken: midtransResponse.token,
       redirectUrl: midtransResponse.redirectUrl,
     };
   } catch (error) {
+    // Penanganan anggun jika terjadi unique violation pada idempotensi_key (PAY-02)
+    if (
+      data.idempotensiKey &&
+      error &&
+      typeof error === "object" &&
+      (("code" in error && error.code === "23505") ||
+        ("constraint" in error && String(error.constraint).includes("idempotensi")))
+    ) {
+      try {
+        const [pesananEksis] = await db
+          .select({
+            id: pesanan.id,
+            nomorPesanan: pesanan.nomorPesanan,
+            tokenAkses: pesanan.tokenAkses,
+          })
+          .from(pesanan)
+          .where(eq(pesanan.idempotensiKey, data.idempotensiKey))
+          .limit(1);
+
+        if (pesananEksis) {
+          const [pembayaranEksis] = await db
+            .select({
+              snapToken: pembayaran.snapToken,
+              snapRedirectUrl: pembayaran.snapRedirectUrl,
+            })
+            .from(pembayaran)
+            .where(eq(pembayaran.pesananId, pesananEksis.id))
+            .limit(1);
+
+          return {
+            sukses: true,
+            pesan: "Pesanan telah diproses secara bersamaan (idempotent concurrent resolution).",
+            nomorPesanan: pesananEksis.nomorPesanan,
+            tokenAkses: pesananEksis.tokenAkses || undefined,
+            snapToken: pembayaranEksis?.snapToken || undefined,
+            redirectUrl: pembayaranEksis?.snapRedirectUrl || undefined,
+          };
+        }
+      } catch (errDb) {
+        console.error("Gagal mengambil pesanan konflik idempotensi:", errDb);
+      }
+    }
+
     console.error("Galat proses buat pesanan:", error);
     return {
       sukses: false,

@@ -1,5 +1,6 @@
 import { and, eq, lte, sql } from "drizzle-orm";
 import { db, pesanan, pembayaran, itemPesanan, varianProduk } from "@/lib/db";
+import { cekStatusTransaksiMidtrans } from "@/lib/services/midtrans.service";
 
 export interface HasilBatalKedaluwarsa {
   sukses: boolean;
@@ -11,7 +12,7 @@ export interface HasilBatalKedaluwarsa {
 /**
  * Service Domain Reservasi Stok (Module 02.15 Release Hardening)
  * Bertanggung jawab memulihkan stok dan membatalkan pesanan yang melewati jendela waktu 15 menit.
- * Menerapkan Atomic Compare-and-Set untuk mencegah pemulihan kuota stok ganda.
+ * Menerapkan Rekonsiliasi Gateway Midtrans (OPS-02) & Atomic Compare-and-Set.
  */
 export async function batalkanPesananKedaluwarsa(
   pesananIdSpesifik?: string
@@ -56,6 +57,33 @@ export async function batalkanPesananKedaluwarsa(
 
     // 2. Eksekusi compare-and-set dan pemulihan stok per pesanan
     for (const order of pesananKedaluwarsa) {
+      // Rekonsiliasi Gateway Midtrans (OPS-02): Jangan batalkan jika transaksi ternyata sudah dibayar di gateway
+      const statusGateway = await cekStatusTransaksiMidtrans(order.nomorPesanan);
+      if (statusGateway.apakahSudahDibayar) {
+        await db.transaction(async (tx) => {
+          await tx
+            .update(pesanan)
+            .set({
+              statusPesanan: "diproses",
+              diperbaruiPada: sekarang,
+            })
+            .where(
+              and(
+                eq(pesanan.id, order.id),
+                eq(pesanan.statusPesanan, "menunggu_pembayaran")
+              )
+            );
+
+          await tx
+            .update(pembayaran)
+            .set({
+              statusPembayaran: "berhasil",
+              diperbaruiPada: sekarang,
+            })
+            .where(eq(pembayaran.pesananId, order.id));
+        });
+        continue;
+      }
       await db.transaction(async (tx) => {
         // Compare-and-Set: Hanya batalkan jika status di database masih 'menunggu_pembayaran'
         const [updated] = await tx

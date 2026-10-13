@@ -1,0 +1,1 @@
+ALTER TABLE "pesanan" ADD COLUMN "token_akses" varchar(64);

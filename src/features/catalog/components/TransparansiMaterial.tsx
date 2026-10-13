@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 import type { SpesifikasiGarmen } from "../types/product.type";
@@ -155,6 +156,41 @@ export function TransparansiMaterial({ kategori, spesifikasi }: PropertiTranspar
             </li>
           </ul>
         )}
+      </div>
+
+      {/* Visual Inspeksi Tekstur & Segel Otentik */}
+      <div className="mt-5 border-t border-neutral-900 pt-4">
+        <div className="flex items-center gap-3 bg-neutral-900/40 p-3">
+          <div className="relative h-12 w-12 shrink-0 overflow-hidden border border-neutral-800 bg-neutral-950">
+            <Image
+              src="/images/brand/fabric-density-macro.jpg"
+              alt="Uji makro kerapatan kain garmen VOID Supply"
+              fill
+              sizes="48px"
+              className="object-cover"
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[10px] font-semibold text-white uppercase">
+                INSPEKSI TEKSTUR MAKRO
+              </span>
+              <span className="font-mono text-[9px] text-neutral-400">BATCH 04</span>
+            </div>
+            <p className="truncate text-[11px] text-neutral-400">
+              Kerapatan benang rapat tahan aus dengan jahitan pengunci presisi.
+            </p>
+          </div>
+          <div className="relative h-8 w-8 shrink-0 opacity-80">
+            <Image
+              src="/images/brand/void-drop04-seal.jpg"
+              alt="Segel VOID Supply"
+              fill
+              sizes="32px"
+              className="object-contain"
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

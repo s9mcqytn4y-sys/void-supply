@@ -215,8 +215,9 @@ export function useCheckout() {
 
         if (hasil.sukses && hasil.nomorPesanan) {
           kosongkanKeranjang();
-          // Arahkan langsung ke halaman status pesanan kanonikal
-          router.push(`/pesanan/${encodeURIComponent(hasil.nomorPesanan)}`);
+          // Arahkan langsung ke halaman status pesanan kanonikal berproteksi token otorisasi
+          const queryToken = hasil.tokenAkses ? `?token=${encodeURIComponent(hasil.tokenAkses)}` : "";
+          router.push(`/pesanan/${encodeURIComponent(hasil.nomorPesanan)}${queryToken}`);
         } else {
           setPesanErrorGlobal(hasil.pesan);
         }

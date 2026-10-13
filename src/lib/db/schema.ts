@@ -191,6 +191,7 @@ export const pesanan = pgTable(
     totalAkhir: integer("total_akhir").notNull(),
     catatan: text("catatan"),
     idempotensiKey: varchar("idempotensi_key", { length: 64 }).unique(),
+    tokenAkses: varchar("token_akses", { length: 64 }),
     kedaluwarsaPada: timestamp("kedaluwarsa_pada", { withTimezone: true }),
     dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
     diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
