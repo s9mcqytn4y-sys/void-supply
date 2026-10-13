@@ -57,11 +57,13 @@ export async function batalkanPesananKedaluwarsa(
 
     // 2. Eksekusi compare-and-set dan pemulihan stok per pesanan
     for (const order of pesananKedaluwarsa) {
-      // Rekonsiliasi Gateway Midtrans (OPS-02): Jangan batalkan jika transaksi ternyata sudah dibayar di gateway
+      // Rekonsiliasi Gateway Midtrans Tri-State (OPS-02 & PAY-04):
       const statusGateway = await cekStatusTransaksiMidtrans(order.nomorPesanan);
-      if (statusGateway.apakahSudahDibayar) {
+
+      // KASUS 1: PAID (Transaksi sukses di gateway) -> Ubah pesanan ke diproses, pembayaran ke berhasil secara atomik
+      if (statusGateway.state === "PAID" || statusGateway.apakahSudahDibayar) {
         await db.transaction(async (tx) => {
-          await tx
+          const [updatedPaid] = await tx
             .update(pesanan)
             .set({
               statusPesanan: "diproses",
@@ -72,18 +74,38 @@ export async function batalkanPesananKedaluwarsa(
                 eq(pesanan.id, order.id),
                 eq(pesanan.statusPesanan, "menunggu_pembayaran")
               )
-            );
+            )
+            .returning({ id: pesanan.id });
 
-          await tx
-            .update(pembayaran)
-            .set({
-              statusPembayaran: "berhasil",
-              diperbaruiPada: sekarang,
-            })
-            .where(eq(pembayaran.pesananId, order.id));
+          if (updatedPaid) {
+            await tx
+              .update(pembayaran)
+              .set({
+                statusPembayaran: "berhasil",
+                diperbaruiPada: sekarang,
+              })
+              .where(eq(pembayaran.pesananId, order.id));
+          }
         });
         continue;
       }
+
+      // KASUS 2: UNKNOWN (Network error / Gateway 5xx / timeout) -> JANGAN batalkan pesanan & JANGAN kembalikan stok!
+      // Catat percobaan rekonsiliasi dan tandai perlu tinjauan manual jika mencapai 12 kali (1 jam)
+      if (statusGateway.state === "UNKNOWN") {
+        await db
+          .update(pesanan)
+          .set({
+            percobaanRekonsiliasi: sql`${pesanan.percobaanRekonsiliasi} + 1`,
+            rekonsiliasiTerakhirPada: sekarang,
+            perluTinjauanManual: sql`CASE WHEN ${pesanan.percobaanRekonsiliasi} + 1 >= 12 THEN true ELSE ${pesanan.perluTinjauanManual} END`,
+            diperbaruiPada: sekarang,
+          })
+          .where(eq(pesanan.id, order.id));
+        continue;
+      }
+
+      // KASUS 3: UNPAID_TERMINAL -> Pembatalan pesanan, pemulihan stok artikel, dan update pembayaran secara atomik
       await db.transaction(async (tx) => {
         // Compare-and-Set: Hanya batalkan jika status di database masih 'menunggu_pembayaran'
         const [updated] = await tx

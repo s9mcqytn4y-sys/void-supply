@@ -154,22 +154,49 @@ export function verifikasiSignatureMidtrans(
   }
 }
 
-/**
- * Periksa Status Transaksi Langsung ke Gateway Midtrans (OPS-02)
- * Digunakan untuk rekonsiliasi sebelum eksekusi pembatalan kadaluwarsa.
- */
-export async function cekStatusTransaksiMidtrans(nomorPesanan: string): Promise<{
+export type StatusRekonsiliasiMidtrans = "PAID" | "UNPAID_TERMINAL" | "UNKNOWN";
+
+export interface HasilCekStatusMidtrans {
   ditemukan: boolean;
   statusTransaksi?: string;
   fraudStatus?: string;
+  state: StatusRekonsiliasiMidtrans;
   apakahSudahDibayar: boolean;
-}> {
+  pesan?: string;
+}
+
+/**
+ * Periksa Status Transaksi Langsung ke Gateway Midtrans (OPS-02 & PAY-04)
+ * Menerapkan rekonsiliasi tri-state:
+ * - PAID: Transaksi sukses/settlement/capture
+ * - UNPAID_TERMINAL: Transaksi pasti belum dibayar & final (expire, cancel, deny, failure, atau 404 pada batas waktu)
+ * - UNKNOWN: Gateway unreachable / 5xx / timeout (tidak boleh batalkan order / release stok otomatis)
+ */
+export async function cekStatusTransaksiMidtrans(
+  nomorPesanan: string
+): Promise<HasilCekStatusMidtrans> {
+  // Flag simulasi mock lokal
+  if (serverKey.includes("xxxxxxxxxxxx") || serverKey.startsWith("SB-Mid-server-demo")) {
+    if (process.env.ALLOW_PAYMENT_MOCK === "true") {
+      return {
+        ditemukan: true,
+        statusTransaksi: "expire",
+        state: "UNPAID_TERMINAL",
+        apakahSudahDibayar: false,
+        pesan: "Simulasi sandbox/mock: Transaksi dianggap belum dibayar secara terminal.",
+      };
+    }
+  }
+
   try {
     const baseUrl = isProduction
       ? "https://api.midtrans.com"
       : "https://api.sandbox.midtrans.com";
 
     const authHeader = `Basic ${Buffer.from(`${serverKey}:`).toString("base64")}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     const res = await fetch(`${baseUrl}/v2/${encodeURIComponent(nomorPesanan)}/status`, {
       method: "GET",
@@ -178,12 +205,28 @@ export async function cekStatusTransaksiMidtrans(nomorPesanan: string): Promise<
         Accept: "application/json",
       },
       cache: "no-store",
+      signal: controller.signal,
+    }).finally(() => {
+      clearTimeout(timeoutId);
     });
 
-    if (!res.ok) {
+    if (res.status === 404) {
+      // 404 Not Found di Midtrans berarti transaksi tidak pernah terdaftar atau sudah dibersihkan gateway
       return {
         ditemukan: false,
+        state: "UNPAID_TERMINAL",
         apakahSudahDibayar: false,
+        pesan: "Transaksi tidak ditemukan di gateway (404).",
+      };
+    }
+
+    if (!res.ok) {
+      // HTTP 5xx atau error lain dari server gateway
+      return {
+        ditemukan: false,
+        state: "UNKNOWN",
+        apakahSudahDibayar: false,
+        pesan: `Gateway Midtrans merespons status ${res.status}. Status transaksi belum dapat dipastikan.`,
       };
     }
 
@@ -195,19 +238,56 @@ export async function cekStatusTransaksiMidtrans(nomorPesanan: string): Promise<
       status === "settlement" ||
       (status === "capture" && fraud === "accept");
 
+    if (sudahDibayar) {
+      return {
+        ditemukan: true,
+        statusTransaksi: status,
+        fraudStatus: fraud,
+        state: "PAID",
+        apakahSudahDibayar: true,
+      };
+    }
+
+    const terminalStatuses = ["expire", "cancel", "deny", "failure"];
+    if (status && terminalStatuses.includes(status)) {
+      return {
+        ditemukan: true,
+        statusTransaksi: status,
+        fraudStatus: fraud,
+        state: "UNPAID_TERMINAL",
+        apakahSudahDibayar: false,
+      };
+    }
+
+    // Status masih pending di gateway, tetapi jika dicek oleh cron pembatalan berarti window 15 menit sudah lewat
+    if (status === "pending") {
+      return {
+        ditemukan: true,
+        statusTransaksi: status,
+        fraudStatus: fraud,
+        state: "UNPAID_TERMINAL",
+        apakahSudahDibayar: false,
+      };
+    }
+
     return {
       ditemukan: true,
       statusTransaksi: status,
       fraudStatus: fraud,
-      apakahSudahDibayar: Boolean(sudahDibayar),
+      state: "UNKNOWN",
+      apakahSudahDibayar: false,
     };
-  } catch {
+  } catch (error) {
+    console.error("Gagal memeriksa status transaksi Midtrans:", error);
     return {
       ditemukan: false,
+      state: "UNKNOWN",
       apakahSudahDibayar: false,
+      pesan: error instanceof Error ? error.message : "Network error / timeout",
     };
   }
 }
+
 
 
 

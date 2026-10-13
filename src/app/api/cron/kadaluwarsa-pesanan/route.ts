@@ -28,6 +28,18 @@ async function handleCron(req: Request) {
 
     const hasil = await batalkanPesananKedaluwarsa();
 
+    if (!hasil.sukses) {
+      console.error("[CRON KADALUWARSA] Operasi pembatalan gagal:", hasil.pesan);
+      return NextResponse.json(
+        {
+          error: "Operasi pembatalan pesanan kedaluwarsa gagal.",
+          pesan: hasil.pesan,
+          dieksekusiPada: new Date().toISOString(),
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       status: "ok",
       jumlahDibatalkan: hasil.jumlahDibatalkan,

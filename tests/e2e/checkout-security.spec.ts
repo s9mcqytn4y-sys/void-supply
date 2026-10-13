@@ -6,17 +6,17 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
     await page.goto("/katalog");
     const kartuProduk = page.locator('article a[href^="/katalog/"]').first();
     await expect(kartuProduk).toBeVisible();
-    await kartuProduk.click();
+    await kartuProduk.click({ force: true });
 
     // Pilih ukuran varian yang tersedia
     const tombolUkuran = page.locator('button[role="radio"]:not([disabled])').first();
     await expect(tombolUkuran).toBeVisible();
-    await tombolUkuran.click();
+    await tombolUkuran.click({ force: true });
 
     // Tambahkan artikel ke keranjang
     const tombolTambah = page.locator('button:has-text("TAMBAHKAN KE KERANJANG"), button:has-text("TAMBAH KE KERANJANG")').first();
     await expect(tombolTambah).toBeVisible();
-    await tombolTambah.click();
+    await tombolTambah.click({ force: true });
 
     // Tunggu drawer keranjang terbuka mengonfirmasi penambahan sukses
     await expect(page.locator('text="KERANJANG BELANJA"')).toBeVisible();

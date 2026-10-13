@@ -129,17 +129,57 @@ export async function ambilStatusPesanan(
       .from(itemPesanan)
       .where(eq(itemPesanan.pesananId, pesananDb.id));
 
-    // Evaluasi otorisasi (SEC-02): Jika pesanan memiliki tokenAkses, token wajib cocok
-    const isAuthorized = !pesananDb.tokenAkses || (Boolean(tokenAkses) && tokenAkses === pesananDb.tokenAkses);
+    // Evaluasi otorisasi (SEC-02A & SEC-03):
+    // 1. Dapatkan token dari argumen atau dari cookie session
+    let tokenPengguna = tokenAkses?.trim();
+    if (!tokenPengguna) {
+      try {
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        tokenPengguna = cookieStore.get(`void_order_token_${nomorPesanan}`)?.value?.trim();
+      } catch {
+        // Lingkungan non-SSR / unit test tanpa request context
+      }
+    }
 
+    // Fail-Closed Guard: Otorisasi hanya bernilai true jika pesanan memiliki tokenAkses dan token pengguna cocok persis
+    const isAuthorized =
+      Boolean(pesananDb.tokenAkses) &&
+      Boolean(tokenPengguna) &&
+      tokenPengguna === pesananDb.tokenAkses;
+
+    if (!isAuthorized) {
+      // SEC-03: Minimal Public Status View (Bebas PII, tanpa items, tanpa harga, tanpa kurir)
+      return {
+        sukses: true,
+        pesan: "Status pesanan publik dimuat dalam mode aman.",
+        data: {
+          nomorPesanan: pesananDb.nomorPesanan,
+          isAuthorized: false,
+          statusPesanan: statusPesananSaatIni,
+          statusPembayaran: pembayaranDb?.statusPembayaran || "menunggu_pembayaran",
+          totalAkhir: 0,
+          subtotal: 0,
+          totalOngkir: 0,
+          dibuatPada: pesananDb.dibuatPada.toISOString(),
+          kedaluwarsaPada: batasKedaluwarsa.toISOString(),
+          namaPelanggan: "",
+          emailPelanggan: "",
+          teleponPelanggan: "",
+          kurir: undefined,
+          pembayaran: undefined,
+          items: [],
+        },
+      };
+    }
+
+    // Authorized View: Kembalikan data lengkap pesanan
     return {
       sukses: true,
-      pesan: isAuthorized
-        ? "Detail pesanan berhasil diambil."
-        : "Detail pesanan ditampilkan dalam mode terlindungi (PII disamarkan).",
+      pesan: "Detail pesanan berhasil diambil.",
       data: {
         nomorPesanan: pesananDb.nomorPesanan,
-        isAuthorized,
+        isAuthorized: true,
         statusPesanan: statusPesananSaatIni,
         statusPembayaran: pembayaranDb?.statusPembayaran || "menunggu_pembayaran",
         totalAkhir: pesananDb.totalAkhir,
@@ -147,22 +187,22 @@ export async function ambilStatusPesanan(
         totalOngkir: pesananDb.totalOngkir,
         dibuatPada: pesananDb.dibuatPada.toISOString(),
         kedaluwarsaPada: batasKedaluwarsa.toISOString(),
-        namaPelanggan: isAuthorized ? pesananDb.namaPelanggan : sensorNama(pesananDb.namaPelanggan),
-        emailPelanggan: isAuthorized ? pesananDb.emailPelanggan : sensorEmail(pesananDb.emailPelanggan),
-        teleponPelanggan: isAuthorized ? pesananDb.teleponPelanggan : sensorTelepon(pesananDb.teleponPelanggan),
+        namaPelanggan: pesananDb.namaPelanggan,
+        emailPelanggan: pesananDb.emailPelanggan,
+        teleponPelanggan: pesananDb.teleponPelanggan,
         kurir: pengirimanDb
           ? {
               nama: pengirimanDb.kurir,
               layanan: pengirimanDb.layanan,
               estimasiHari: pengirimanDb.estimasiHari,
-              nomorResi: isAuthorized ? pengirimanDb.nomorResi : undefined,
+              nomorResi: pengirimanDb.nomorResi,
             }
           : undefined,
         pembayaran: pembayaranDb
           ? {
               metode: pembayaranDb.metodePembayaran,
-              snapToken: isAuthorized ? pembayaranDb.snapToken : undefined,
-              snapRedirectUrl: isAuthorized ? pembayaranDb.snapRedirectUrl : undefined,
+              snapToken: pembayaranDb.snapToken,
+              snapRedirectUrl: pembayaranDb.snapRedirectUrl,
               dibayarPada: pembayaranDb.dibayarPada?.toISOString() || null,
             }
           : undefined,

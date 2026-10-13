@@ -201,80 +201,97 @@ export function KartuStatusPesanan({
           </div>
         )}
 
-        {/* Rincian Artikel Pesanan */}
-        <div className="mt-8">
-          <h2 className="border-b border-neutral-800 pb-2 font-mono text-xs font-bold text-white uppercase">
-            ARTIKEL PESANAN ({pesanan.items.reduce((acc, i) => acc + i.jumlah, 0)}{" "}
-            UNIT)
-          </h2>
-          <ul className="mt-3 divide-y divide-neutral-900 font-mono text-xs">
-            {pesanan.items.map((item) => (
-              <li
-                key={item.id}
-                className="flex items-center justify-between py-3"
-              >
-                <div>
-                  <p className="font-bold text-white">{item.namaProduk}</p>
-                  <p className="text-[11px] text-neutral-400">
-                    {item.namaVarian} // SKU: {item.sku} x {item.jumlah}
+        {/* Rincian Artikel & Pengiriman (Hanya Ditampilkan Jika Terotorisasi Penuh) */}
+        {pesanan.isAuthorized ? (
+          <>
+            {/* Rincian Artikel Pesanan */}
+            <div className="mt-8">
+              <h2 className="border-b border-neutral-800 pb-2 font-mono text-xs font-bold text-white uppercase">
+                ARTIKEL PESANAN ({pesanan.items.reduce((acc, i) => acc + i.jumlah, 0)}{" "}
+                UNIT)
+              </h2>
+              <ul className="mt-3 divide-y divide-neutral-900 font-mono text-xs">
+                {pesanan.items.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex items-center justify-between py-3"
+                  >
+                    <div>
+                      <p className="font-bold text-white">{item.namaProduk}</p>
+                      <p className="text-[11px] text-neutral-400">
+                        {item.namaVarian} // SKU: {item.sku} x {item.jumlah}
+                      </p>
+                    </div>
+                    <span className="font-bold text-white">
+                      {formatRupiah(item.subtotalItem)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Informasi Logistik & Penerima */}
+            <div className="mt-6 grid grid-cols-1 gap-6 border-t border-neutral-800 pt-6 sm:grid-cols-2">
+              <div>
+                <h3 className="font-mono text-xs font-bold text-white uppercase">
+                  PENERIMA & ALAMAT
+                </h3>
+                <p className="mt-2 font-mono text-xs text-neutral-300">
+                  {pesanan.namaPelanggan}
+                </p>
+                <p className="text-xs text-neutral-400">{pesanan.teleponPelanggan}</p>
+                <p className="text-xs text-neutral-400">{pesanan.emailPelanggan}</p>
+              </div>
+
+              <div>
+                <h3 className="font-mono text-xs font-bold text-white uppercase">
+                  PENGIRIMAN
+                </h3>
+                <p className="mt-2 font-mono text-xs text-neutral-300">
+                  {pesanan.kurir?.nama} - {pesanan.kurir?.layanan}
+                </p>
+                <p className="text-xs text-neutral-400">
+                  Estimasi: {pesanan.kurir?.estimasiHari}
+                </p>
+                {pesanan.kurir?.nomorResi && (
+                  <p className="mt-1 font-mono text-xs font-bold text-emerald-400">
+                    Resi: {pesanan.kurir.nomorResi}
                   </p>
-                </div>
-                <span className="font-bold text-white">
-                  {formatRupiah(item.subtotalItem)}
+                )}
+              </div>
+            </div>
+
+            {/* Rincian Finansial & Total */}
+            <div className="mt-6 border-t border-neutral-800 pt-4 font-mono text-xs">
+              <div className="flex justify-between py-1 text-neutral-400">
+                <span>SUBTOTAL:</span>
+                <span className="text-white">{formatRupiah(pesanan.subtotal)}</span>
+              </div>
+              <div className="flex justify-between py-1 text-neutral-400">
+                <span>ONGKOS KIRIM:</span>
+                <span className="text-white">{formatRupiah(pesanan.totalOngkir)}</span>
+              </div>
+              <div className="flex justify-between border-t border-neutral-800 pt-2 text-sm text-white">
+                <span className="font-bold">TOTAL TAGIHAN:</span>
+                <span className="font-black text-emerald-400">
+                  {formatRupiah(pesanan.totalAkhir)}
                 </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Informasi Logistik & Penerima */}
-        <div className="mt-6 grid grid-cols-1 gap-6 border-t border-neutral-800 pt-6 sm:grid-cols-2">
-          <div>
-            <h3 className="font-mono text-xs font-bold text-white uppercase">
-              PENERIMA & ALAMAT
-            </h3>
-            <p className="mt-2 font-mono text-xs text-neutral-300">
-              {pesanan.namaPelanggan}
-            </p>
-            <p className="text-xs text-neutral-400">{pesanan.teleponPelanggan}</p>
-            <p className="text-xs text-neutral-400">{pesanan.emailPelanggan}</p>
-          </div>
-
-          <div>
-            <h3 className="font-mono text-xs font-bold text-white uppercase">
-              PENGIRIMAN
-            </h3>
-            <p className="mt-2 font-mono text-xs text-neutral-300">
-              {pesanan.kurir?.nama} - {pesanan.kurir?.layanan}
-            </p>
-            <p className="text-xs text-neutral-400">
-              Estimasi: {pesanan.kurir?.estimasiHari}
-            </p>
-            {pesanan.kurir?.nomorResi && (
-              <p className="mt-1 font-mono text-xs font-bold text-emerald-400">
-                Resi: {pesanan.kurir.nomorResi}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Rincian Finansial & Total */}
-        <div className="mt-6 border-t border-neutral-800 pt-4 font-mono text-xs">
-          <div className="flex justify-between py-1 text-neutral-400">
-            <span>SUBTOTAL:</span>
-            <span className="text-white">{formatRupiah(pesanan.subtotal)}</span>
-          </div>
-          <div className="flex justify-between py-1 text-neutral-400">
-            <span>ONGKOS KIRIM:</span>
-            <span className="text-white">{formatRupiah(pesanan.totalOngkir)}</span>
-          </div>
-          <div className="flex justify-between border-t border-neutral-800 pt-2 text-sm text-white">
-            <span className="font-bold">TOTAL TAGIHAN:</span>
-            <span className="font-black text-emerald-400">
-              {formatRupiah(pesanan.totalAkhir)}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="mt-8 border border-neutral-800/80 bg-neutral-900/30 p-5">
+            <span className="font-mono text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+              PROTEKSI PRIVASI PUBLIK (SEC-03)
             </span>
+            <p className="mt-1 font-mono text-xs text-neutral-300">
+              Rincian artikel pemesanan, data alamat penerima, dan nominal tagihan disembunyikan.
+            </p>
+            <p className="mt-2 font-mono text-[11px] text-neutral-500">
+              Gunakan perangkat atau browser yang sama saat Anda melakukan proses checkout untuk memuat rincian transaksi secara lengkap.
+            </p>
           </div>
-        </div>
+        )}
 
         <div className="mt-8 border-t border-neutral-800 pt-6">
           <Link

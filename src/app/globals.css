@@ -8,7 +8,8 @@
   --color-void-muted: #a3a3a3;
   --color-void-light: #ededed;
   --color-void-white: #ffffff;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: var(--font-archivo), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, monospace;
 }
 
 :root {

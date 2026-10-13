@@ -1,0 +1,65 @@
+name: Sandbox E2E Live Integration
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_full_checkout:
+        description: "Jalankan pengujian checkout lengkap dengan Midtrans Sandbox"
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  sandbox-test:
+    name: Live Gateway Sandbox Verification
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: void_supply
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/void_supply"
+      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+      NEXT_PUBLIC_SITE_URL: "http://localhost:3000"
+      NEXT_PUBLIC_APP_NAME: "VOID Supply"
+      ALLOW_PAYMENT_MOCK: "false"
+      MIDTRANS_IS_PRODUCTION: "false"
+      MIDTRANS_SERVER_KEY: ${{ secrets.MIDTRANS_SERVER_KEY_SANDBOX }}
+      NEXT_PUBLIC_MIDTRANS_CLIENT_KEY: ${{ secrets.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_SANDBOX }}
+      BITESHIP_API_KEY: ${{ secrets.BITESHIP_API_KEY_SANDBOX }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Push Schema & Seed Test Database
+        run: |
+          npx drizzle-kit push
+          npm run db:seed
+
+      - name: Install Playwright Chromium Browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E Tests Against Real Sandbox
+        run: npm run test:e2e

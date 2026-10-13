@@ -124,26 +124,28 @@ describe("Module 02.15: SEC-01 & SEC-02 Security Hardening Suite", () => {
       const nomorPesanan = hasilOrder.nomorPesanan!;
       const tokenValid = hasilOrder.tokenAkses!;
 
-      // 1. Akses tanpa token (pengunjung asing / crawler)
+      // 1. Akses tanpa token (pengunjung asing / crawler) -> SEC-03 Minimal Public View
       const hasilTanpaToken = await ambilStatusPesanan(nomorPesanan);
       expect(hasilTanpaToken.sukses).toBe(true);
       expect(hasilTanpaToken.data).toBeDefined();
       expect(hasilTanpaToken.data!.isAuthorized).toBe(false);
-      // PII harus tersamarkan
-      expect(hasilTanpaToken.data!.namaPelanggan).toContain("***");
-      expect(hasilTanpaToken.data!.emailPelanggan).toContain("***@");
-      expect(hasilTanpaToken.data!.teleponPelanggan).toContain("****");
-      expect(hasilTanpaToken.data!.pembayaran?.snapRedirectUrl).toBeUndefined();
-      expect(hasilTanpaToken.data!.pembayaran?.snapToken).toBeUndefined();
+      // PII dan rincian sensitif harus kosong total (SEC-03)
+      expect(hasilTanpaToken.data!.namaPelanggan).toBe("");
+      expect(hasilTanpaToken.data!.emailPelanggan).toBe("");
+      expect(hasilTanpaToken.data!.teleponPelanggan).toBe("");
+      expect(hasilTanpaToken.data!.items).toHaveLength(0);
+      expect(hasilTanpaToken.data!.totalAkhir).toBe(0);
+      expect(hasilTanpaToken.data!.kurir).toBeUndefined();
+      expect(hasilTanpaToken.data!.pembayaran).toBeUndefined();
 
       // 2. Akses dengan token keliru (brute-force / IDOR attempt)
       const hasilTokenSalah = await ambilStatusPesanan(nomorPesanan, "invalid-token-uuid");
       expect(hasilTokenSalah.sukses).toBe(true);
       expect(hasilTokenSalah.data).toBeDefined();
       expect(hasilTokenSalah.data!.isAuthorized).toBe(false);
-      expect(hasilTokenSalah.data!.namaPelanggan).toContain("***");
-      expect(hasilTokenSalah.data!.pembayaran?.snapRedirectUrl).toBeUndefined();
-      expect(hasilTokenSalah.data!.pembayaran?.snapToken).toBeUndefined();
+      expect(hasilTokenSalah.data!.namaPelanggan).toBe("");
+      expect(hasilTokenSalah.data!.items).toHaveLength(0);
+      expect(hasilTokenSalah.data!.pembayaran).toBeUndefined();
 
       // 3. Akses dengan token valid (pemilik order sesungguhnya)
       const hasilResmi = await ambilStatusPesanan(nomorPesanan, tokenValid);
@@ -153,6 +155,56 @@ describe("Module 02.15: SEC-01 & SEC-02 Security Hardening Suite", () => {
       expect(hasilResmi.data!.namaPelanggan).toBe("Rian Hendrawan");
       expect(hasilResmi.data!.emailPelanggan).toBe("rian.hendrawan@example.com");
       expect(hasilResmi.data!.teleponPelanggan).toBe("081234567890");
+      expect(hasilResmi.data!.items.length).toBeGreaterThan(0);
+      expect(hasilResmi.data!.totalAkhir).toBeGreaterThan(0);
+    });
+  });
+
+  describe("PAY-06: Idempotency Payload Fingerprint Verification", () => {
+    it("menolak permintaan pembuatan pesanan jika idempotency key sama digunakan dengan payload berbeda (HTTP 409 Conflict logic)", async () => {
+      const [varian] = await db
+        .select({ id: varianProduk.id, stok: varianProduk.stok })
+        .from(varianProduk)
+        .where(sql`${varianProduk.stok} >= 5`)
+        .limit(1);
+
+      expect(varian).toBeDefined();
+
+      const kunciIdempotensi = `idem-conflict-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+
+      const orderPayloadAwal = {
+        namaLengkap: "Rian Trendsetter",
+        email: "rian.trend@example.com",
+        telepon: "081234567899",
+        alamatLengkap: "Jl. Sudirman Kav. 52",
+        kota: "Jakarta Pusat",
+        provinsi: "DKI Jakarta",
+        kodePos: "10210",
+        kodeKurir: "jne",
+        layananKurir: "Reguler",
+        idempotensiKey: kunciIdempotensi,
+        items: [{ varianId: varian.id, jumlah: 1 }],
+      };
+
+      // 1. Submit pesanan pertama (sukses)
+      const hasilAwal = await buatPesanan(orderPayloadAwal);
+      expect(hasilAwal.sukses).toBe(true);
+
+      // 2. Submit ulang dengan payload identik (idempotent replay -> harus sukses mengembalikan pesanan awal)
+      const hasilReplay = await buatPesanan(orderPayloadAwal);
+      expect(hasilReplay.sukses).toBe(true);
+      expect(hasilReplay.nomorPesanan).toBe(hasilAwal.nomorPesanan);
+
+      // 3. Submit ulang dengan kunci yang sama tetapi isi pesanan berbeda (PAY-06 conflict)
+      const orderPayloadBeda = {
+        ...orderPayloadAwal,
+        email: "email.berbeda@example.com",
+        telepon: "089999999999",
+      };
+
+      const hasilKonflik = await buatPesanan(orderPayloadBeda);
+      expect(hasilKonflik.sukses).toBe(false);
+      expect(hasilKonflik.pesan).toContain("Konflik idempotensi");
     });
   });
 });

@@ -96,6 +96,13 @@ export interface SpesifikasiGarmen {
     pengeringan: string;
     penyetrikaan: string;
   };
+  verifikasi?: {
+    status: "terverifikasi" | "dalam_pengujian" | "standar_pabrik";
+    labUji?: string;
+    nomorBatch?: string;
+    tanggalUji?: string;
+    catatan?: string;
+  };
 }
 
 export interface DimensiUkuranGarmen {
@@ -191,7 +198,11 @@ export const pesanan = pgTable(
     totalAkhir: integer("total_akhir").notNull(),
     catatan: text("catatan"),
     idempotensiKey: varchar("idempotensi_key", { length: 64 }).unique(),
+    hashPayload: varchar("hash_payload", { length: 64 }),
     tokenAkses: varchar("token_akses", { length: 64 }),
+    percobaanRekonsiliasi: integer("percobaan_rekonsiliasi").default(0).notNull(),
+    rekonsiliasiTerakhirPada: timestamp("rekonsiliasi_terakhir_pada", { withTimezone: true }),
+    perluTinjauanManual: boolean("perlu_tinjauan_manual").default(false).notNull(),
     kedaluwarsaPada: timestamp("kedaluwarsa_pada", { withTimezone: true }),
     dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
     diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),

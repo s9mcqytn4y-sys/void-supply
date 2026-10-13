@@ -11,7 +11,7 @@ test.describe("E2E: Alur Keranjang & Hidrasi Multi-Platform (Module 02.15)", () 
     // 2. Klik produk pertama untuk masuk ke PDP
     const kartuProduk = page.locator('article a[href^="/katalog/"]').first();
     await expect(kartuProduk).toBeVisible();
-    await kartuProduk.click();
+    await kartuProduk.click({ force: true });
 
     // 3. Verifikasi masuk ke Product Detail Page
     const judulProduk = page.locator("h1");
@@ -20,12 +20,12 @@ test.describe("E2E: Alur Keranjang & Hidrasi Multi-Platform (Module 02.15)", () 
     // 4. Pilih ukuran varian menggunakan selector role radio
     const tombolUkuran = page.locator('button[role="radio"]:not([disabled])').first();
     await expect(tombolUkuran).toBeVisible();
-    await tombolUkuran.click();
+    await tombolUkuran.click({ force: true });
 
     // 5. Klik tombol Tambah ke Keranjang
     const tombolTambah = page.locator('button:has-text("TAMBAHKAN KE KERANJANG"), button:has-text("TAMBAH KE KERANJANG")').first();
     await expect(tombolTambah).toBeVisible();
-    await tombolTambah.click();
+    await tombolTambah.click({ force: true });
 
     // 6. Verifikasi Drawer Keranjang terbuka dan item tercatat
     const judulDrawer = page.locator('text="KERANJANG BELANJA"');

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { ambilStatusPesanan } from "@/features/checkout/actions/status-pesanan.action";
 import { KartuStatusPesanan } from "@/features/checkout/components/KartuStatusPesanan";
@@ -23,6 +24,7 @@ export async function generateMetadata({
       index: false,
       follow: false,
     },
+    referrer: "no-referrer",
   };
 }
 
@@ -32,7 +34,9 @@ export default async function HalamanStatusPesanan({
 }: PropsHalamanStatusPesanan) {
   const { nomorPesanan } = await params;
   const { token } = await searchParams;
-  const tokenAksesStr = typeof token === "string" ? token.trim() : undefined;
+  const cookieStore = await cookies();
+  const tokenCookie = cookieStore.get(`void_order_token_${nomorPesanan}`)?.value;
+  const tokenAksesStr = (tokenCookie || (typeof token === "string" ? token.trim() : undefined))?.trim();
   const hasil = await ambilStatusPesanan(nomorPesanan, tokenAksesStr);
 
   if (!hasil.sukses || !hasil.data) {

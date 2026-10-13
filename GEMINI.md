@@ -259,17 +259,17 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
 
 2. **Checkout Idempotency Key**:
    - Kolom `idempotensi_key` (varchar 64 unik) ditambahkan pada tabel `pesanan`.
-   - Client checkout membuat token UUID saat form dimuat; submit berulang atau retry jaringan mengembalikan pesanan eksis tanpa dekremen stok ganda.
+   - Client checkout membuat token UUID saat form dimuat, sehingga submit berulang atau retry jaringan mengembalikan pesanan eksis tanpa dekremen stok ganda.
 
 3. **Halaman Kanonikal Status Pesanan (`/pesanan/[nomorPesanan]`)**:
    - Halaman Server Component dengan metadata SEO noindex.
-   - Dilengkapi timer countdown 15 menit, ringkasan pesanan, tombol pembayaran Snap, dan polling status otomatis via Server Action (interval 5 detik hingga status final tercapai atau batas 2 menit).
+   - Dilengkapi timer countdown 15 menit, ringkasan pesanan, tombol pembayaran Snap, dan polling status otomatis via Server Action dengan interval 5 detik hingga status final tercapai atau batas 2 menit.
    - Pengalihan permanen `/order/:path*` diarahkan ke `/pesanan/:path*` di `next.config.ts`.
 
 4. **Isolasi Mock & Penolakan Fallback (Strict Fail-Closed)**:
    - Midtrans mock `SNAP-SIM-*` dibatasi ketat hanya aktif jika `ALLOW_PAYMENT_MOCK=true` DAN bukan di production.
    - Layanan Biteship menolak fallback estimasi di production bila kunci tidak terpasang.
-   - `ongkir.action.ts` menolak permintaan jika artikel varian tidak ditemukan di basis data (menghapus fallback 500 gram).
+   - `ongkir.action.ts` menolak permintaan jika artikel varian tidak ditemukan di basis data, sekaligus menghapus fallback 500 gram.
 
 5. **Dekomposisi Bersih & Anti-Bloat Checkout**:
    - Berkas `src/app/checkout/page.tsx` didekomposisi dari 610 baris menjadi <90 baris sebagai orchestrator ramping.
@@ -284,9 +284,8 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
 ## 13. Audit Remediation, IDOR Access Token & Workspace MCP (Module 02.15 Production Gate)
 
 1. **SEC-01 (Strict Fail-Closed Cron Authentication)**:
-   - Endpoint `/api/cron/kadaluwarsa-pesanan` mewajibkan kehadiran `CRON_SECRET` di lingkungan server. Jika variabel tidak ada atau kosong, request ditolak langsung dengan HTTP 500.
-   - Header `Authorization: Bearer <token>` diverifikasi secara presisi. Kegagalan autentikasi mengembalikan HTTP 401 Unauthorized.
-   - Response payload tidak membocorkan nomor pesanan individual ke pemanggil publik.
+   - Endpoint `/api/cron/kadaluwarsa-pesanan` mewajibkan kehadiran `CRON_SECRET` di lingkungan server, dan jika variabel tidak ada atau kosong maka request ditolak langsung dengan HTTP 500.
+   - Header `Authorization: Bearer <token>` diverifikasi secara presisi, sehingga kegagalan autentikasi mengembalikan HTTP 401 Unauthorized tanpa membocorkan nomor pesanan ke pemanggil publik.
 
 2. **SEC-02 (IDOR Protection via High-Entropy Access Token)**:
    - Kolom `token_akses` (UUID v4 berentropi 122-bit) ditambahkan ke tabel `pesanan`.
@@ -304,13 +303,49 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
 5. **Visual Assets Drop 04 & UI Enhancement**:
    - Menambahkan aset visual orisinal streetwear beresolusi tinggi ke UI:
      - `drop-04-editorial-campaign.jpg`: Kampanye editorial lookbook estetika beton brutalis monokromatik di homepage.
-     - `fabric-density-macro.jpg`: Makro tekstur rajut 450 GSM French Terry dan jahitan rantai ganda pada komponen transparansi material produk.
+     - `fabric-density-macro.jpg`: Makro tekstur rajut 420 GSM French Terry dan jahitan rantai ganda pada komponen transparansi material produk.
      - `void-drop04-seal.jpg`: Segel sertifikasi otentikasi Archive Edition Drop 04.
 
 6. **Workspace MCP Integration (`.vscode/mcp.json`)**:
    - Dikonfigurasi server resmi untuk efisiensi agen dan developer:
      - `context7`: Dokumentasi termutakhir framework (Next.js 16, React 19, Drizzle ORM, Zustand).
      - `playwright`: Verifikasi headless browser aktual dan pengujian antarmuka real-time.
-     - `chrome-devtools`: Profiling performa Core Web Vitals, waterfall jaringan, dan inspeksi layout.
+     - `chrome-devtools`: Profiling performa Core Web Vitals, waterfall jaringan, dan inspeksi layout via versi tersemat resmi `0.10.1`.
+
+---
+
+## 14. Pre-Production Security & Payment Reliability Gate (Module 02.16)
+
+1. **SEC-02A (Strict Token Verification & Fail-Closed Legacy Protection)**:
+   - Akses penuh ke detail pesanan mewajibkan kecocokan eksak antara token klien dan token database (`Boolean(dbToken) && dbToken === clientToken`).
+   - Pesanan historis dengan token kosong atau tidak terisi ditangani secara fail-closed (tidak memberikan akses penuh tanpa kredensial).
+   - Migrasi basis data `0004_perpetual_sway.sql` mengisi token unik UUID ke seluruh pesanan warisan yang belum memiliki token.
+   - Token disimpan dalam cookie browser `SameSite=Strict` dan ditautkan dengan kebijakan `Referrer-Policy: no-referrer` untuk mencegah kebocoran token melalui header referer HTTP.
+
+2. **SEC-03 (Minimal Public Status View)**:
+   - Permintaan tanpa token otentikasi hanya mengembalikan status minimal: nomor pesanan, status pesanan, status pembayaran, waktu dibuat, dan waktu kedaluwarsa.
+   - Seluruh data sensitif disamarkan: item pesanan dikosongkan, SKU disembunyikan, subtotal dan total ongkir di-nolkan, kurir disembunyikan, dan seluruh PII pelanggan dihapus.
+
+3. **PAY-04 (Tri-State Reconciliation Gateway Inquire)**:
+   - Status verifikasi gateway dipisahkan menjadi tiga kondisi tegas: `PAID`, `UNPAID_TERMINAL` (expire/cancel/deny), dan `UNKNOWN` (HTTP 5xx, timeout, atau jaringan terputus).
+   - Kondisi `UNKNOWN` dilarang membatalkan pesanan atau melepas stok. Sistem mencatat percobaan rekonsiliasi hingga 12 kali (1 jam) sebelum menandai `perlu_tinjauan_manual = true` untuk investigasi tim operasional.
+
+4. **PAY-05 (Atomic Payment & Order State Update)**:
+   - Perubahan status pesanan dan pencatatan pembayaran disatukan dalam satu transaksi basis data atomik berdurasi sangat singkat (<10ms).
+
+5. **PAY-06 (Idempotency Fingerprint Hash)**:
+   - Menyimpan `hash_payload` (SHA-256) pada tabel `pesanan` untuk memvalidasi sidik jari muatan checkout.
+   - Permintaan ulang dengan nomor idempotensi yang sama tetapi isi item, harga, atau data penerima yang berbeda ditolak secara tegas tanpa mengeksekusi mutasi stok.
+
+6. **OPS-03 (Fail-Closed Cron Route Handler)**:
+   - Endpoint `/api/cron/kadaluwarsa-pesanan` memverifikasi hasil pembersihan dan mengembalikan HTTP 500 apabila terjadi kegagalan sistematis dalam pemrosesan basis data.
+
+7. **TEST-02 & CI Pipeline Isolation**:
+   - Skrip pengujian sandbox gateway live dipisahkan ke dalam `.github/workflows/sandbox-e2e.yml` yang dijalankan secara manual (`workflow_dispatch`), menjaga pipeline CI utama tetap deterministik dan terisolasi dari kuota pihak ketiga.
+
+8. **Pembersihan Klaim & Aksesibilitas Material**:
+   - Menghapus klaim tanpa verifikasi pada antarmuka pengguna ("lolos uji QC batch mandiri" diganti dengan uraian konstruksi faktual, "450 GSM" disesuaikan dengan berat riil garmen 420 GSM, "MAKRO x10" diubah menjadi "INSPEKSI TEKSTUR MAKRO", dan klaim "anti-melar" dihapus).
+   - Label status verifikasi pada komponen `TransparansiMaterial.tsx` terikat langsung secara dinamis ke skema basis data `spesifikasi.verifikasi.status`.
+   - Menambahkan navigasi keyboard ARIA tabs (panah kiri dan kanan) pada tab spesifikasi garmen sesuai pedoman WCAG AA.
 
 

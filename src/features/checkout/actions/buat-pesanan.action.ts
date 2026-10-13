@@ -1,5 +1,6 @@
 "use server";
 
+import crypto from "crypto";
 import { inArray, eq, and, gte, sql } from "drizzle-orm";
 import {
   db,
@@ -15,6 +16,23 @@ import { formulirCheckoutSkema, type FormulirCheckout } from "../schemas/checkou
 import { buatTransaksiMidtrans } from "@/lib/services/midtrans.service";
 import { hitungOngkirBiteship } from "@/lib/services/biteship.service";
 import { gabungkanNiatItem } from "@/features/cart";
+
+function hitungHashPayload(data: FormulirCheckout): string {
+  const sortedItems = [...data.items]
+    .sort((a, b) => a.varianId.localeCompare(b.varianId))
+    .map((i) => ({ varianId: i.varianId, jumlah: i.jumlah }));
+
+  const payloadString = JSON.stringify({
+    email: data.email.trim().toLowerCase(),
+    telepon: data.telepon.trim(),
+    kodePos: data.kodePos.trim(),
+    kodeKurir: data.kodeKurir,
+    layananKurir: data.layananKurir,
+    items: sortedItems,
+  });
+
+  return crypto.createHash("sha256").update(payloadString).digest("hex");
+}
 
 export interface HasilBuatPesanan {
   sukses: boolean;
@@ -65,9 +83,10 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
 
   const itemDaftar = hasilGabung.itemTergabung;
   const daftarVarianIdUnik = itemDaftar.map((i) => i.varianId);
+  const hashPayloadSaatIni = hitungHashPayload(data);
 
   try {
-    // 2b. Idempotency Check: Jika idempotensiKey ada dan pesanan sudah tercatat, kembalikan pesanan eksis
+    // 2b. Idempotency Check: Jika idempotensiKey ada dan pesanan sudah tercatat, kembalikan pesanan eksis (PAY-06)
     if (data.idempotensiKey) {
       const [pesananEksis] = await db
         .select({
@@ -75,12 +94,21 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
           nomorPesanan: pesanan.nomorPesanan,
           tokenAkses: pesanan.tokenAkses,
           statusPesanan: pesanan.statusPesanan,
+          hashPayload: pesanan.hashPayload,
         })
         .from(pesanan)
         .where(eq(pesanan.idempotensiKey, data.idempotensiKey))
         .limit(1);
 
       if (pesananEksis) {
+        // PAY-06: Verifikasi kesesuaian fingerprint payload. Jika berbeda, tolak sebagai konflik idempotensi
+        if (pesananEksis.hashPayload && pesananEksis.hashPayload !== hashPayloadSaatIni) {
+          return {
+            sukses: false,
+            pesan: "Konflik idempotensi: Kunci permintaan ini telah digunakan dengan isi pesanan yang berbeda.",
+          };
+        }
+
         const [pembayaranEksis] = await db
           .select({
             snapToken: pembayaran.snapToken,
@@ -276,6 +304,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
           totalAkhir,
           catatan: data.catatan,
           idempotensiKey: data.idempotensiKey || null,
+          hashPayload: hashPayloadSaatIni,
           tokenAkses,
           kedaluwarsaPada,
         })
@@ -424,12 +453,19 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
             id: pesanan.id,
             nomorPesanan: pesanan.nomorPesanan,
             tokenAkses: pesanan.tokenAkses,
+            hashPayload: pesanan.hashPayload,
           })
           .from(pesanan)
           .where(eq(pesanan.idempotensiKey, data.idempotensiKey))
           .limit(1);
 
         if (pesananEksis) {
+          if (pesananEksis.hashPayload && pesananEksis.hashPayload !== hashPayloadSaatIni) {
+            return {
+              sukses: false,
+              pesan: "Konflik idempotensi: Kunci permintaan ini telah digunakan dengan isi pesanan yang berbeda.",
+            };
+          }
           const [pembayaranEksis] = await db
             .select({
               snapToken: pembayaran.snapToken,

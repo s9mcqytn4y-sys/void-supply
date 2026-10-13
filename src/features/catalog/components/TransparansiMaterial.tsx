@@ -40,60 +40,90 @@ export function TransparansiMaterial({ kategori, spesifikasi }: PropertiTranspar
   const dataKonstruksi = spesifikasi.konstruksi;
   const dataPerawatan = spesifikasi.perawatan;
 
+  const verifikasi = spesifikasi.verifikasi;
+  const statusVerifikasi = verifikasi?.status || "standar_pabrik";
+  const labelVerifikasi =
+    statusVerifikasi === "terverifikasi"
+      ? "SPEK TERVERIFIKASI"
+      : statusVerifikasi === "dalam_pengujian"
+      ? "UJI BATCH BERJALAN"
+      : "STANDAR PRODUKSI PABRIK";
+  const warnaVerifikasi =
+    statusVerifikasi === "terverifikasi"
+      ? "text-emerald-400"
+      : statusVerifikasi === "dalam_pengujian"
+      ? "text-amber-400"
+      : "text-neutral-400";
+
+  const tabs: Array<{ id: "material" | "konstruksi" | "perawatan"; label: string }> = [
+    { id: "material", label: "MATERIAL" },
+    { id: "konstruksi", label: "KONSTRUKSI" },
+    { id: "perawatan", label: "PERAWATAN" },
+  ];
+
+  function handleTabKeyDown(e: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      const nextIndex = (currentIndex + 1) % tabs.length;
+      setTabAktif(tabs[nextIndex].id);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+      setTabAktif(tabs[prevIndex].id);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      setTabAktif(tabs[0].id);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      setTabAktif(tabs[tabs.length - 1].id);
+    }
+  }
+
   return (
     <div className="border border-neutral-800 bg-neutral-950 p-5">
       <div className="mb-4 flex items-center justify-between border-b border-neutral-800 pb-3">
         <h3 className="font-mono text-xs font-semibold tracking-wider text-neutral-300 uppercase">
           TRANSPARANSI GARMEN // {kategori}
         </h3>
-        <span className="font-mono text-[10px] text-emerald-400">SPEK TERVERIFIKASI</span>
+        <div className="flex items-center gap-1.5 font-mono text-[10px]">
+          <span className={warnaVerifikasi}>{labelVerifikasi}</span>
+          {verifikasi?.nomorBatch && (
+            <span className="text-neutral-500">// BATCH {verifikasi.nomorBatch}</span>
+          )}
+        </div>
       </div>
 
-      {/* Tab Buttons */}
+      {/* Tab Buttons dengan navigasi keyboard ARIA accessible */}
       <div className="flex border-b border-neutral-900" role="tablist" aria-label="Spesifikasi teknis garmen">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tabAktif === "material"}
-          onClick={() => setTabAktif("material")}
-          className={`flex-1 pb-2.5 text-center font-mono text-xs tracking-wider uppercase transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white ${
-            tabAktif === "material"
-              ? "border-b-2 border-white font-bold text-white"
-              : "text-neutral-400 hover:text-neutral-200"
-          }`}
-        >
-          MATERIAL
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tabAktif === "konstruksi"}
-          onClick={() => setTabAktif("konstruksi")}
-          className={`flex-1 pb-2.5 text-center font-mono text-xs tracking-wider uppercase transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white ${
-            tabAktif === "konstruksi"
-              ? "border-b-2 border-white font-bold text-white"
-              : "text-neutral-400 hover:text-neutral-200"
-          }`}
-        >
-          KONSTRUKSI
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tabAktif === "perawatan"}
-          onClick={() => setTabAktif("perawatan")}
-          className={`flex-1 pb-2.5 text-center font-mono text-xs tracking-wider uppercase transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white ${
-            tabAktif === "perawatan"
-              ? "border-b-2 border-white font-bold text-white"
-              : "text-neutral-400 hover:text-neutral-200"
-          }`}
-        >
-          PERAWATAN
-        </button>
+        {tabs.map((tab, idx) => (
+          <button
+            key={tab.id}
+            id={`tab-${tab.id}`}
+            type="button"
+            role="tab"
+            aria-selected={tabAktif === tab.id}
+            aria-controls={`panel-${tab.id}`}
+            tabIndex={tabAktif === tab.id ? 0 : -1}
+            onClick={() => setTabAktif(tab.id)}
+            onKeyDown={(e) => handleTabKeyDown(e, idx)}
+            className={`flex-1 pb-2.5 text-center font-mono text-xs tracking-wider uppercase transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white ${
+              tabAktif === tab.id
+                ? "border-b-2 border-white font-bold text-white"
+                : "text-neutral-400 hover:text-neutral-200"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Tab Panel Content */}
-      <div className="pt-4 text-xs leading-relaxed text-neutral-300">
+      <div
+        id={`panel-${tabAktif}`}
+        role="tabpanel"
+        aria-labelledby={`tab-${tabAktif}`}
+        className="pt-4 text-xs leading-relaxed text-neutral-300"
+      >
         {tabAktif === "material" && (
           <ul className="space-y-2">
             <li className="flex justify-between border-b border-neutral-900/80 pb-1.5">
@@ -158,8 +188,8 @@ export function TransparansiMaterial({ kategori, spesifikasi }: PropertiTranspar
         )}
       </div>
 
-      {/* Visual Inspeksi Tekstur & Segel Otentik */}
-      <div className="mt-5 border-t border-neutral-900 pt-4">
+      {/* Visual Inspeksi Tekstur & Segel Otentik (Dekoratif / Informasional) */}
+      <div className="pointer-events-none mt-5 border-t border-neutral-900 pt-4 select-none">
         <div className="flex items-center gap-3 bg-neutral-900/40 p-3">
           <div className="relative h-12 w-12 shrink-0 overflow-hidden border border-neutral-800 bg-neutral-950">
             <Image

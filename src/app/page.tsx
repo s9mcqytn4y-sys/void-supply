@@ -182,13 +182,13 @@ export default async function HalamanBeranda() {
                 </div>
                 <div>
                   <span className="font-mono text-[10px] tracking-wider text-neutral-400 uppercase">
-                    SERTIFIKASI PRODUKSI
+                    DETAIL KONSTRUKSI
                   </span>
                   <h3 className="text-sm font-bold text-white uppercase">
                     VOID ARCHIVE EDITION
                   </h3>
                   <p className="mt-0.5 font-mono text-xs text-neutral-400">
-                    Setiap potong lolos uji QC batch mandiri.
+                    Diproduksi dengan toleransi presisi dan penguncian jahitan ganda.
                   </p>
                 </div>
               </div>
@@ -198,13 +198,13 @@ export default async function HalamanBeranda() {
                 <div className="group relative aspect-4/3 w-full overflow-hidden border border-neutral-800 bg-neutral-950">
                   <Image
                     src="/images/brand/fabric-density-macro.jpg"
-                    alt="Detail makro serat katun 450 GSM French Terry dengan jahitan dobel rantai"
+                    alt="Detail makro serat katun 420 GSM loopback dengan jahitan dobel rantai"
                     fill
                     sizes="(max-width: 1024px) 100vw, 33vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute right-2 bottom-2 bg-neutral-950/90 px-2 py-0.5 font-mono text-[10px] text-neutral-300">
-                    MAKRO x10 // JAHITAN RANTAI
+                    INSPEKSI MAKRO // JAHITAN RANTAI
                   </div>
                 </div>
 
@@ -213,10 +213,10 @@ export default async function HalamanBeranda() {
                     <span className="font-mono text-xs font-semibold text-white uppercase">
                       SERAT COTTON LOOPBACK
                     </span>
-                    <span className="font-mono text-[10px] text-neutral-400">450 GSM</span>
+                    <span className="font-mono text-[10px] text-neutral-400">420 GSM</span>
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-                    Konstruksi rajut berbobot tinggi dengan ketahanan anti-melar dan sirkulasi udara optimal.
+                    Konstruksi rajut loopback berbobot tinggi dengan struktur rib elastis tahan cuci dan sirkulasi udara optimal.
                   </p>
                 </div>
               </div>

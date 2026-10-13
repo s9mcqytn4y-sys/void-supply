@@ -215,9 +215,14 @@ export function useCheckout() {
 
         if (hasil.sukses && hasil.nomorPesanan) {
           kosongkanKeranjang();
-          // Arahkan langsung ke halaman status pesanan kanonikal berproteksi token otorisasi
-          const queryToken = hasil.tokenAkses ? `?token=${encodeURIComponent(hasil.tokenAkses)}` : "";
-          router.push(`/pesanan/${encodeURIComponent(hasil.nomorPesanan)}${queryToken}`);
+          // Simpan token otorisasi ke cookie SameSite=Strict & Max-Age=3600 (SEC-02A)
+          if (hasil.tokenAkses && typeof document !== "undefined") {
+            const isSecure = window.location.protocol === "https:";
+            const secureFlag = isSecure ? "; Secure" : "";
+            document.cookie = `void_order_token_${encodeURIComponent(hasil.nomorPesanan)}=${encodeURIComponent(hasil.tokenAkses)}; path=/; max-age=3600; SameSite=Strict${secureFlag}`;
+          }
+          // Arahkan ke halaman status pesanan kanonikal tanpa membocorkan token di URL
+          router.push(`/pesanan/${encodeURIComponent(hasil.nomorPesanan)}`);
         } else {
           setPesanErrorGlobal(hasil.pesan);
         }
