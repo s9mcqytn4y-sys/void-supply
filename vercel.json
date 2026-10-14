@@ -9,5 +9,10 @@
       "path": "/api/cron/kadaluwarsa-pesanan",
       "schedule": "*/5 * * * *"
     }
-  ]
+  ],
+  "functions": {
+    "src/app/api/midtrans/webhook/route.ts": {
+      "maxDuration": 10
+    }
+  }
 }

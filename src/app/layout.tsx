@@ -4,6 +4,7 @@ import "./globals.css";
 import { HeaderToko } from "@/components/layout/HeaderToko";
 import { FooterToko } from "@/components/layout/FooterToko";
 import { RingkasanKeranjang, CartHydrationProvider } from "@/features/cart";
+import { I18nProvider } from "@/lib/i18n";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -61,12 +62,14 @@ export default function RootLayout({
   return (
     <html lang="id" className={`dark ${archivo.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-screen flex-col bg-neutral-950 font-sans text-neutral-100 antialiased selection:bg-neutral-800 selection:text-white">
-        <CartHydrationProvider>
-          <HeaderToko />
-          <div className="flex-1">{children}</div>
-          <FooterToko />
-          <RingkasanKeranjang />
-        </CartHydrationProvider>
+        <I18nProvider>
+          <CartHydrationProvider>
+            <HeaderToko />
+            <div className="flex-1">{children}</div>
+            <FooterToko />
+            <RingkasanKeranjang />
+          </CartHydrationProvider>
+        </I18nProvider>
       </body>
     </html>
   );

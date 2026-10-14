@@ -348,4 +348,41 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
    - Label status verifikasi pada komponen `TransparansiMaterial.tsx` terikat langsung secara dinamis ke skema basis data `spesifikasi.verifikasi.status`.
    - Menambahkan navigasi keyboard ARIA tabs (panah kiri dan kanan) pada tab spesifikasi garmen sesuai pedoman WCAG AA.
 
+---
+
+## 15. Production Readiness Gate, Brand Expansion & A11y (Module 02.17)
+
+1. **ENV-01 & ENV-02 (Zod Runtime Environment Validation)**:
+   - Modul `src/lib/env.ts` mengevaluasi integritas seluruh variabel lingkungan secara ketat saat runtime dan deployment.
+   - Memvalidasi konsistensi flag produksi `MIDTRANS_IS_PRODUCTION` dengan keberadaan `MIDTRANS_SERVER_KEY_PRODUCTION` serta fail-closed secret authentication.
+
+2. **SEC-05 (HttpOnly Token Order Session Cookie)**:
+   - Route handler `src/app/pesanan/[nomorPesanan]/access/route.ts` menerima query token yang sah dan menuliskannya ke dalam HttpOnly Session Cookie (`void_order_token_<nomor>`) dengan `SameSite=Strict`, `Secure=true`, dan `Max-Age=900` (15 menit).
+   - Melakukan redirect otomatis `303 See Other` ke `/pesanan/[nomorPesanan]` tanpa query string token, membersihkan jejak kredensial dari riwayat browser, log referer, dan screenshot pengguna.
+
+3. **UI-01 & UI-02 (Conversion Layer & Visual Performance)**:
+   - Penambahan Sticky Mobile Bar pada `PemilihVarian.tsx` dengan tap target minimal 44px (`min-h-11`), kontras WCAG AA, dan pemilih ukuran cepat.
+   - Optimasi homepage LCP dengan prioritas gambar hero dan lazy loading pada section visual pendukung.
+
+4. **SEO & Brand Expansion (Zero AI-Slop & Schema.org JSON-LD)**:
+   - Halaman identitas merek orisinal:
+     - `/tentang`: Sejarah studio, filosofi brutalist utilitarian, transparansi workshop Johar Baru 10560.
+     - `/material`: Eksplorasi serat 500 GSM French Terry, 24s Combed Cotton, dan standar durabilitas konstruksi.
+     - `/journal`: Arsip editorial Drop 04 dan catatan riset garmen teknikal.
+     - `/kontak`: Layanan pelanggan terarah, jam operasional studio, verifikasi garansi, dan email resmi.
+   - Skema terstruktur `Organization` dan `Product` JSON-LD terintegrasi di homepage dan katalog.
+   - Pembersihan teks anti-slop: zero em dash, klaim faktual tanpa hiperbola, dan tanpa testimoni buatan.
+
+5. **I18n & Payment/Logistics Badges**:
+   - Sistem multibahasa ringan berbasis cookie (`void_locale=id|en`) via kamus lokal murni tanpa dependensi eksternal berat, menjaga performa Server Component.
+   - Komponen `PaymentCourierBadges.tsx` menyediakan lencana monokromatik brutalis (BCA, Mandiri, BNI, BRI, QRIS, GoPay, JNE, SiCepat, J&T) yang selaras dengan estetika technical streetwear.
+
+6. **Testing Modularization & Contract Tests**:
+   - Modulasi suite Playwright ke dalam `tests/e2e/flows/`, `tests/e2e/security/`, dan `tests/e2e/fixtures/`.
+   - Vitest Contract Suite `tests/contracts/midtrans-webhook.contract.test.ts` memvalidasi simulasi penuh siklus webhook Midtrans (settlement, pending, expire, cancel, duplicate idempotency).
+
+7. **Vercel Webhook Resilience**:
+   - Konfigurasi `vercel.json` diperbarui dengan `maxDuration: 10` pada fungsi `/api/midtrans/webhook` untuk mencegah timeout saat lonjakan traffic.
+
+
 

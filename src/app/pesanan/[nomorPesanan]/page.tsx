@@ -36,6 +36,13 @@ export default async function HalamanStatusPesanan({
   const { token } = await searchParams;
   const cookieStore = await cookies();
   const tokenCookie = cookieStore.get(`void_order_token_${nomorPesanan}`)?.value;
+
+  // Jika token dikirim via URL, alihkan ke endpoint /access agar browser history tersanitasi menjadi cookie
+  if (token && typeof token === "string" && !tokenCookie) {
+    const { redirect } = await import("next/navigation");
+    redirect(`/pesanan/${nomorPesanan}/access?token=${encodeURIComponent(token.trim())}`);
+  }
+
   const tokenAksesStr = (tokenCookie || (typeof token === "string" ? token.trim() : undefined))?.trim();
   const hasil = await ambilStatusPesanan(nomorPesanan, tokenAksesStr);
 

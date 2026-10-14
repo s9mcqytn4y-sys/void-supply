@@ -254,6 +254,28 @@ export function PemilihVarian({
             ? "UKURAN TIDAK TERSEDIA"
             : "TAMBAH KE KERANJANG"}
       </Button>
+
+      {/* 6. Sticky Mobile Conversion Bar (UI-02) */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 flex sm:hidden items-center justify-between border-t border-neutral-800 bg-neutral-950/95 px-4 py-3 backdrop-blur-md shadow-2xl">
+        <div className="flex flex-col">
+          <span className="font-mono text-[10px] text-neutral-400 uppercase tracking-wider">
+            {varianAktif ? `UKURAN: ${varianAktif.ukuran}` : "PILIH UKURAN"}
+          </span>
+          <span className="font-mono text-xs font-bold text-white">
+            Rp {(varianAktif?.harga || hargaDasar).toLocaleString("id-ID")}
+          </span>
+        </div>
+
+        <Button
+          type="button"
+          size="sm"
+          disabled={!apakahBisaBeli}
+          onClick={tanganiTambahKeranjang}
+          className="min-h-11 px-5 font-mono text-xs font-bold tracking-wider"
+        >
+          {apakahVarianHabis ? "HABIS" : "+ BAG"}
+        </Button>
+      </div>
     </div>
   );
 }

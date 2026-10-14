@@ -17,8 +17,30 @@ export default async function HalamanBeranda() {
   // Ambil 4 artikel kurasi unggulan untuk highlight beranda
   const artikelUnggulan = seluruhProduk.slice(0, 4);
 
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://voidsupply.com";
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "VOID Supply",
+    url: baseUrl,
+    logo: `${baseUrl}/images/brand/void-logo.svg`,
+    description: "Heavyweight technical streetwear brand based in Johar Baru, Central Jakarta, Indonesia.",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Johar Baru",
+      addressLocality: "Jakarta Pusat",
+      postalCode: "10560",
+      addressRegion: "DKI Jakarta",
+      addressCountry: "ID",
+    },
+  };
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+      />
       {/* 1. Hero Section: Split Editorial Streetwear (Mobile Fit & Desktop Precision) */}
       <section
         aria-label="Highlight Koleksi Drop 04"
