@@ -6,6 +6,7 @@ import { dapatDibeli } from "../types/product.type";
 import { Button } from "@/components/ui/button";
 import { PanduanUkuran } from "./PanduanUkuran";
 import { useKeranjangStore } from "@/features/cart/stores/keranjang.store";
+import { toast } from "sonner";
 
 export interface PropertiPemilihVarian {
   kategori: string;
@@ -114,8 +115,15 @@ export function PemilihVarian({
     setApakahPesanSukses(hasil.sukses);
 
     if (hasil.sukses) {
+      toast.success("Artikel ditambahkan ke keranjang", {
+        description: `${namaProduk} (${varianAktif.ukuran}) // ${kuantitas} unit`,
+      });
       // Tampilkan notifikasi lalu buka slide-over keranjang belanja
       setBukaKeranjang(true);
+    } else {
+      toast.error("Gagal menambahkan artikel", {
+        description: hasil.pesan,
+      });
     }
   };
 

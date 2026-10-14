@@ -8,6 +8,10 @@ import { z } from "zod";
 export const envSchema = z
   .object({
     DATABASE_URL: z.string().min(1, "DATABASE_URL wajib diisi"),
+    APP_ENV: z.enum(["development", "staging", "production"]).default("development"),
+    DATABASE_ENV: z.enum(["development", "staging", "production"]).default("development"),
+    MIDTRANS_ENV: z.enum(["sandbox", "production"]).default("sandbox"),
+    BITESHIP_ENV: z.enum(["test", "production"]).default("test"),
     NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
     NEXT_PUBLIC_SITE_URL: z.string().default("http://localhost:3000"),
     NEXT_PUBLIC_APP_NAME: z.string().default("VOID Supply"),
@@ -27,10 +31,15 @@ export const envSchema = z
       .transform((val) => val === "true"),
     BITESHIP_API_KEY: z.string().optional(),
     CRON_SECRET: z.string().optional(),
+    NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+    SENTRY_AUTH_TOKEN: z.string().optional(),
+    RESEND_API_KEY: z.string().optional(),
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   })
   .superRefine((data, ctx) => {
     const isProduction =
+      data.APP_ENV === "production" ||
+      data.MIDTRANS_ENV === "production" ||
       data.MIDTRANS_IS_PRODUCTION ||
       (data.NODE_ENV === "production" && process.env.VERCEL_ENV === "production");
 
@@ -42,7 +51,7 @@ export const envSchema = z
           code: z.ZodIssueCode.custom,
           path: ["MIDTRANS_SERVER_KEY_PRODUCTION"],
           message:
-            "ENV-02: MIDTRANS_SERVER_KEY_PRODUCTION wajib diisi dengan production key asli (bukan sandbox SB-*) saat MIDTRANS_IS_PRODUCTION aktif.",
+            "ENV-02: MIDTRANS_SERVER_KEY_PRODUCTION wajib diisi dengan production key asli (bukan sandbox SB-*) saat environment produksi aktif.",
         });
       }
     }

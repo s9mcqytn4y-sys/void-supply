@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatRupiah } from "@/lib/utils";
 import type { ItemKeranjang } from "../types/cart.type";
 import { useKeranjangStore, BATAS_MAKSIMAL_PER_SKU } from "../stores/keranjang.store";
+import { toast } from "sonner";
 
 export interface PropertiItemKeranjangCard {
   item: ItemKeranjang;
@@ -54,7 +55,12 @@ export function ItemKeranjangCard({ item }: PropertiItemKeranjangCard) {
             </Link>
             <button
               type="button"
-              onClick={() => hapusItem(item.varianId)}
+              onClick={() => {
+                hapusItem(item.varianId);
+                toast.info("Artikel dihapus dari keranjang", {
+                  description: `${item.nama} (${item.ukuran})`,
+                });
+              }}
               className="font-mono text-[11px] text-neutral-400 hover:text-rose-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
               aria-label={`Hapus ${item.nama} ukuran ${item.ukuran} dari keranjang`}
             >

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { eq, and, sql } from "drizzle-orm";
 import { db, pesanan, pembayaran, itemPesanan, varianProduk } from "@/lib/db";
+import { faktur } from "@/lib/db/schema";
 import { verifikasiSignatureMidtrans } from "@/lib/services/midtrans.service";
+import { kirimEmailNotifikasi } from "@/lib/services/email.service";
 
 interface PayloadWebhookMidtrans {
   order_id: string;
@@ -22,6 +24,7 @@ interface PayloadWebhookMidtrans {
  * 2. Pencocokan nominal gross_amount terhadap total tagihan resmi order
  * 3. Atomic Compare-and-Set Guard: Transisi status hanya terjadi jika order masih dalam status awal
  * 4. Anti-Double Refund Guard: Pengembalian stok HANYA dilakukan satu kali ketika order berhasil dibatalkan
+ * 5. Module 02.17: Penerbitan Faktur (E-Receipt) dan Notifikasi Email Otomatis
  */
 export async function POST(req: Request) {
   try {
@@ -36,6 +39,7 @@ export async function POST(req: Request) {
       fraud_status,
       payment_type,
       transaction_id,
+      settlement_time,
     } = body;
 
     if (!order_id || !status_code || !gross_amount || !signature_key) {
@@ -68,6 +72,8 @@ export async function POST(req: Request) {
         nomorPesanan: pesanan.nomorPesanan,
         statusPesanan: pesanan.statusPesanan,
         totalAkhir: pesanan.totalAkhir,
+        namaPelanggan: pesanan.namaPelanggan,
+        emailPelanggan: pesanan.emailPelanggan,
       })
       .from(pesanan)
       .where(eq(pesanan.nomorPesanan, order_id))
@@ -138,7 +144,40 @@ export async function POST(req: Request) {
             })
             .where(eq(pembayaran.pesananId, pesananTerkait.id));
 
-          console.log(`[MIDTRANS WEBHOOK] Pesanan ${order_id} berhasil diverifikasi & status diubah ke diproses.`);
+          // Terbitkan faktur resmi e-receipt
+          const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+          const nomorFaktur = `INV/${dateStr}/${order_id.replace(/^VOID-/, "")}`;
+
+          await tx
+            .insert(faktur)
+            .values({
+              nomorFaktur,
+              pesananId: pesananTerkait.id,
+              totalTagihan: pesananTerkait.totalAkhir,
+              statusFaktur: "lunas",
+              metadataFaktur: {
+                gatewayTransactionId: transaction_id,
+                metodePembayaran: payment_type || "midtrans",
+                settlementTime: settlement_time || new Date().toISOString(),
+              },
+            })
+            .onConflictDoNothing();
+
+          console.log(`[MIDTRANS WEBHOOK] Pesanan ${order_id} berhasil diverifikasi & faktur ${nomorFaktur} diterbitkan.`);
+
+          // Kirim notifikasi email tanda terima pembayaran
+          await kirimEmailNotifikasi({
+            pesananId: pesananTerkait.id,
+            emailPenerima: pesananTerkait.emailPelanggan,
+            tipe: "pembayaran_berhasil",
+            subjek: `Pembayaran Berhasil // Faktur ${nomorFaktur}`,
+            data: {
+              nomorPesanan: order_id,
+              namaPelanggan: pesananTerkait.namaPelanggan,
+              rincian: `Pembayaran sebesar Rp ${pesananTerkait.totalAkhir.toLocaleString("id-ID")} melalui ${payment_type || "Midtrans"} telah terverifikasi.`,
+              total: `Rp ${pesananTerkait.totalAkhir.toLocaleString("id-ID")}`,
+            },
+          });
         } else {
           console.info(`[MIDTRANS WEBHOOK] Order ${order_id} sudah berada pada status final (${pesananTerkait.statusPesanan}). Mutasi sukses diabaikan.`);
         }

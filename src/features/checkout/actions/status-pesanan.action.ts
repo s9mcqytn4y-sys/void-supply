@@ -12,6 +12,8 @@ export interface DetailStatusPesanan {
   totalAkhir: number;
   subtotal: number;
   totalOngkir: number;
+  totalDiskon?: number;
+  kodeVoucher?: string | null;
   dibuatPada: string;
   kedaluwarsaPada?: string | null;
   namaPelanggan: string;
@@ -185,6 +187,8 @@ export async function ambilStatusPesanan(
         totalAkhir: pesananDb.totalAkhir,
         subtotal: pesananDb.subtotal,
         totalOngkir: pesananDb.totalOngkir,
+        totalDiskon: pesananDb.totalDiskon || 0,
+        kodeVoucher: pesananDb.kodeVoucher,
         dibuatPada: pesananDb.dibuatPada.toISOString(),
         kedaluwarsaPada: batasKedaluwarsa.toISOString(),
         namaPelanggan: pesananDb.namaPelanggan,

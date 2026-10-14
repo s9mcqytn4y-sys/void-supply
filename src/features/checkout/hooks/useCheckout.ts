@@ -6,6 +6,11 @@ import { useKeranjangStore } from "@/features/cart";
 import { rekonsiliasiKeranjang } from "@/features/cart/actions/reconciliation.action";
 import { hitungOngkirServerAction } from "@/features/checkout/actions/ongkir.action";
 import { buatPesanan } from "@/features/checkout/actions/buat-pesanan.action";
+import {
+  validasiVoucherAction,
+  type HasilValidasiVoucher,
+} from "@/features/checkout/actions/voucher.action";
+import { toast } from "sonner";
 import type { OpsiKurir } from "@/lib/services/biteship.service";
 
 export interface DataFormulirCheckout {
@@ -34,6 +39,11 @@ export function useCheckout() {
   const [pesanErrorGlobal, setPesanErrorGlobal] = useState<string | null>(null);
   const [opsiKurir, setOpsiKurir] = useState<OpsiKurir[]>([]);
   const [kurirTerpilih, setKurirTerpilih] = useState<OpsiKurir | null>(null);
+
+  // State Voucher Diskon (Module 02.17)
+  const [kodeVoucherInput, setKodeVoucherInput] = useState("");
+  const [voucherDiterapkan, setVoucherDiterapkan] = useState<HasilValidasiVoucher | null>(null);
+  const [sedangValidasiVoucher, setSedangValidasiVoucher] = useState(false);
 
   // Kunci Idempotensi unik per sesi pengisian formulir
   const idempotensiKeyRef = useRef<string>("");
@@ -210,6 +220,7 @@ export function useCheckout() {
           idempotensiKey: idempotensiKeyRef.current || undefined,
           kodeKurir: kurirTerpilih.kodeKurir,
           layananKurir: kurirTerpilih.layanan,
+          kodeVoucher: voucherDiterapkan?.sukses ? voucherDiterapkan.kode : undefined,
           items: items.map((i) => ({ varianId: i.varianId, jumlah: i.jumlah })),
         });
 
@@ -221,21 +232,59 @@ export function useCheckout() {
             const secureFlag = isSecure ? "; Secure" : "";
             document.cookie = `void_order_token_${encodeURIComponent(hasil.nomorPesanan)}=${encodeURIComponent(hasil.tokenAkses)}; path=/; max-age=3600; SameSite=Strict${secureFlag}`;
           }
+          toast.success("Pesanan berhasil dibuat. Mengalihkan ke pembayaran...");
           // Arahkan ke halaman status pesanan kanonikal tanpa membocorkan token di URL
           router.push(`/pesanan/${encodeURIComponent(hasil.nomorPesanan)}`);
         } else {
           setPesanErrorGlobal(hasil.pesan);
+          toast.error(hasil.pesan || "Gagal membuat pesanan.");
         }
       } catch (err) {
         console.error("Galat proses checkout:", err);
         setPesanErrorGlobal("Terjadi kendala sistem. Silakan coba kembali.");
+        toast.error("Terjadi kendala sistem saat checkout.");
       }
     });
   }
 
   const subtotal = items.reduce((acc, i) => acc + i.hargaTampilanIdr * i.jumlah, 0);
   const totalOngkir = kurirTerpilih?.tarifIdr || 0;
-  const totalAkhir = subtotal + totalOngkir;
+  const totalDiskon = voucherDiterapkan?.sukses ? voucherDiterapkan.potonganIdr : 0;
+  const totalAkhir = Math.max(0, subtotal - totalDiskon + totalOngkir);
+
+  async function handleTerapkanVoucher(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    if (!kodeVoucherInput.trim()) {
+      toast.error("Silakan masukkan kode voucher");
+      return;
+    }
+
+    setSedangValidasiVoucher(true);
+    try {
+      const hasil = await validasiVoucherAction({
+        kode: kodeVoucherInput,
+        subtotal,
+      });
+
+      if (hasil.sukses) {
+        setVoucherDiterapkan(hasil);
+        toast.success(hasil.pesan);
+      } else {
+        toast.error(hasil.pesan);
+      }
+    } catch (err) {
+      console.error("Gagal validasi voucher:", err);
+      toast.error("Gagal memeriksa voucher diskon.");
+    } finally {
+      setSedangValidasiVoucher(false);
+    }
+  }
+
+  function handleHapusVoucher() {
+    setVoucherDiterapkan(null);
+    setKodeVoucherInput("");
+    toast.info("Voucher diskon dihapus.");
+  }
 
   return {
     items,
@@ -253,6 +302,14 @@ export function useCheckout() {
     handleSubmitPesanan,
     subtotal,
     totalOngkir,
+    totalDiskon,
     totalAkhir,
+    // Voucher features
+    kodeVoucherInput,
+    setKodeVoucherInput,
+    voucherDiterapkan,
+    sedangValidasiVoucher,
+    handleTerapkanVoucher,
+    handleHapusVoucher,
   };
 }

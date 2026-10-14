@@ -4,12 +4,6 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "cleanUrls": true,
-  "crons": [
-    {
-      "path": "/api/cron/kadaluwarsa-pesanan",
-      "schedule": "*/5 * * * *"
-    }
-  ],
   "functions": {
     "src/app/api/midtrans/webhook/route.ts": {
       "maxDuration": 10

@@ -267,6 +267,12 @@ export function KartuStatusPesanan({
                 <span>SUBTOTAL:</span>
                 <span className="text-white">{formatRupiah(pesanan.subtotal)}</span>
               </div>
+              {pesanan.totalDiskon && pesanan.totalDiskon > 0 ? (
+                <div className="flex justify-between py-1 text-emerald-400">
+                  <span>POTONGAN DISKON {pesanan.kodeVoucher ? `(${pesanan.kodeVoucher})` : ""}:</span>
+                  <span className="font-bold">-{formatRupiah(pesanan.totalDiskon)}</span>
+                </div>
+              ) : null}
               <div className="flex justify-between py-1 text-neutral-400">
                 <span>ONGKOS KIRIM:</span>
                 <span className="text-white">{formatRupiah(pesanan.totalOngkir)}</span>
@@ -278,6 +284,18 @@ export function KartuStatusPesanan({
                 </span>
               </div>
             </div>
+
+            {/* Tombol Faktur / E-Receipt Resmi (Module 02.17) */}
+            {isSukses && (
+              <div className="mt-6 border-t border-neutral-800 pt-4">
+                <Link
+                  href={`/pesanan/${encodeURIComponent(pesanan.nomorPesanan)}/faktur`}
+                  className="flex min-h-11 w-full items-center justify-center border border-emerald-500/50 bg-emerald-950/20 px-4 font-mono text-xs font-bold text-emerald-300 uppercase transition-colors hover:bg-emerald-900/30"
+                >
+                  LIHAT & CETAK FAKTUR RESMI (E-RECEIPT)
+                </Link>
+              </div>
+            )}
           </>
         ) : (
           <div className="mt-8 border border-neutral-800/80 bg-neutral-900/30 p-5">

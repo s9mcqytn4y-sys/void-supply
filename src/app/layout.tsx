@@ -5,6 +5,7 @@ import { HeaderToko } from "@/components/layout/HeaderToko";
 import { FooterToko } from "@/components/layout/FooterToko";
 import { RingkasanKeranjang, CartHydrationProvider } from "@/features/cart";
 import { I18nProvider } from "@/lib/i18n";
+import { SonnerToaster } from "@/components/ui/SonnerToaster";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -24,11 +25,11 @@ export const metadata: Metadata = {
   description: "Limited edition high-density urban streetwear engineered for nocturnal climates.",
   icons: {
     icon: [
+      { url: "/assets/brand/logo-mark.webp", type: "image/webp" },
       { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "any" },
     ],
-    shortcut: "/favicon.ico",
-    apple: "/icon.svg",
+    shortcut: "/assets/brand/logo-mark.webp",
+    apple: "/assets/brand/logo-mark.webp",
   },
   openGraph: {
     title: "VOID Supply | Curated Heavyweight Streetwear",
@@ -37,9 +38,9 @@ export const metadata: Metadata = {
     siteName: "VOID Supply",
     images: [
       {
-        url: "/images/brand/void-og-image.jpg",
-        width: 1200,
-        height: 630,
+        url: "/assets/brand/og-image.webp",
+        width: 1920,
+        height: 1080,
         alt: "VOID Supply Drop 04 Night Transmission",
       },
     ],
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "VOID Supply | Curated Heavyweight Streetwear",
     description: "Drop 04: Night Transmission. High-density urban streetwear with verified material specs.",
-    images: ["/images/brand/void-og-image.jpg"],
+    images: ["/assets/brand/og-image.webp"],
   },
 };
 
@@ -68,6 +69,7 @@ export default function RootLayout({
             <div className="flex-1">{children}</div>
             <FooterToko />
             <RingkasanKeranjang />
+            <SonnerToaster />
           </CartHydrationProvider>
         </I18nProvider>
       </body>

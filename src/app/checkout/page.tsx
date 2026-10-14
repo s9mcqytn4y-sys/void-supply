@@ -25,7 +25,14 @@ export default function HalamanCheckout() {
     handleSubmitPesanan,
     subtotal,
     totalOngkir,
+    totalDiskon,
     totalAkhir,
+    kodeVoucherInput,
+    setKodeVoucherInput,
+    voucherDiterapkan,
+    sedangValidasiVoucher,
+    handleTerapkanVoucher,
+    handleHapusVoucher,
   } = useCheckout();
 
   return (
@@ -94,11 +101,18 @@ export default function HalamanCheckout() {
               items={items}
               subtotal={subtotal}
               totalOngkir={totalOngkir}
+              totalDiskon={totalDiskon}
               totalAkhir={totalAkhir}
               sedangHitungOngkir={sedangHitungOngkir}
               isPending={isPending}
               sedangMemuat={sedangMemuat}
               kurirDipilih={!!kurirTerpilih}
+              kodeVoucherInput={kodeVoucherInput}
+              onKodeVoucherChange={setKodeVoucherInput}
+              voucherDiterapkan={voucherDiterapkan}
+              sedangValidasiVoucher={sedangValidasiVoucher}
+              onTerapkanVoucher={handleTerapkanVoucher}
+              onHapusVoucher={handleHapusVoucher}
             />
           </div>
         </form>

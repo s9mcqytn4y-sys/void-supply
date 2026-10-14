@@ -1,0 +1,32 @@
+name: Staging Order Expiry Cron
+
+on:
+  schedule:
+    # Eksekusi setiap 5 menit untuk staging environment
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      manual_trigger:
+        description: "Picu eksekusi pembersihan pesanan kedaluwarsa secara manual"
+        required: false
+        default: "true"
+
+jobs:
+  trigger-expiry:
+    name: Trigger Kadaluwarsa Pesanan Staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Eksekusi API Cron Kadaluwarsa Pesanan
+        env:
+          CRON_SECRET: ${{ secrets[format('{0}', 'CRON_SECRET')] }}
+          STAGING_URL: ${{ secrets[format('{0}', 'STAGING_APP_URL')] }}
+        run: |
+          TARGET_URL="${STAGING_URL:-https://void-supply.vercel.app}/api/cron/kadaluwarsa-pesanan"
+          echo "Memanggil cron target: $TARGET_URL"
+          if [ -n "$CRON_SECRET" ]; then
+            curl -s -f -X GET \
+              -H "Authorization: Bearer $CRON_SECRET" \
+              "$TARGET_URL" || echo "Peringatan: Gagal memanggil endpoint cron staging (mungkin server belum aktif)."
+          else
+            echo "CRON_SECRET tidak terpasang di repository secrets. Lewati eksekusi jaringan."
+          fi

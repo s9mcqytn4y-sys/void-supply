@@ -17,8 +17,14 @@ async function handleCron(req: Request) {
       );
     }
 
+    const url = new URL(req.url);
+    const isManual = url.searchParams.get("manual") === "true";
+    const querySecret = url.searchParams.get("secret");
+
     const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace(/^Bearer\s+/i, "")?.trim();
+    const headerToken = authHeader?.replace(/^Bearer\s+/i, "")?.trim();
+    const token = headerToken || (isManual ? querySecret : null);
+
     if (!token || token !== cronSecret) {
       return NextResponse.json(
         { error: "Akses tidak diizinkan: Kredensial cron secret tidak valid." },

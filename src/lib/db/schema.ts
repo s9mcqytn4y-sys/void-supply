@@ -39,6 +39,21 @@ export const statusPengirimanEnum = pgEnum("status_pengiriman", [
   "gagal",
 ]);
 
+export const tipeDiskonEnum = pgEnum("tipe_diskon", ["persentase", "potongan_tetap"]);
+
+export const tingkatKeanggotaanEnum = pgEnum("tingkat_keanggotaan", ["bronze", "silver", "black"]);
+
+export const statusFakturEnum = pgEnum("status_faktur", ["terbit", "lunas", "batal"]);
+
+export const tipeEmailEnum = pgEnum("tipe_email", [
+  "konfirmasi_pesanan",
+  "pembayaran_berhasil",
+  "resi_pengiriman",
+  "pesanan_batal",
+]);
+
+export const statusLogEmailEnum = pgEnum("status_log_email", ["antre", "terkirim", "gagal"]);
+
 // 1. Tabel Pelanggan (Customer Profile & Buyer Entity)
 export const pelanggan = pgTable("pelanggan", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -195,6 +210,7 @@ export const pesanan = pgTable(
     subtotal: integer("subtotal").notNull(),
     totalOngkir: integer("total_ongkir").notNull(),
     totalDiskon: integer("total_diskon").default(0).notNull(),
+    kodeVoucher: varchar("kode_voucher", { length: 50 }),
     totalAkhir: integer("total_akhir").notNull(),
     catatan: text("catatan"),
     idempotensiKey: varchar("idempotensi_key", { length: 64 }).unique(),
@@ -284,9 +300,99 @@ export const pengiriman = pgTable("pengiriman", {
   diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// 11. Tabel Aturan Diskon & Voucher (Pricing & Voucher Engine)
+export const aturanDiskon = pgTable(
+  "aturan_diskon",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    kode: varchar("kode", { length: 50 }).notNull().unique(),
+    nama: varchar("nama", { length: 150 }).notNull(),
+    deskripsi: text("deskripsi"),
+    tipeDiskon: tipeDiskonEnum("tipe_diskon").notNull(),
+    nilaiDiskon: integer("nilai_diskon").notNull(),
+    minimalPembelian: integer("minimal_pembelian").default(0).notNull(),
+    maksimalPotongan: integer("maksimal_potongan"),
+    kuotaPenggunaan: integer("kuota_penggunaan").default(100).notNull(),
+    totalDigunakan: integer("total_digunakan").default(0).notNull(),
+    apakahAktif: boolean("apakah_aktif").default(true).notNull(),
+    tanggalMulai: timestamp("tanggal_mulai", { withTimezone: true }),
+    tanggalBerakhir: timestamp("tanggal_berakhir", { withTimezone: true }),
+    dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (tabel) => ({
+    checkNilaiDiskon: check("check_diskon_nilai", sql`${tabel.nilaiDiskon} > 0`),
+    checkMinimalPembelian: check("check_diskon_min_beli", sql`${tabel.minimalPembelian} >= 0`),
+  })
+);
+
+// 12. Tabel Keanggotaan & Loyalty Tiers (Membership Foundation)
+export const keanggotaan = pgTable(
+  "keanggotaan",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    pelangganId: uuid("pelanggan_id").references(() => pelanggan.id, { onDelete: "cascade" }),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    tingkat: tingkatKeanggotaanEnum("tingkat").default("bronze").notNull(),
+    poin: integer("poin").default(0).notNull(),
+    totalBelanjaAkumulasi: integer("total_belanja_akumulasi").default(0).notNull(),
+    bergabungPada: timestamp("bergabung_pada", { withTimezone: true }).defaultNow().notNull(),
+    diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (tabel) => ({
+    checkPoin: check("check_keanggotaan_poin", sql`${tabel.poin} >= 0`),
+  })
+);
+
+// 13. Tabel Faktur Resmi & E-Receipt (Invoicing System)
+export const faktur = pgTable("faktur", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  nomorFaktur: varchar("nomor_faktur", { length: 60 }).notNull().unique(),
+  pesananId: uuid("pesanan_id")
+    .references(() => pesanan.id, { onDelete: "cascade" })
+    .notNull()
+    .unique(),
+  totalTagihan: integer("total_tagihan").notNull(),
+  statusFaktur: statusFakturEnum("status_faktur").default("lunas").notNull(),
+  pdfUrl: text("pdf_url"),
+  metadataFaktur: jsonb("metadata_faktur"),
+  diterbitkanPada: timestamp("diterbitkan_pada", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// 14. Tabel Log Notifikasi Transaksi (Email Logs)
+export const logEmail = pgTable("log_email", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  pesananId: uuid("pesanan_id").references(() => pesanan.id, { onDelete: "set null" }),
+  emailPenerima: varchar("email_penerima", { length: 255 }).notNull(),
+  tipeEmail: tipeEmailEnum("tipe_email").notNull(),
+  subjek: varchar("subjek", { length: 255 }).notNull(),
+  statusPengiriman: statusLogEmailEnum("status_pengiriman").default("terkirim").notNull(),
+  driver: varchar("driver", { length: 50 }).default("console_mock").notNull(),
+  payloadRingkasan: jsonb("payload_ringkasan"),
+  dikirimPada: timestamp("dikirim_pada", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// 15. Tabel Riwayat Titik Pelacakan Kurir (Biteship Waybill Tracking Timeline)
+export const pelacakanPengiriman = pgTable("pelacakan_pengiriman", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  pesananId: uuid("pesanan_id")
+    .references(() => pesanan.id, { onDelete: "cascade" })
+    .notNull(),
+  nomorResi: varchar("nomor_resi", { length: 100 }).notNull(),
+  kurir: varchar("kurir", { length: 50 }).notNull(),
+  statusPelacakan: varchar("status_pelacakan", { length: 50 }).notNull(),
+  keterangan: text("keterangan").notNull(),
+  lokasi: varchar("lokasi", { length: 150 }),
+  waktuPeristiwa: timestamp("waktu_peristiwa", { withTimezone: true }).defaultNow().notNull(),
+  dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
+});
+
 // Konfigurasi Relasi Drizzle ORM
-export const pelangganRelasi = relations(pelanggan, ({ many }) => ({
+export const pelangganRelasi = relations(pelanggan, ({ many, one }) => ({
   pesanan: many(pesanan),
+  keanggotaan: one(keanggotaan, {
+    fields: [pelanggan.id],
+    references: [keanggotaan.pelangganId],
+  }),
 }));
 
 export const kategoriRelasi = relations(kategori, ({ many }) => ({
@@ -337,5 +443,32 @@ export const pesananRelasi = relations(pesanan, ({ many, one }) => ({
   pengiriman: one(pengiriman, {
     fields: [pesanan.id],
     references: [pengiriman.pesananId],
+  }),
+  faktur: one(faktur, {
+    fields: [pesanan.id],
+    references: [faktur.pesananId],
+  }),
+  logEmail: many(logEmail),
+  pelacakan: many(pelacakanPengiriman),
+}));
+
+export const fakturRelasi = relations(faktur, ({ one }) => ({
+  pesanan: one(pesanan, {
+    fields: [faktur.pesananId],
+    references: [pesanan.id],
+  }),
+}));
+
+export const logEmailRelasi = relations(logEmail, ({ one }) => ({
+  pesanan: one(pesanan, {
+    fields: [logEmail.pesananId],
+    references: [pesanan.id],
+  }),
+}));
+
+export const pelacakanPengirimanRelasi = relations(pelacakanPengiriman, ({ one }) => ({
+  pesanan: one(pesanan, {
+    fields: [pelacakanPengiriman.pesananId],
+    references: [pesanan.id],
   }),
 }));

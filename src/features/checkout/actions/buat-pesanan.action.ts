@@ -11,10 +11,12 @@ import {
   pembayaran,
   pengiriman,
   pelanggan,
+  aturanDiskon,
 } from "@/lib/db";
 import { formulirCheckoutSkema, type FormulirCheckout } from "../schemas/checkout.schema";
 import { buatTransaksiMidtrans } from "@/lib/services/midtrans.service";
 import { hitungOngkirBiteship } from "@/lib/services/biteship.service";
+import { kirimEmailNotifikasi } from "@/lib/services/email.service";
 import { gabungkanNiatItem } from "@/features/cart";
 
 function hitungHashPayload(data: FormulirCheckout): string {
@@ -28,6 +30,7 @@ function hitungHashPayload(data: FormulirCheckout): string {
     kodePos: data.kodePos.trim(),
     kodeKurir: data.kodeKurir,
     layananKurir: data.layananKurir,
+    kodeVoucher: data.kodeVoucher?.trim().toUpperCase() || "",
     items: sortedItems,
   });
 
@@ -227,7 +230,38 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
     const namaKurir = opsiCocok.namaKurir;
     const layananKurir = opsiCocok.layanan;
     const estimasiHari = opsiCocok.estimasiHari;
-    const totalAkhir = subtotalServer + totalOngkir;
+
+    // 5b. Validasi & kalkulasi diskon voucher (Module 02.17)
+    let totalDiskon = 0;
+    let kodeVoucherDiterapkan: string | null = null;
+    if (data.kodeVoucher && data.kodeVoucher.trim() !== "") {
+      const kodeBersih = data.kodeVoucher.trim().toUpperCase();
+      const [diskonDb] = await db
+        .select()
+        .from(aturanDiskon)
+        .where(eq(aturanDiskon.kode, kodeBersih))
+        .limit(1);
+
+      if (diskonDb && diskonDb.apakahAktif) {
+        const sekarang = new Date();
+        const belumMulai = diskonDb.tanggalMulai && diskonDb.tanggalMulai > sekarang;
+        const sudahSelesai = diskonDb.tanggalBerakhir && diskonDb.tanggalBerakhir < sekarang;
+        const kuotaHabis = diskonDb.kuotaPenggunaan !== null && diskonDb.totalDigunakan >= diskonDb.kuotaPenggunaan;
+        const kurangMinBelanja = diskonDb.minimalPembelian && subtotalServer < diskonDb.minimalPembelian;
+
+        if (!belumMulai && !sudahSelesai && !kuotaHabis && !kurangMinBelanja) {
+          kodeVoucherDiterapkan = diskonDb.kode;
+          if (diskonDb.tipeDiskon === "persentase") {
+            const hitungPotongan = Math.round((subtotalServer * diskonDb.nilaiDiskon) / 100);
+            totalDiskon = diskonDb.maksimalPotongan ? Math.min(hitungPotongan, diskonDb.maksimalPotongan) : hitungPotongan;
+          } else {
+            totalDiskon = Math.min(diskonDb.nilaiDiskon, subtotalServer);
+          }
+        }
+      }
+    }
+
+    const totalAkhir = Math.max(0, subtotalServer - totalDiskon + totalOngkir);
 
     // 6. Generate Nomor Pesanan Unik (Format VOID-YYYYMMDD-XXXXX)
     const tanggalFormat = new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -300,8 +334,9 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
           statusPesanan: "menunggu_pembayaran",
           subtotal: subtotalServer,
           totalOngkir,
-          totalDiskon: 0,
+          totalDiskon,
           totalAkhir,
+          kodeVoucher: kodeVoucherDiterapkan,
           catatan: data.catatan,
           idempotensiKey: data.idempotensiKey || null,
           hashPayload: hashPayloadSaatIni,
@@ -312,6 +347,14 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
 
       pesananId = pesananBaru.id;
       tokenAksesPesanan = pesananBaru.tokenAkses || tokenAkses;
+
+      // 7c-2. Catat penggunaan voucher jika diterapkan
+      if (kodeVoucherDiterapkan) {
+        await tx
+          .update(aturanDiskon)
+          .set({ totalDigunakan: sql`${aturanDiskon.totalDigunakan} + 1` })
+          .where(eq(aturanDiskon.kode, kodeVoucherDiterapkan));
+      }
 
       // 7d. Simpan Snapshot Item Pesanan Imutabel
       for (const item of snapshotItem) {
@@ -356,23 +399,34 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
     });
 
     // 8. FASE 2: Request Gateway Pembayaran Midtrans Snap (di luar DB lock)
+    const midtransItems = [
+      ...snapshotItem.map((s) => ({
+        id: s.sku,
+        price: s.hargaSatuan,
+        quantity: s.jumlah,
+        name: s.namaProduk,
+      })),
+      {
+        id: `SHIPPING-${data.kodeKurir.toUpperCase()}`,
+        price: totalOngkir,
+        quantity: 1,
+        name: `Ongkos Kirim ${namaKurir} (${layananKurir})`,
+      },
+    ];
+
+    if (totalDiskon > 0 && kodeVoucherDiterapkan) {
+      midtransItems.push({
+        id: `VOUCHER-${kodeVoucherDiterapkan}`,
+        price: -totalDiskon,
+        quantity: 1,
+        name: `Potongan Voucher (${kodeVoucherDiterapkan})`,
+      });
+    }
+
     const midtransResponse = await buatTransaksiMidtrans({
       nomorPesanan,
       totalAkhirIdr: totalAkhir,
-      items: [
-        ...snapshotItem.map((s) => ({
-          id: s.sku,
-          price: s.hargaSatuan,
-          quantity: s.jumlah,
-          name: s.namaProduk,
-        })),
-        {
-          id: `SHIPPING-${data.kodeKurir.toUpperCase()}`,
-          price: totalOngkir,
-          quantity: 1,
-          name: `Ongkos Kirim ${namaKurir} (${layananKurir})`,
-        },
-      ],
+      items: midtransItems,
       pelanggan: {
         namaLengkap: data.namaLengkap,
         email: data.email,
@@ -385,7 +439,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
     if (!midtransResponse.sukses || !midtransResponse.token) {
       console.error("Gagal mendapatkan sesi pembayaran Midtrans:", midtransResponse.pesan);
 
-      // Kembalikan stok yang sempat didekremen secara compare-and-set
+      // Kembalikan stok yang sempat didekremen secara compare-and-set & rollback kuota voucher
       await db.transaction(async (tx) => {
         const [dibatalkan] = await tx
           .update(pesanan)
@@ -399,6 +453,13 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
           .returning({ id: pesanan.id });
 
         if (dibatalkan) {
+          if (kodeVoucherDiterapkan) {
+            await tx
+              .update(aturanDiskon)
+              .set({ totalDigunakan: sql`GREATEST(0, ${aturanDiskon.totalDigunakan} - 1)` })
+              .where(eq(aturanDiskon.kode, kodeVoucherDiterapkan));
+          }
+
           for (const item of snapshotItem) {
             await tx
               .update(varianProduk)
@@ -429,6 +490,17 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         snapRedirectUrl: midtransResponse.redirectUrl,
       })
       .where(eq(pembayaran.pesananId, pesananId));
+
+    // 11. Kirim Email Notifikasi Konfirmasi Pesanan secara asinkron
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://voidsupply.com";
+    void kirimEmailNotifikasi({
+      jenis: "konfirmasi_pesanan",
+      emailTujuan: data.email,
+      namaPelanggan: data.namaLengkap,
+      nomorPesanan,
+      nominal: totalAkhir,
+      tautan: `${appUrl}/pesanan/${nomorPesanan}?token=${tokenAksesPesanan}`,
+    }).catch((err) => console.error("Gagal mengirim email konfirmasi pesanan:", err));
 
     return {
       sukses: true,
