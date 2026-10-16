@@ -7,6 +7,7 @@ import {
   ambilStatusPesanan,
   type DetailStatusPesanan,
 } from "../actions/status-pesanan.action";
+import { TimelinePengiriman } from "@/features/shipping/components/TimelinePengiriman";
 
 interface PropsKartuStatusPesanan {
   pesananAwal: DetailStatusPesanan;
@@ -120,7 +121,7 @@ export function KartuStatusPesanan({
               }`}
             >
               {isSukses
-                ? `STATUS: ${pesanan.statusPesanan.toUpperCase()} (TERVERIFIKASI)`
+                ? `STATUS: ${pesanan.statusPesanan.toUpperCase()}`
                 : isBatal
                 ? "STATUS: DIBATALKAN / KADALUARSA"
                 : "STATUS: MENUNGGU PEMBAYARAN"}
@@ -320,6 +321,17 @@ export function KartuStatusPesanan({
           </Link>
         </div>
       </div>
+
+      {/* Komponen Pelacakan Kurir Biteship (Fase 2) */}
+      {pesanan.isAuthorized && (
+        <TimelinePengiriman
+          nomorPesanan={pesanan.nomorPesanan}
+          statusPesanan={pesanan.statusPesanan}
+          pelacakan={pesanan.pelacakan}
+          tampilkanSimulator={process.env.NODE_ENV !== "production"}
+          onUpdate={sinkronkanStatus}
+        />
+      )}
     </div>
   );
 }

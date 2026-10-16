@@ -200,5 +200,15 @@
   // Default Browser Preview & Debugging (Google Chrome)
   "browser-preview.browser": "chrome",
   "browser-preview.chromeExecutable": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-  "liveServer.settings.CustomBrowser": "chrome"
+  "liveServer.settings.CustomBrowser": "chrome",
+
+  // Python Runtime (Paten Python 3.12 64-bit - Anti-Konflik)
+  "python.defaultInterpreterPath": "C:\\Program Files\\Python312\\python.exe",
+  "python.languageServer": "Default",
+  "python.analysis.autoImportCompletions": true,
+  "python.terminal.activateEnvironment": true,
+
+  // Next.js 16 & React 19 Developer Experience
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "javascript.preferences.includePackageJsonAutoImports": "on"
 }

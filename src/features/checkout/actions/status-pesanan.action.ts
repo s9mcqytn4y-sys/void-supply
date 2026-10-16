@@ -1,8 +1,34 @@
 "use server";
 
-import { eq } from "drizzle-orm";
-import { db, pesanan, pembayaran, pengiriman, itemPesanan } from "@/lib/db";
+import { eq, desc } from "drizzle-orm";
+import {
+  db,
+  pesanan,
+  pembayaran,
+  pengiriman,
+  itemPesanan,
+  pelacakanPengiriman,
+} from "@/lib/db";
 import { batalkanPesananKedaluwarsa } from "../services/reservasi.service";
+
+export interface EventPelacakan {
+  id: string;
+  nomorResi: string;
+  kurir: string;
+  statusPelacakan: string;
+  keterangan: string;
+  lokasi: string | null;
+  waktuPeristiwa: string;
+}
+
+export interface DetailPelacakan {
+  kurir: string;
+  layanan: string;
+  estimasiHari: string;
+  nomorResi?: string | null;
+  statusPengiriman: "menunggu_resi" | "dalam_pengiriman" | "terkirim" | "gagal";
+  riwayat: EventPelacakan[];
+}
 
 export interface DetailStatusPesanan {
   nomorPesanan: string;
@@ -25,6 +51,7 @@ export interface DetailStatusPesanan {
     estimasiHari: string;
     nomorResi?: string | null;
   };
+  pelacakan?: DetailPelacakan;
   pembayaran?: {
     metode?: string | null;
     snapToken?: string | null;
@@ -131,6 +158,12 @@ export async function ambilStatusPesanan(
       .from(itemPesanan)
       .where(eq(itemPesanan.pesananId, pesananDb.id));
 
+    const riwayatPelacakanDb = await db
+      .select()
+      .from(pelacakanPengiriman)
+      .where(eq(pelacakanPengiriman.pesananId, pesananDb.id))
+      .orderBy(desc(pelacakanPengiriman.waktuPeristiwa));
+
     // Evaluasi otorisasi (SEC-02A & SEC-03):
     // 1. Dapatkan token dari argumen atau dari cookie session
     let tokenPengguna = tokenAkses?.trim();
@@ -208,6 +241,24 @@ export async function ambilStatusPesanan(
               layanan: pengirimanDb.layanan,
               estimasiHari: pengirimanDb.estimasiHari,
               nomorResi: pengirimanDb.nomorResi,
+            }
+          : undefined,
+        pelacakan: pengirimanDb
+          ? {
+              kurir: pengirimanDb.kurir,
+              layanan: pengirimanDb.layanan,
+              estimasiHari: pengirimanDb.estimasiHari,
+              nomorResi: pengirimanDb.nomorResi,
+              statusPengiriman: pengirimanDb.statusPengiriman,
+              riwayat: riwayatPelacakanDb.map((item) => ({
+                id: item.id,
+                nomorResi: item.nomorResi,
+                kurir: item.kurir,
+                statusPelacakan: item.statusPelacakan,
+                keterangan: item.keterangan,
+                lokasi: item.lokasi,
+                waktuPeristiwa: item.waktuPeristiwa.toISOString(),
+              })),
             }
           : undefined,
         pembayaran: pembayaranDb
