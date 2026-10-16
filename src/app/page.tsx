@@ -4,6 +4,8 @@ import Image from "next/image";
 import { ambilDaftarKatalog } from "@/features/catalog/server";
 import { KartuProduk } from "@/features/catalog";
 
+import { safeJsonLdStringify } from "@/lib/utils/jsonld";
+
 export const metadata: Metadata = {
   title: "VOID Supply | Curated Heavyweight Streetwear",
   description:
@@ -39,7 +41,7 @@ export default async function HalamanBeranda() {
     <div className="min-h-screen bg-neutral-950 text-neutral-100">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(orgJsonLd) }}
       />
       {/* 1. Hero Section: Split Editorial Streetwear (Mobile Fit & Desktop Precision) */}
       <section

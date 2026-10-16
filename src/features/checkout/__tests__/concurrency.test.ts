@@ -10,26 +10,48 @@ describe("Module 02.15: Concurrency, Idempotency & Stock Recovery Suite", () => 
   });
 
   it("mencegah overselling saat dua transaksi bersaing untuk stok terakhir secara paralel (atomic decrement)", async () => {
-    // 1. Ambil atau buat varian uji di database nyata
+    // 1. Buat entitas produk dan varian terisolasi khusus pengujian konkurensi
+    const [kategoriEksis] = await db
+      .select({ id: kategori.id })
+      .from(kategori)
+      .limit(1);
+
+    expect(kategoriEksis).toBeDefined();
+
+    const timestampUnik = Date.now();
+    const [produkUji] = await db
+      .insert(produk)
+      .values({
+        kategoriId: kategoriEksis.id,
+        nama: `Artikel Uji Konkurensi ${timestampUnik}`,
+        slug: `artikel-uji-konkurensi-${timestampUnik}`,
+        deskripsi: "Artikel isolasi untuk pengujian race condition atomik",
+        hargaDasar: 150000,
+        status: "aktif",
+        gambarUtama: "/images/katalog/test-front.webp",
+      })
+      .returning({ id: produk.id });
+
     const [varianUji] = await db
-      .select({
+      .insert(varianProduk)
+      .values({
+        produkId: produkUji.id,
+        ukuran: "L",
+        warna: "Hitam",
+        sku: `CONC-ISOLASI-${timestampUnik}`,
+        stok: 1, // Tepat 1 unit stok untuk simulasi kontensi
+        beratGram: 500,
+        harga: 150000,
+      })
+      .returning({
         id: varianProduk.id,
         stok: varianProduk.stok,
         sku: varianProduk.sku,
-      })
-      .from(varianProduk)
-      .limit(1);
+      });
 
     expect(varianUji).toBeDefined();
-    const stokAwal = varianUji.stok;
 
     try {
-      // Set stok varian menjadi tepat 1 unit untuk simulasi kontensi kritis
-      await db
-        .update(varianProduk)
-        .set({ stok: 1 })
-        .where(eq(varianProduk.id, varianUji.id));
-
       // 2. Jalankan dua pengurangan stok bersyarat secara serentak (Promise.all)
       const eksekusiPembeli = async (nama: string) => {
         return await db.transaction(async (tx) => {
@@ -67,11 +89,9 @@ describe("Module 02.15: Concurrency, Idempotency & Stock Recovery Suite", () => 
 
       expect(stokAkhir.stok).toBe(0);
     } finally {
-      // Pulihkan kembali stok uji dengan jaminan finally
-      await db
-        .update(varianProduk)
-        .set({ stok: stokAwal })
-        .where(eq(varianProduk.id, varianUji.id));
+      // Bersihkan data uji terisolasi
+      await db.delete(varianProduk).where(eq(varianProduk.id, varianUji.id));
+      await db.delete(produk).where(eq(produk.id, produkUji.id));
     }
   });
 

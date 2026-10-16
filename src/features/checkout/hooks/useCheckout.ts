@@ -226,14 +226,8 @@ export function useCheckout() {
 
         if (hasil.sukses && hasil.nomorPesanan) {
           kosongkanKeranjang();
-          // Simpan token otorisasi ke cookie SameSite=Strict & Max-Age=3600 (SEC-02A)
-          if (hasil.tokenAkses && typeof document !== "undefined") {
-            const isSecure = window.location.protocol === "https:";
-            const secureFlag = isSecure ? "; Secure" : "";
-            document.cookie = `void_order_token_${encodeURIComponent(hasil.nomorPesanan)}=${encodeURIComponent(hasil.tokenAkses)}; path=/; max-age=3600; SameSite=Strict${secureFlag}`;
-          }
           toast.success("Pesanan berhasil dibuat. Mengalihkan ke pembayaran...");
-          // Arahkan ke halaman status pesanan kanonikal tanpa membocorkan token di URL
+          // Arahkan ke halaman status pesanan kanonikal (otorisasi dikelola via cookie HttpOnly server-side)
           router.push(`/pesanan/${encodeURIComponent(hasil.nomorPesanan)}`);
         } else {
           setPesanErrorGlobal(hasil.pesan);

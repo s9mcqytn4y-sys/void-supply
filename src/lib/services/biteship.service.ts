@@ -1,16 +1,14 @@
 import axios from "axios";
+import { selesaikanKonfigurasiEnvironment } from "@/lib/environment";
 
 /**
  * Service Logistik & Ongkos Kirim Biteship API
  * Menghitung ongkir real-time berdasarkan berat fisik riil artikel merchandise.
  */
 
-const BITESHIP_API_KEY =
-  process.env.BITESHIP_API_KEY ||
-  process.env.BITESHIP_API_KEY_SANDBOX ||
-  "biteship_test.xxxxxxxxxxxx";
-
-const ORIGIN_POSTAL_CODE = process.env.BITESHIP_ORIGIN_POSTAL_CODE || "10560"; // Johar Baru, Jakarta Pusat
+const envConfig = selesaikanKonfigurasiEnvironment();
+const BITESHIP_API_KEY = envConfig.biteship.apiKey;
+const ORIGIN_POSTAL_CODE = envConfig.biteship.originPostalCode;
 
 export interface OpsiKurir {
   namaKurir: string;

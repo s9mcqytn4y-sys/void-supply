@@ -7,6 +7,7 @@ import {
   PemilihVarian,
   TransparansiMaterial,
 } from "@/features/catalog";
+import { safeJsonLdStringify } from "@/lib/utils/jsonld";
 
 interface PropertiHalamanDetail {
   params: Promise<{ slug: string }>;
@@ -114,7 +115,7 @@ export default async function HalamanDetailProduk({
       {/* JSON-LD Structured Data untuk SEO */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
 
       <article className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">

@@ -114,7 +114,9 @@ export async function POST(req: Request) {
       transaction_status === "failure";
 
     // 5. Eksekusi Mutasi Status Atomik (Compare-and-Set)
-    return await db.transaction(async (tx) => {
+    let emailNotifikasiKirim: Parameters<typeof kirimEmailNotifikasi>[0] | null = null;
+
+    await db.transaction(async (tx) => {
       if (isSuccess) {
         // Compare-and-Set: Hanya ubah jika status saat ini 'menunggu_pembayaran'
         const [updatedOrder] = await tx
@@ -165,8 +167,8 @@ export async function POST(req: Request) {
 
           console.log(`[MIDTRANS WEBHOOK] Pesanan ${order_id} berhasil diverifikasi & faktur ${nomorFaktur} diterbitkan.`);
 
-          // Kirim notifikasi email tanda terima pembayaran
-          await kirimEmailNotifikasi({
+          // Siapkan muatan notifikasi email untuk eksekusi post-commit di luar transaksi DB
+          emailNotifikasiKirim = {
             pesananId: pesananTerkait.id,
             emailPenerima: pesananTerkait.emailPelanggan,
             tipe: "pembayaran_berhasil",
@@ -177,12 +179,12 @@ export async function POST(req: Request) {
               rincian: `Pembayaran sebesar Rp ${pesananTerkait.totalAkhir.toLocaleString("id-ID")} melalui ${payment_type || "Midtrans"} telah terverifikasi.`,
               total: `Rp ${pesananTerkait.totalAkhir.toLocaleString("id-ID")}`,
             },
-          });
+          };
         } else {
           console.info(`[MIDTRANS WEBHOOK] Order ${order_id} sudah berada pada status final (${pesananTerkait.statusPesanan}). Mutasi sukses diabaikan.`);
         }
 
-        return NextResponse.json({ status: "ok" });
+        return { sukses: true };
       }
 
       if (isFailureOrCancelled) {
@@ -242,8 +244,6 @@ export async function POST(req: Request) {
             `[MIDTRANS WEBHOOK] Order ${order_id} sudah berstatus final (${pesananTerkait.statusPesanan}). Pengembalian stok ganda dicegah.`
           );
         }
-
-        return NextResponse.json({ status: "ok" });
       }
 
       if (isPending) {
@@ -261,12 +261,17 @@ export async function POST(req: Request) {
               eq(pembayaran.statusPembayaran, "menunggu_pembayaran")
             )
           );
-
-        return NextResponse.json({ status: "ok" });
       }
-
-      return NextResponse.json({ status: "ok" });
     });
+
+    // 6. Post-Commit Execution: Eksekusi pengiriman email di luar transaksi DB (P0: Resiliensi Provider)
+    if (emailNotifikasiKirim) {
+      kirimEmailNotifikasi(emailNotifikasiKirim).catch((emailErr) => {
+        console.error("[MIDTRANS WEBHOOK] Gagal mengirim notifikasi email post-commit:", emailErr);
+      });
+    }
+
+    return NextResponse.json({ status: "ok" });
   } catch (error) {
     console.error("[MIDTRANS WEBHOOK] Galat saat memproses webhook:", error);
     return NextResponse.json(

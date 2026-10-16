@@ -1,20 +1,16 @@
 import crypto from "crypto";
 import midtransClient from "midtrans-client";
+import { selesaikanKonfigurasiEnvironment } from "@/lib/environment";
 
 /**
  * Service Gateway Pembayaran Midtrans Snap
  * Penanggung jawab pembuatan transaksi Snap dengan total gross_amount yang dihitung server.
  */
 
-const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
-const serverKey =
-  process.env.MIDTRANS_SERVER_KEY ||
-  process.env.MIDTRANS_SERVER_KEY_SANDBOX ||
-  "SB-Mid-server-xxxxxxxxxxxx";
-const clientKey =
-  process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ||
-  process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY_SANDBOX ||
-  "SB-Mid-client-xxxxxxxxxxxx";
+const envConfig = selesaikanKonfigurasiEnvironment();
+const isProduction = envConfig.midtrans.isProduction;
+const serverKey = envConfig.midtrans.serverKey;
+const clientKey = envConfig.midtrans.clientKey;
 
 // Inisialisasi Snap Client
 export const midtransSnap = new midtransClient.Snap({
@@ -73,9 +69,9 @@ export async function buatTransaksiMidtrans(
       };
     }
 
-    // Di luar environment production nyata, fallback mock HANYA aktif jika flag ALLOW_PAYMENT_MOCK bernilai true secara eksplisit
+    // Di luar environment production nyata, fallback mock aktif jika flag ALLOW_PAYMENT_MOCK bernilai true secara eksplisit
     const allowMock = process.env.ALLOW_PAYMENT_MOCK === "true" && !isRealProduction;
-    if (isKeyPlaceholder) {
+    if (allowMock || isKeyPlaceholder) {
       if (!allowMock) {
         return {
           sukses: false,

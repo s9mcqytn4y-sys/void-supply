@@ -216,6 +216,7 @@ export const pesanan = pgTable(
     idempotensiKey: varchar("idempotensi_key", { length: 64 }).unique(),
     hashPayload: varchar("hash_payload", { length: 64 }),
     tokenAkses: varchar("token_akses", { length: 64 }),
+    hashTokenAkses: varchar("hash_token_akses", { length: 64 }),
     percobaanRekonsiliasi: integer("percobaan_rekonsiliasi").default(0).notNull(),
     rekonsiliasiTerakhirPada: timestamp("rekonsiliasi_terakhir_pada", { withTimezone: true }),
     perluTinjauanManual: boolean("perlu_tinjauan_manual").default(false).notNull(),

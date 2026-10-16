@@ -1,7 +1,7 @@
 "use server";
 
 import crypto from "crypto";
-import { inArray, eq, and, gte, sql } from "drizzle-orm";
+import { inArray, eq, and, gte, sql, isNull, lt, or } from "drizzle-orm";
 import {
   db,
   produk,
@@ -323,6 +323,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
       // 7c. Simpan Entitas Pesanan (status: menunggu_pembayaran)
       const kedaluwarsaPada = new Date(Date.now() + 15 * 60 * 1000); // 15 menit jendela reservasi
       const tokenAkses = crypto.randomUUID();
+      const hashTokenAkses = crypto.createHash("sha256").update(tokenAkses).digest("hex");
       const [pesananBaru] = await tx
         .insert(pesanan)
         .values({
@@ -341,6 +342,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
           idempotensiKey: data.idempotensiKey || null,
           hashPayload: hashPayloadSaatIni,
           tokenAkses,
+          hashTokenAkses,
           kedaluwarsaPada,
         })
         .returning({ id: pesanan.id, tokenAkses: pesanan.tokenAkses });
@@ -348,12 +350,25 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
       pesananId = pesananBaru.id;
       tokenAksesPesanan = pesananBaru.tokenAkses || tokenAkses;
 
-      // 7c-2. Catat penggunaan voucher jika diterapkan
+      // 7c-2. Catat penggunaan voucher secara atomik bersyarat (P0: Pencegahan Overshoot Kuota)
       if (kodeVoucherDiterapkan) {
-        await tx
+        const [updatedVoucher] = await tx
           .update(aturanDiskon)
           .set({ totalDigunakan: sql`${aturanDiskon.totalDigunakan} + 1` })
-          .where(eq(aturanDiskon.kode, kodeVoucherDiterapkan));
+          .where(
+            and(
+              eq(aturanDiskon.kode, kodeVoucherDiterapkan),
+              or(
+                isNull(aturanDiskon.kuotaPenggunaan),
+                lt(aturanDiskon.totalDigunakan, aturanDiskon.kuotaPenggunaan)
+              )
+            )
+          )
+          .returning({ id: aturanDiskon.id });
+
+        if (!updatedVoucher) {
+          throw new Error("Kuota penggunaan voucher diskon telah habis.");
+        }
       }
 
       // 7d. Simpan Snapshot Item Pesanan Imutabel
@@ -502,6 +517,21 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
       tautan: `${appUrl}/pesanan/${nomorPesanan}?token=${tokenAksesPesanan}`,
     }).catch((err) => console.error("Gagal mengirim email konfirmasi pesanan:", err));
 
+    // 12. Tetapkan Cookie Akses Pesanan HttpOnly di Server (SEC-05 P0 Remediation)
+    try {
+      const { cookies } = await import("next/headers");
+      const cookieStore = await cookies();
+      cookieStore.set(`void_order_token_${nomorPesanan}`, tokenAksesPesanan, {
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 3600 * 24,
+      });
+    } catch {
+      // Non-SSR / test context
+    }
+
     return {
       sukses: true,
       pesan: "Pesanan berhasil dibuat. Melanjutkan ke pembayaran.",
@@ -546,6 +576,22 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
             .from(pembayaran)
             .where(eq(pembayaran.pesananId, pesananEksis.id))
             .limit(1);
+
+          try {
+            const { cookies } = await import("next/headers");
+            const cookieStore = await cookies();
+            if (pesananEksis.tokenAkses) {
+              cookieStore.set(`void_order_token_${pesananEksis.nomorPesanan}`, pesananEksis.tokenAkses, {
+                path: "/",
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 3600 * 24,
+              });
+            }
+          } catch {
+            // Non-SSR context
+          }
 
           return {
             sukses: true,

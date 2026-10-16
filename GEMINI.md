@@ -297,7 +297,7 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
    - Penanganan benturan kunci unik PostgreSQL (kode `23505`) pada `idempotensi_key` memastikan request paralel bersamaan mengembalikan pesanan yang berhasil dibuat tanpa melemparkan error 500 atau mengurangi stok ganda.
 
 4. **OPS-01 & OPS-02 (Deployment Cron & Gateway Inquire Before Expiry)**:
-   - `vercel.json` dikonfigurasi dengan entri scheduler otomatis `*/5 * * * *` menuju `/api/cron/kadaluwarsa-pesanan`.
+   - Scheduler staging/produksi dikonfigurasi via GitHub Actions (`.github/workflows/staging-cron.yml`) setiap 15 menit + pembersihan pasif (*Lazy Expiry Check*) saat rute `/pesanan/[nomorPesanan]` dimuat, karena Vercel Hobby Plan membatasi cron bawaan maksimal 1x per hari.
    - Layanan pembatalan pesanan `reservasi.service.ts` memverifikasi status pembayaran langsung ke gateway Midtrans (`cekStatusTransaksiMidtrans`) sebelum membatalkan pesanan kedaluwarsa, mencegah pembatalan order yang telah berhasil dibayar di gateway.
 
 5. **Visual Assets Drop 04 & UI Enhancement**:
@@ -317,10 +317,10 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
 ## 14. Pre-Production Security & Payment Reliability Gate (Module 02.16)
 
 1. **SEC-02A (Strict Token Verification & Fail-Closed Legacy Protection)**:
-   - Akses penuh ke detail pesanan mewajibkan kecocokan eksak antara token klien dan token database (`Boolean(dbToken) && dbToken === clientToken`).
+   - Akses penuh ke detail pesanan mewajibkan kecocokan antara token klien dan token database (mendukung hash SHA-256 `hashTokenAkses` serta plain token).
    - Pesanan historis dengan token kosong atau tidak terisi ditangani secara fail-closed (tidak memberikan akses penuh tanpa kredensial).
-   - Migrasi basis data `0004_perpetual_sway.sql` mengisi token unik UUID ke seluruh pesanan warisan yang belum memiliki token.
-   - Token disimpan dalam cookie browser `SameSite=Strict` dan ditautkan dengan kebijakan `Referrer-Policy: no-referrer` untuk mencegah kebocoran token melalui header referer HTTP.
+   - Migrasi basis data mengisi token unik UUID ke seluruh pesanan warisan yang belum memiliki token.
+   - Token disimpan dalam cookie browser `HttpOnly`, `SameSite=Strict`, `Secure` yang ditetapkan langsung oleh Server Action / Route Handler dengan path `/` untuk mencegah pembacaan melalui skrip client-side (XSS).
 
 2. **SEC-03 (Minimal Public Status View)**:
    - Permintaan tanpa token otentikasi hanya mengembalikan status minimal: nomor pesanan, status pesanan, status pembayaran, waktu dibuat, dan waktu kedaluwarsa.

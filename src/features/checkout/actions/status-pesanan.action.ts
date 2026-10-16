@@ -144,11 +144,19 @@ export async function ambilStatusPesanan(
       }
     }
 
-    // Fail-Closed Guard: Otorisasi hanya bernilai true jika pesanan memiliki tokenAkses dan token pengguna cocok persis
-    const isAuthorized =
-      Boolean(pesananDb.tokenAkses) &&
-      Boolean(tokenPengguna) &&
-      tokenPengguna === pesananDb.tokenAkses;
+    // Fail-Closed Guard: Otorisasi hanya bernilai true jika pesanan memiliki token dan hash SHA-256 cocok (atau token plain)
+    let isAuthorized = false;
+    if (tokenPengguna) {
+      try {
+        const crypto = await import("crypto");
+        const hashedInput = crypto.createHash("sha256").update(tokenPengguna).digest("hex");
+        isAuthorized =
+          (Boolean(pesananDb.hashTokenAkses) && hashedInput === pesananDb.hashTokenAkses) ||
+          (Boolean(pesananDb.tokenAkses) && tokenPengguna === pesananDb.tokenAkses);
+      } catch {
+        isAuthorized = Boolean(pesananDb.tokenAkses) && tokenPengguna === pesananDb.tokenAkses;
+      }
+    }
 
     if (!isAuthorized) {
       // SEC-03: Minimal Public Status View (Bebas PII, tanpa items, tanpa harga, tanpa kurir)
