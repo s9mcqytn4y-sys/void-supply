@@ -7,5 +7,6 @@ export * from "./components/InformasiProduk";
 export * from "./components/PemilihVarian";
 export * from "./components/PanduanUkuran";
 export * from "./components/TransparansiMaterial";
+export * from "./components/KatalogExplorer";
 export * from "./types/product.type";
 export * from "./schemas/product.schema";

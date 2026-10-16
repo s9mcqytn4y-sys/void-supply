@@ -384,5 +384,44 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
 7. **Vercel Webhook Resilience**:
    - Konfigurasi `vercel.json` diperbarui dengan `maxDuration: 10` pada fungsi `/api/midtrans/webhook` untuk mencegah timeout saat lonjakan traffic.
 
+---
+
+## 16. Fase 3: Storefront UX, Size Confidence & Playwright E2E Master Journey
+
+1. **Rute Kanonikal Halaman Keranjang Belanja (`/keranjang`) & Integrasi Quick Drawer**:
+   - Rute mandiri `src/app/(toko)/keranjang/page.tsx` dengan komponen `HalamanKeranjang.tsx`.
+   - Menyajikan tabel artikel belanja responsif, kontrol kuantitas unit berpelindung kuota (1-10 unit per SKU), thumbnail WebP, dan aksi penghapusan artikel.
+   - Dilengkapi **Kalkulator Berat Logistik**: menghitung berat paket fisik total dalam satuan gram dan kilogram untuk transparansi ongkos kirim resmi Biteship.
+   - Input voucher diskon terintegrasi langsung dengan Server Action `validasiVoucherAction`.
+   - Drawer `RingkasanKeranjang.tsx` menyediakan tombol navigasi cepat "LIHAT KERANJANG LENGKAP" (`min-h-11`) menuju rute `/keranjang`.
+
+2. **Katalog Explorer dengan Live Search, Kategori & URL Sync (`/katalog`)**:
+   - Komponen `KatalogExplorer.tsx` menyediakan sistem pencarian teks dengan debounce 300ms, filter tabs kategori busana (*Semua*, *T-Shirt*, *Outerwear*, *Pants*, *Accessories*), sakelar ketersediaan ready stock, dan dropdown pengurutan (*Terbaru*, *Harga Terendah*, *Harga Tertinggi*).
+   - Sinkronisasi instan dua arah dengan parameter URL (`kategori`, `q`, `sort`, `ready`) menggunakan Next.js `useRouter` dan `useSearchParams` tanpa reload halaman.
+   - State kosong terkelola rapi dengan aksi satu klik "RESET SEMUA FILTER".
+
+3. **Size Confidence Modal & Kalkulator Postur Cerdas (AI Fit)**:
+   - Komponen `PanduanUkuran.tsx` ditingkatkan dengan sistem navigasi dual-tab: "TABEL DIMENSI (CM)" dan "KALKULATOR POSTUR (AI FIT)".
+   - Kalkulator postur menerima parameter tinggi badan (cm), berat badan (kg), dan preferensi siluet (*Regular*, *Boxy*, *Oversized*), kemudian menghasilkan rekomendasi ukuran busana akurat berdasarkan proporsi drape garmen VOID Supply.
+   - Dilengkapi tombol "TERAPKAN UKURAN [X]" yang langsung memutasikan seleksi ukuran aktif pada `PemilihVarian.tsx`.
+
+4. **Cryptographic High-Entropy Order Number (`buat-pesanan.action.ts`)**:
+   - Format nomor pesanan ditingkatkan dari 5-digit pseudo-random menjadi 32-bit hex kriptografis: `VOID-YYYYMMDD-XXXXXXXX` (`crypto.randomBytes(4).toString("hex").toUpperCase()`).
+   - Menghilangkan probabilitas benturan nomor pesanan saat pengujian paralel Vitest/Playwright dan lonjakan traffic tinggi di produksi.
+
+5. **Playwright E2E Master Journey Test (`shopper-journey.spec.ts`)**:
+   - File pengujian `tests/e2e/flows/shopper-journey.spec.ts` memvalidasi rantai perjalanan pembeli secara menyeluruh:
+     - Filter & Live Search di `/katalog`
+     - Navigasi ke PDP `/katalog/[slug]`
+     - Interaksi Size Confidence Modal & Kalkulator Postur
+     - Penambahan artikel ke keranjang
+     - Navigasi ke halaman keranjang `/keranjang`
+     - Evaluasi rincian biaya & berat logistik
+     - Transisi ke halaman `/checkout` dan verifikasi mobile viewport tanpa horizontal overflow.
+
+6. **Kepatuhan Kanonikal Tailwind CSS v4 & Zero Warning IDE**:
+   - Memperbaiki peringatan IDE pada `TimelinePengiriman.tsx` (`-left-[5px]` -> `-left-1.25`).
+   - Mempertahankan standar ketat: 0 kesalahan ESLint, 0 galat TypeScript (`tsc --noEmit`), 0 em dash (`—`), dan 100% lulus pada 62 pengujian Vitest.
+
 
 

@@ -139,6 +139,17 @@ export function PemilihVarian({
             kategori={kategori}
             namaProduk={namaProduk}
             panduanUkuran={panduanUkuran}
+            ukuranTersedia={varian.map((v) => v.ukuran)}
+            onPilihUkuran={(ukuran) => {
+              const varianTarget = varian.find((v) => v.ukuran === ukuran && v.stok > 0);
+              if (varianTarget) {
+                tanganiPilihVarian(varianTarget.id);
+              } else {
+                toast.info(`Ukuran ${ukuran} sedang habis`, {
+                  description: "Silakan pilih ukuran lain yang masih tersedia.",
+                });
+              }
+            }}
           />
         </div>
 

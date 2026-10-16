@@ -263,9 +263,9 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
 
     const totalAkhir = Math.max(0, subtotalServer - totalDiskon + totalOngkir);
 
-    // 6. Generate Nomor Pesanan Unik (Format VOID-YYYYMMDD-XXXXX)
+    // 6. Generate Nomor Pesanan Unik (Format VOID-YYYYMMDD-XXXXXXXX)
     const tanggalFormat = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const acak = Math.floor(10000 + Math.random() * 90000);
+    const acak = crypto.randomBytes(4).toString("hex").toUpperCase();
     const nomorPesanan = `VOID-${tanggalFormat}-${acak}`;
 
     // 7. FASE 1: Mutasi Basis Data Atomik Cepat

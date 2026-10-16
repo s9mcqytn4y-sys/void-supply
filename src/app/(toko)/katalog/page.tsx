@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { ambilDaftarKatalog } from "@/features/catalog/server";
-import { GridProduk } from "@/features/catalog";
+import { KatalogExplorer } from "@/features/catalog";
 
 export const metadata: Metadata = {
   title: "Katalog | Drop 04: Night Transmission | VOID Supply",
@@ -51,8 +51,8 @@ export default async function HalamanKatalog() {
         </div>
       </header>
 
-      {/* Grid Katalog Produk */}
-      <GridProduk produk={daftarProduk} />
+      {/* Katalog Explorer dengan Live Search & Kategori Filter */}
+      <KatalogExplorer produkAwal={daftarProduk} />
     </main>
   );
 }

@@ -163,6 +163,14 @@ export function RingkasanKeranjang() {
                   LANJUT KE PEMBAYARAN ({formatRupiah(subtotalIdr)})
                 </Link>
 
+                <Link
+                  href="/keranjang"
+                  onClick={() => setBuka(false)}
+                  className="flex min-h-11 w-full items-center justify-center border border-neutral-700 bg-neutral-900 font-mono text-xs font-semibold text-white uppercase transition-colors hover:border-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+                >
+                  LIHAT KERANJANG LENGKAP
+                </Link>
+
                 <Button
                   type="button"
                   variant="secondary"

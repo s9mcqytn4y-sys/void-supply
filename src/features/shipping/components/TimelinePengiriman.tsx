@@ -269,7 +269,7 @@ export function TimelinePengiriman({
                 key={event.id || i}
                 className="relative flex items-start gap-3 border-l-2 border-neutral-800 pl-4 pb-1"
               >
-                <div className="absolute -left-[5px] top-1.5 h-2 w-2 rounded-full bg-neutral-400" />
+                <div className="absolute -left-1.25 top-1.5 h-2 w-2 rounded-full bg-neutral-400" />
                 <div className="flex-1">
                   <div className="flex flex-col justify-between sm:flex-row sm:items-baseline">
                     <p className="font-bold text-white uppercase">

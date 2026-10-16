@@ -2,31 +2,43 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-
 import type { DimensiUkuranGarmen } from "../types/product.type";
+import { toast } from "sonner";
 
 export interface PropertiPanduanUkuran {
   kategori?: string;
   namaProduk?: string;
   panduanUkuran?: readonly DimensiUkuranGarmen[] | null;
+  onPilihUkuran?: (ukuran: string) => void;
+  ukuranTersedia?: readonly string[];
 }
+
+type TabPanduan = "tabel" | "kalkulator";
+type PreferensiFitting = "regular" | "boxy" | "oversized";
 
 export function PanduanUkuran({
   kategori = "T-Shirt",
   namaProduk,
   panduanUkuran,
+  onPilihUkuran,
+  ukuranTersedia = ["S", "M", "L", "XL", "XXL"],
 }: PropertiPanduanUkuran) {
   const [apakahBuka, setApakahBuka] = useState(false);
+  const [tabAktif, setTabAktif] = useState<TabPanduan>("tabel");
   const tombolPemicuRef = useRef<HTMLButtonElement>(null);
   const kontainerDialogRef = useRef<HTMLDivElement>(null);
 
-  // Aksesibilitas: Focus Trap & Restore Focus saat modal buka/tutup (Sesuai WCAG AA & R-32)
+  // State Kalkulator Postur
+  const [tinggiCm, setTinggiCm] = useState<number>(172);
+  const [beratKg, setBeratKg] = useState<number>(65);
+  const [preferensiFit, setPreferensiFit] = useState<PreferensiFitting>("boxy");
+
+  // Aksesibilitas: Focus Trap & Restore Focus saat modal buka/tutup (WCAG AA & R-32)
   useEffect(() => {
     if (!apakahBuka) return;
 
     document.body.style.overflow = "hidden";
 
-    // Fokuskan modal saat pertama kali terbuka
     const elemenFokusSebelumnya = document.activeElement as HTMLElement | null;
     const fokusables = kontainerDialogRef.current?.querySelectorAll<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -41,7 +53,6 @@ export function PanduanUkuran({
         return;
       }
 
-      // Focus trap dengan tombol Tab
       if (e.key === "Tab" && kontainerDialogRef.current) {
         const daftarFokus = kontainerDialogRef.current.querySelectorAll<HTMLElement>(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -70,7 +81,6 @@ export function PanduanUkuran({
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", tanganiKeyDown);
-      // Restore focus ke tombol pembuka
       if (tombolPemicuRef.current) {
         tombolPemicuRef.current.focus();
       } else if (elemenFokusSebelumnya) {
@@ -79,9 +89,61 @@ export function PanduanUkuran({
     };
   }, [apakahBuka]);
 
+  // Algoritma Rekomendasi Ukuran Cerdas
+  const hitungRekomendasiUkuran = (): { ukuran: string; alasan: string } => {
+    const bmi = beratKg / ((tinggiCm / 100) * (tinggiCm / 100));
+    let baseUkuran = "M";
+
+    if (tinggiCm < 165 || beratKg < 55) {
+      baseUkuran = "S";
+    } else if (tinggiCm <= 174 && beratKg <= 68) {
+      baseUkuran = "M";
+    } else if (tinggiCm <= 182 && beratKg <= 80) {
+      baseUkuran = "L";
+    } else if (tinggiCm <= 188 && beratKg <= 92) {
+      baseUkuran = "XL";
+    } else {
+      baseUkuran = "XXL";
+    }
+
+    // Penyesuaian preferensi
+    const urutanUkuran = ["S", "M", "L", "XL", "XXL"];
+    let indexFinal = urutanUkuran.indexOf(baseUkuran);
+
+    if (preferensiFit === "oversized") {
+      indexFinal = Math.min(urutanUkuran.length - 1, indexFinal + 1);
+    } else if (preferensiFit === "regular" && bmi < 21) {
+      indexFinal = Math.max(0, indexFinal - 1);
+    }
+
+    const ukuranFinal = urutanUkuran[indexFinal];
+
+    let deskripsiFit = `Postur ${tinggiCm} cm / ${beratKg} kg dengan siluet ${preferensiFit.toUpperCase()}.`;
+    if (preferensiFit === "boxy") {
+      deskripsiFit += " Menghadirkan proporsi drape dada lebar khas streetwear VOID Supply.";
+    } else if (preferensiFit === "oversized") {
+      deskripsiFit += " Potongan ekstra longgar dengan dropped shoulder rileks.";
+    } else {
+      deskripsiFit += " Siluet proporsional dan pas di lekuk tubuh.";
+    }
+
+    return { ukuran: ukuranFinal, alasan: deskripsiFit };
+  };
+
+  const rekomendasi = hitungRekomendasiUkuran();
+
+  const tanganiTerapkanUkuran = () => {
+    if (onPilihUkuran) {
+      onPilihUkuran(rekomendasi.ukuran);
+      toast.success(`Ukuran ${rekomendasi.ukuran} berhasil dipilih`, {
+        description: `Rekomendasi postur ${tinggiCm} cm / ${beratKg} kg telah diterapkan.`,
+      });
+      setApakahBuka(false);
+    }
+  };
+
   const daftarDimensi = panduanUkuran && panduanUkuran.length > 0 ? panduanUkuran : null;
 
-  // Deteksi kolom yang relevan berdasarkan data yang tersedia
   const memilikiPanjangBadan = daftarDimensi?.some((d) => d.panjangBadan !== undefined);
   const memilikiLebarDada = daftarDimensi?.some((d) => d.lebarDada !== undefined);
   const memilikiPanjangLengan = daftarDimensi?.some((d) => d.panjangLengan !== undefined);
@@ -96,14 +158,14 @@ export function PanduanUkuran({
         ref={tombolPemicuRef}
         type="button"
         onClick={() => setApakahBuka(true)}
-        className="inline-flex items-center gap-1.5 font-mono text-xs text-neutral-400 underline underline-offset-4 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        className="inline-flex min-h-11 items-center gap-1.5 font-mono text-xs text-neutral-400 underline underline-offset-4 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         aria-haspopup="dialog"
         aria-expanded={apakahBuka}
       >
         <span>PANDUAN UKURAN (CM)</span>
       </button>
 
-      {/* Modal Dialog Panduan Ukuran */}
+      {/* Modal Dialog Panduan Ukuran & Kalkulator */}
       {apakahBuka && (
         <div
           role="dialog"
@@ -124,7 +186,7 @@ export function PanduanUkuran({
                   SIZE CONFIDENCE // {kategori}
                 </span>
                 <h2 id="judul-panduan-ukuran" className="mt-1 text-xl font-bold text-white uppercase">
-                  Tabel Dimensi Ukuran {namaProduk ? `// ${namaProduk}` : ""}
+                  PANDUAN UKURAN {namaProduk ? `// ${namaProduk}` : ""}
                 </h2>
               </div>
               <button
@@ -137,81 +199,212 @@ export function PanduanUkuran({
               </button>
             </div>
 
-            {/* Catatan Fit Karakteristik */}
-            <div className="my-4 border-l-2 border-neutral-500 bg-neutral-900/50 p-3 text-xs leading-relaxed text-neutral-300">
-              <strong className="font-semibold text-white">Panduan Fitting VOID Supply:</strong> Dimensi
-              diukur pada bidang datar (toleransi jahit 1-2 cm). Untuk tampilan oversized streetwear,
-              gunakan ukuran asli. Turun satu ukuran untuk siluet lebih pas di tubuh.
+            {/* Tab Bar: Tabel Dimensi vs Kalkulator Postur */}
+            <div className="mt-4 flex border-b border-neutral-800">
+              <button
+                type="button"
+                onClick={() => setTabAktif("tabel")}
+                className={`min-h-11 flex-1 border-b-2 font-mono text-xs font-bold tracking-wider uppercase transition-colors focus-visible:outline-none ${
+                  tabAktif === "tabel"
+                    ? "border-white text-white"
+                    : "border-transparent text-neutral-400 hover:text-neutral-200"
+                }`}
+              >
+                TABEL DIMENSI (CM)
+              </button>
+              <button
+                type="button"
+                onClick={() => setTabAktif("kalkulator")}
+                className={`min-h-11 flex-1 border-b-2 font-mono text-xs font-bold tracking-wider uppercase transition-colors focus-visible:outline-none ${
+                  tabAktif === "kalkulator"
+                    ? "border-white text-white"
+                    : "border-transparent text-neutral-400 hover:text-neutral-200"
+                }`}
+              >
+                KALKULATOR POSTUR (AI FIT)
+              </button>
             </div>
 
-            {/* Tabel Dimensi Pengukuran Nyata atau Unverified State */}
-            {daftarDimensi ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left font-mono text-xs">
-                  <thead>
-                    <tr className="border-b border-neutral-800 text-neutral-400">
-                      <th scope="col" className="py-2.5 pr-4 font-semibold uppercase">
-                        Ukuran
-                      </th>
-                      {memilikiPanjangBadan && (
-                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
-                          Panjang (cm)
-                        </th>
-                      )}
-                      {memilikiLebarDada && (
-                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
-                          Lebar Dada (cm)
-                        </th>
-                      )}
-                      {memilikiPanjangLengan && (
-                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
-                          Lengan (cm)
-                        </th>
-                      )}
-                      {memilikiPanjangCelana && (
-                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
-                          Panjang Celana (cm)
-                        </th>
-                      )}
-                      {memilikiLingkarPinggang && (
-                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
-                          Pinggang (cm)
-                        </th>
-                      )}
-                      {memilikiLebarPaha && (
-                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
-                          Lebar Paha (cm)
-                        </th>
-                      )}
-                      {memilikiLingkarKepala && (
-                        <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
-                          Lingkar Kepala (cm)
-                        </th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-900 text-neutral-200">
-                    {daftarDimensi.map((item) => (
-                      <tr key={item.ukuran} className="hover:bg-neutral-900/40">
-                        <td className="py-3 pr-4 font-bold text-white">{item.ukuran}</td>
-                        {memilikiPanjangBadan && <td className="py-3 px-3">{item.panjangBadan ?? "-"}</td>}
-                        {memilikiLebarDada && <td className="py-3 px-3">{item.lebarDada ?? "-"}</td>}
-                        {memilikiPanjangLengan && <td className="py-3 px-3">{item.panjangLengan ?? "-"}</td>}
-                        {memilikiPanjangCelana && <td className="py-3 px-3">{item.panjangCelana ?? "-"}</td>}
-                        {memilikiLingkarPinggang && <td className="py-3 px-3">{item.lingkarPinggang ?? "-"}</td>}
-                        {memilikiLebarPaha && <td className="py-3 px-3">{item.lebarPaha ?? "-"}</td>}
-                        {memilikiLingkarKepala && <td className="py-3 px-3">{item.lingkarKepala ?? "-"}</td>}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {tabAktif === "tabel" ? (
+              <div className="mt-4">
+                {/* Catatan Fit Karakteristik */}
+                <div className="mb-4 border-l-2 border-neutral-500 bg-neutral-900/50 p-3 text-xs leading-relaxed text-neutral-300">
+                  <strong className="font-semibold text-white">Panduan Fitting VOID Supply:</strong> Dimensi
+                  diukur pada bidang datar (toleransi jahit 1-2 cm). Untuk tampilan oversized streetwear,
+                  gunakan ukuran asli. Turun satu ukuran untuk siluet lebih pas di tubuh.
+                </div>
+
+                {/* Tabel Dimensi Pengukuran Nyata */}
+                {daftarDimensi ? (
+                  <div className="max-h-72 overflow-x-auto overflow-y-auto">
+                    <table className="w-full text-left font-mono text-xs">
+                      <thead>
+                        <tr className="border-b border-neutral-800 text-neutral-400">
+                          <th scope="col" className="py-2.5 pr-4 font-semibold uppercase">
+                            Ukuran
+                          </th>
+                          {memilikiPanjangBadan && (
+                            <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                              Panjang (cm)
+                            </th>
+                          )}
+                          {memilikiLebarDada && (
+                            <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                              Lebar Dada (cm)
+                            </th>
+                          )}
+                          {memilikiPanjangLengan && (
+                            <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                              Lengan (cm)
+                            </th>
+                          )}
+                          {memilikiPanjangCelana && (
+                            <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                              Panjang Celana (cm)
+                            </th>
+                          )}
+                          {memilikiLingkarPinggang && (
+                            <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                              Pinggang (cm)
+                            </th>
+                          )}
+                          {memilikiLebarPaha && (
+                            <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                              Lebar Paha (cm)
+                            </th>
+                          )}
+                          {memilikiLingkarKepala && (
+                            <th scope="col" className="py-2.5 px-3 font-semibold uppercase">
+                              Lingkar Kepala (cm)
+                            </th>
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-900 text-neutral-200">
+                        {daftarDimensi.map((item) => (
+                          <tr key={item.ukuran} className="hover:bg-neutral-900/40">
+                            <td className="py-3 pr-4 font-bold text-white">{item.ukuran}</td>
+                            {memilikiPanjangBadan && <td className="py-3 px-3">{item.panjangBadan ?? "-"}</td>}
+                            {memilikiLebarDada && <td className="py-3 px-3">{item.lebarDada ?? "-"}</td>}
+                            {memilikiPanjangLengan && <td className="py-3 px-3">{item.panjangLengan ?? "-"}</td>}
+                            {memilikiPanjangCelana && <td className="py-3 px-3">{item.panjangCelana ?? "-"}</td>}
+                            {memilikiLingkarPinggang && <td className="py-3 px-3">{item.lingkarPinggang ?? "-"}</td>}
+                            {memilikiLebarPaha && <td className="py-3 px-3">{item.lebarPaha ?? "-"}</td>}
+                            {memilikiLingkarKepala && <td className="py-3 px-3">{item.lingkarKepala ?? "-"}</td>}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="border border-dashed border-neutral-800 p-6 text-center text-xs text-neutral-400">
+                    <p className="font-mono text-neutral-300 uppercase">DATA UKURAN SEDANG DIVERIFIKASI</p>
+                    <p className="mt-1">
+                      Pengukuran garmen fisik untuk artikel ini sedang ditinjau ulang oleh tim QC agar akurasi tetap terjaga.
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
-              <div className="border border-dashed border-neutral-800 p-6 text-center text-xs text-neutral-400">
-                <p className="font-mono text-neutral-300 uppercase">DATA UKURAN SEDANG DIVERIFIKASI</p>
-                <p className="mt-1">
-                  Pengukuran garmen fisik untuk artikel ini sedang ditinjau ulang oleh tim QC agar akurasi tetap terjaga.
-                </p>
+              /* Tab 2: Interactive Size Confidence Calculator */
+              <div className="mt-4 space-y-5">
+                {/* Sliders Input: Tinggi & Berat Badan */}
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between font-mono text-xs">
+                      <label htmlFor="slider-tinggi" className="text-neutral-300 uppercase">
+                        TINGGI BADAN:
+                      </label>
+                      <span className="font-bold text-white">{tinggiCm} CM</span>
+                    </div>
+                    <input
+                      id="slider-tinggi"
+                      type="range"
+                      min={150}
+                      max={205}
+                      value={tinggiCm}
+                      onChange={(e) => setTinggiCm(Number(e.target.value))}
+                      className="mt-2 h-2 w-full cursor-pointer accent-white bg-neutral-800"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between font-mono text-xs">
+                      <label htmlFor="slider-berat" className="text-neutral-300 uppercase">
+                        BERAT BADAN:
+                      </label>
+                      <span className="font-bold text-white">{beratKg} KG</span>
+                    </div>
+                    <input
+                      id="slider-berat"
+                      type="range"
+                      min={40}
+                      max={125}
+                      value={beratKg}
+                      onChange={(e) => setBeratKg(Number(e.target.value))}
+                      className="mt-2 h-2 w-full cursor-pointer accent-white bg-neutral-800"
+                    />
+                  </div>
+                </div>
+
+                {/* Preferensi Fitting */}
+                <div>
+                  <span className="block font-mono text-xs text-neutral-300 uppercase">
+                    PREFERENSI SILUET:
+                  </span>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {(
+                      [
+                        { id: "regular", label: "REGULAR", desc: "Pas Proporsional" },
+                        { id: "boxy", label: "BOXY", desc: "Khas VOID" },
+                        { id: "oversized", label: "OVERSIZED", desc: "Ekstra Longgar" },
+                      ] as const
+                    ).map((pref) => {
+                      const apakahAktif = preferensiFit === pref.id;
+                      return (
+                        <button
+                          key={pref.id}
+                          type="button"
+                          onClick={() => setPreferensiFit(pref.id)}
+                          className={`min-h-11 border p-2 text-center transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white ${
+                            apakahAktif
+                              ? "border-white bg-white text-black"
+                              : "border-neutral-800 bg-neutral-900/60 text-neutral-300 hover:border-neutral-600"
+                          }`}
+                        >
+                          <span className="block font-mono text-xs font-bold">{pref.label}</span>
+                          <span className="block text-[10px] opacity-80">{pref.desc}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Box Hasil Rekomendasi */}
+                <div className="border border-neutral-700 bg-neutral-900/80 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-mono text-[11px] text-neutral-400 uppercase">
+                        REKOMENDASI UKURAN ANDA:
+                      </span>
+                      <p className="mt-1 font-mono text-3xl font-black text-white">
+                        {rekomendasi.ukuran}
+                      </p>
+                    </div>
+                    {onPilihUkuran && (
+                      <Button
+                        type="button"
+                        onClick={tanganiTerapkanUkuran}
+                        className="min-h-11 border border-white bg-white px-5 font-mono text-xs font-bold text-black uppercase hover:bg-neutral-200"
+                      >
+                        TERAPKAN UKURAN {rekomendasi.ukuran}
+                      </Button>
+                    )}
+                  </div>
+                  <p className="mt-3 text-xs leading-relaxed text-neutral-300">
+                    {rekomendasi.alasan}
+                  </p>
+                </div>
               </div>
             )}
 
@@ -232,4 +425,3 @@ export function PanduanUkuran({
     </>
   );
 }
-
