@@ -43,6 +43,13 @@
       "when": 1791990879734,
       "tag": "0005_nasty_selene",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792224679203,
+      "tag": "0006_steady_robin_chapel",
+      "breakpoints": true
     }
   ]
 }

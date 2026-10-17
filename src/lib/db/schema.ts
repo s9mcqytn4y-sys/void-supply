@@ -52,7 +52,19 @@ export const tipeEmailEnum = pgEnum("tipe_email", [
   "pesanan_batal",
 ]);
 
-export const statusLogEmailEnum = pgEnum("status_log_email", ["antre", "terkirim", "gagal"]);
+export const statusLogEmailEnum = pgEnum("status_log_email", [
+  "antre",
+  "terkirim",
+  "simulasi",
+  "gagal",
+]);
+
+export const statusOutboxEnum = pgEnum("status_outbox", [
+  "antre",
+  "diproses",
+  "berhasil",
+  "gagal",
+]);
 
 // 1. Tabel Pelanggan (Customer Profile & Buyer Entity)
 export const pelanggan = pgTable("pelanggan", {
@@ -286,9 +298,13 @@ export const pengiriman = pgTable("pengiriman", {
     .unique(),
   kurir: varchar("kurir", { length: 50 }).notNull(),
   layanan: varchar("layanan", { length: 50 }).notNull(),
+  kodeLayananKurir: varchar("kode_layanan_kurir", { length: 50 }),
+  biteshipOrderId: varchar("biteship_order_id", { length: 100 }),
+  biteshipTrackingId: varchar("biteship_tracking_id", { length: 100 }),
   nomorResi: varchar("nomor_resi", { length: 100 }),
   beratTotalGram: integer("berat_total_gram").notNull(),
   biayaOngkir: integer("biaya_ongkir").notNull(),
+  biayaPengirimanAktual: integer("biaya_pengiriman_aktual"),
   namaPenerima: varchar("nama_penerima", { length: 150 }).notNull(),
   teleponPenerima: varchar("telepon_penerima", { length: 30 }).notNull(),
   alamatLengkap: text("alamat_lengkap").notNull(),
@@ -387,6 +403,21 @@ export const pelacakanPengiriman = pgTable("pelacakan_pengiriman", {
   dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// 16. Tabel Antrean Pekerjaan Transactional Outbox (Resilient Serverless Worker)
+export const outboxPekerjaan = pgTable("outbox_pekerjaan", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  tipePekerjaan: varchar("tipe_pekerjaan", { length: 50 }).notNull(),
+  pesananId: uuid("pesanan_id").references(() => pesanan.id, { onDelete: "cascade" }),
+  payload: jsonb("payload").notNull(),
+  status: statusOutboxEnum("status").default("antre").notNull(),
+  percobaan: integer("percobaan").default(0).notNull(),
+  maksimalPercobaan: integer("maksimal_percobaan").default(5).notNull(),
+  pesanKesalahan: text("pesan_kesalahan"),
+  dieksekusiPada: timestamp("dieksekusi_pada", { withTimezone: true }),
+  dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
+  diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
+});
+
 // Konfigurasi Relasi Drizzle ORM
 export const pelangganRelasi = relations(pelanggan, ({ many, one }) => ({
   pesanan: many(pesanan),
@@ -451,6 +482,7 @@ export const pesananRelasi = relations(pesanan, ({ many, one }) => ({
   }),
   logEmail: many(logEmail),
   pelacakan: many(pelacakanPengiriman),
+  outbox: many(outboxPekerjaan),
 }));
 
 export const fakturRelasi = relations(faktur, ({ one }) => ({
@@ -470,6 +502,13 @@ export const logEmailRelasi = relations(logEmail, ({ one }) => ({
 export const pelacakanPengirimanRelasi = relations(pelacakanPengiriman, ({ one }) => ({
   pesanan: one(pesanan, {
     fields: [pelacakanPengiriman.pesananId],
+    references: [pesanan.id],
+  }),
+}));
+
+export const outboxPekerjaanRelasi = relations(outboxPekerjaan, ({ one }) => ({
+  pesanan: one(pesanan, {
+    fields: [outboxPekerjaan.pesananId],
     references: [pesanan.id],
   }),
 }));

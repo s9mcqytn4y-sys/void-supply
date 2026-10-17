@@ -2,6 +2,19 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
+const isDeployedEnv =
+  Boolean(process.env.VERCEL) ||
+  Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+  process.env.NODE_ENV === "production" ||
+  process.env.APP_ENV === "staging" ||
+  process.env.APP_ENV === "production";
+
+if (isDeployedEnv && !process.env.DATABASE_URL && process.env.CI !== "true") {
+  throw new Error(
+    "DATABASE_URL wajib dikonfigurasi pada deployment staging/produksi Vercel (koneksi pooled)."
+  );
+}
+
 const connectionString =
   process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/void_supply";
 
