@@ -218,7 +218,10 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
     const opsiCocok = opsiOngkir.find(
       (o) =>
         o.kodeKurir.toLowerCase() === data.kodeKurir.toLowerCase() &&
-        o.layanan.toLowerCase() === data.layananKurir.toLowerCase()
+        (o.layanan.toLowerCase() === data.layananKurir.toLowerCase() ||
+          (Boolean(o.kodeLayananKurir) &&
+            Boolean(data.kodeLayananKurir) &&
+            o.kodeLayananKurir?.toLowerCase() === data.kodeLayananKurir?.toLowerCase()))
     );
 
     if (!opsiCocok) {

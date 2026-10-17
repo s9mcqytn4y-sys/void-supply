@@ -51,6 +51,9 @@ export function useCheckout() {
 
   // Kunci Idempotensi unik per sesi pengisian formulir
   const idempotensiKeyRef = useRef<string>("");
+  // Cache lokal opsi ongkir untuk mencegah request ganda ke Biteship API
+  const cacheOngkirRef = useRef<Map<string, OpsiKurir[]>>(new Map());
+
   useEffect(() => {
     if (!idempotensiKeyRef.current) {
       idempotensiKeyRef.current =
@@ -86,6 +89,20 @@ export function useCheckout() {
       if (itemDaftar.length === 0) return;
 
       const activeCoords = coordsParam !== undefined ? coordsParam : koordinat;
+      const cacheKey = `${kodePos}_${itemDaftar.map((i) => `${i.varianId}:${i.jumlah}`).join(",")}_${activeCoords?.latitude ?? 0},${activeCoords?.longitude ?? 0}`;
+
+      const dataCache = cacheOngkirRef.current.get(cacheKey);
+      if (dataCache && dataCache.length > 0) {
+        setOpsiKurir(dataCache);
+        setKurirTerpilih((prev) => {
+          if (!prev) return dataCache[0];
+          const tetapCocok = dataCache.find(
+            (k) => k.kodeKurir === prev.kodeKurir && k.layanan === prev.layanan
+          );
+          return tetapCocok || dataCache[0];
+        });
+        return;
+      }
 
       setSedangHitungOngkir(true);
       try {
@@ -97,6 +114,7 @@ export function useCheckout() {
         });
 
         if (hasil.sukses && hasil.opsiKurir.length > 0) {
+          cacheOngkirRef.current.set(cacheKey, hasil.opsiKurir);
           setOpsiKurir(hasil.opsiKurir);
           setKurirTerpilih((prev) => {
             if (!prev) return hasil.opsiKurir[0];
