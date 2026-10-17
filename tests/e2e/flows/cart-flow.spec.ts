@@ -13,13 +13,16 @@ test.describe("E2E: Alur Keranjang & Hidrasi Multi-Platform (Module 02.15)", () 
     await expect(kartuProduk).toBeVisible();
     await kartuProduk.click({ force: true });
 
+    // Tunggu navigasi selesai ke Product Detail Page
+    await page.waitForURL(/\/katalog\/[a-z0-9-]+/, { timeout: 15000 });
+
     // 3. Verifikasi masuk ke Product Detail Page
     const judulProduk = page.locator("h1");
     await expect(judulProduk).toBeVisible();
 
     // 4. Pilih ukuran varian menggunakan selector role radio
     const tombolUkuran = page.locator('button[role="radio"]:not([disabled])').first();
-    await expect(tombolUkuran).toBeVisible();
+    await expect(tombolUkuran).toBeVisible({ timeout: 10000 });
     await tombolUkuran.click({ force: true });
 
     // 5. Klik tombol Tambah ke Keranjang
