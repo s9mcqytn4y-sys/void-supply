@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ambilDetailProduk } from "@/features/catalog/server";
 import {
-  GaleriProduk,
-  InformasiProduk,
+  PdpGalleryViewer,
+  PdpHeaderInfo,
   PemilihVarian,
   TransparansiMaterial,
 } from "@/features/catalog";
@@ -119,9 +119,9 @@ export default async function HalamanDetailProduk({
       />
 
       <article className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
-        {/* Kolom Kiri: Galeri Foto Multi-Angle */}
+        {/* Kolom Kiri: Galeri Foto Multi-Angle dengan Fullscreen Zoom */}
         <section aria-label={`Galeri foto ${produk.nama}`}>
-          <GaleriProduk
+          <PdpGalleryViewer
             namaProduk={produk.nama}
             gambarUtama={produk.gambarUtama}
             galeriGambar={produk.galeriGambar}
@@ -130,7 +130,7 @@ export default async function HalamanDetailProduk({
 
         {/* Kolom Kanan: Informasi, Pemilihan Ukuran & Transparansi Material */}
         <section aria-label="Informasi dan Pembelian Produk" className="flex flex-col gap-8">
-          <InformasiProduk
+          <PdpHeaderInfo
             nama={produk.nama}
             kategori={produk.kategori}
             hargaDasar={produk.hargaDasar}
