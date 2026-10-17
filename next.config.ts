@@ -29,6 +29,16 @@ const nextConfig: NextConfig = {
         destination: "/pesanan/:path*",
         permanent: true,
       },
+      {
+        source: "/tracking",
+        destination: "/lacak",
+        permanent: true,
+      },
+      {
+        source: "/track/:path*",
+        destination: "/lacak?pesanan=:path*",
+        permanent: true,
+      },
     ];
   },
   async headers() {

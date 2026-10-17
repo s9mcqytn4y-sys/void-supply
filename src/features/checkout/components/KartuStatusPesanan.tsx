@@ -296,7 +296,7 @@ export function KartuStatusPesanan({
                   FAKTUR RESMI (E-RECEIPT)
                 </Link>
                 <Link
-                  href={`/track/${encodeURIComponent(pesanan.nomorPesanan)}`}
+                  href={`/lacak?pesanan=${encodeURIComponent(pesanan.nomorPesanan)}`}
                   className="flex min-h-11 flex-1 items-center justify-center border border-neutral-700 bg-neutral-900 px-4 font-mono text-xs font-bold text-white uppercase transition-colors hover:border-white"
                 >
                   LACAK PENGIRIMAN LIVE
