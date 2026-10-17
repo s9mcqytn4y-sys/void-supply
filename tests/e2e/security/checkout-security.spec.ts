@@ -3,13 +3,8 @@ import { test, expect } from "@playwright/test";
 test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", () => {
   test.beforeEach(async ({ page }) => {
     // Siapkan item di dalam keranjang belanja melalui alur pengguna nyata (deterministik lintas environment)
-    await page.goto("/katalog");
-    const kartuProduk = page.locator('article a[href^="/katalog/"]').first();
-    await expect(kartuProduk).toBeVisible();
-    await kartuProduk.click({ force: true });
-
-    // Tunggu navigasi selesai ke PDP
-    await page.waitForURL(/\/katalog\/[a-z0-9-]+/, { timeout: 15000 });
+    // Buka artikel katalog resmi Drop 04 untuk menyiapkan keranjang belanja
+    await page.goto("/katalog/void-heavyweight-tee-01");
 
     // Pilih ukuran varian yang tersedia
     const tombolUkuran = page.locator('button[role="radio"]:not([disabled])').first();
