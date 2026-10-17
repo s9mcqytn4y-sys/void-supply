@@ -1,4 +1,4 @@
-# CLAUDE.md — VOID Supply Engineering Guidelines & CLI Playbook
+# CLAUDE.md : VOID Supply Engineering Guidelines & CLI Playbook
 
 Dokumen ini berisi panduan operasional teknis untuk agen Claude Code dan Antigravity pada repositori **VOID Supply**.
 
@@ -33,17 +33,19 @@ npm run db:seed
 
 ## 2. Arsitektur & Prinsip Desain
 
-1. **Anti-Slop Mode 1 (DURING)**: Dilarang menggunakan karakter em dash (`—`) dalam teks copywriting maupun antarmuka. Gunakan koma, titik dua, atau kurung.
+1. **Anti-Slop Mode 1 (DURING)**: Dilarang menggunakan karakter em dash dalam teks copywriting maupun antarmuka. Gunakan koma, titik dua, atau kurung.
 2. **Server-Authoritative Logistics**: Kalkulasi tarif ongkir dan penentuan berat fisik dilakukan di server dari basis data PostgreSQL. Biteship request dilindungi outbox idempotent untuk efisiensi saldo kuota.
-3. **Outbox Hybrid Execution**: Eksekusi webhook Midtrans menggunakan `waitUntil()` dari `@vercel/functions` dengan fallback cron 5 menit.
-4. **IDOR & PII Protection**: Seluruh rute `/pesanan/[nomorPesanan]` dan Server Action dilindungi token akses berentropi tinggi (UUID v4). Tanpa token yang valid, data pelanggan disamarkan otomatis.
-5. **Universal Order Tracking**: Halaman `/lacak` menerima nomor pesanan (`VOID-...`) maupun nomor resi kurir (`WYB-...`, dsb.) dengan sensor privasi.
-6. **Print-Ready Faktur A4**: Layout faktur resmi berukuran pas 1 lembar A4 portrait (`@page { size: A4 portrait; margin: 8mm 10mm; }`) dengan menyembunyikan navigasi global dan footer.
-7. **Demo Sandbox Controller**: Panel verifikasi terintegrasi untuk simulator Midtrans (`https://simulator.sandbox.midtrans.com/`) dan mutasi logistik Biteship.
+3. **Outbox Hybrid Execution & Lease Reaper**: Eksekusi webhook Midtrans menggunakan `waitUntil()` dari `@vercel/functions` dengan fallback cron 5 menit serta automatic lease timeout reaper (5 menit) untuk memulihkan tugas yang terhenti.
+4. **IDOR & PII Protection**: Seluruh rute `/pesanan/[nomorPesanan]`, faktur A4 (`/faktur`), dan label thermal (`/resi`) dilindungi token akses berentropi tinggi (UUID v4 SEC-02).
+5. **Universal Order Tracking**: Halaman kanonikal tunggal `/lacak` menerima nomor pesanan (`VOID-...`) maupun nomor resi kurir (`WYB-...`, dsb.) dengan sensor privasi.
+6. **Print-Ready Faktur A4 & Label Thermal 100x150mm**: Layout faktur resmi 1 lembar A4 portrait dan label stiker thermal Biteship 100x150mm.
+7. **Fail-Closed Demo Sandbox**: Panel verifikasi terintegrasi untuk simulator Midtrans (`https://simulator.sandbox.midtrans.com/`) dengan isolasi ketat `ALLOW_PAYMENT_MOCK=true`.
 
 ---
 
-## 3. Protokol Context7 & RTK
+## 3. Protokol Context7 & MCP Agentiq
 
-- Gunakan `rtk gain` untuk metrik penghematan token CLI.
-- Gunakan `npx ctx7@latest docs <lib>` untuk referensi dokumentasi terkini framework pihak ketiga.
+- Gunakan `rtk gain` untuk metrik penghematan token CLI bila terpasang.
+- Gunakan `npx ctx7@latest docs <lib>` untuk referensi dokumentasi terkini framework pihak ketiga (Next.js 16, React 19, Drizzle, Tailwind v4).
+- Gunakan tool MCP `playwright` untuk pengujian browser visual E2E dan verifikasi mobile viewport.
+

@@ -463,6 +463,39 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
    - Konfigurasi `sentry.client.config.ts` dan `sentry.server.config.ts` dengan budget-safe sampling (10% sampling traces di produksi) guna mencegah pemborosan kuota gratis.
    - Semantic HTTP codes diterapkan ketat pada seluruh endpoint: 200 (OK), 400 (Bad Request), 401 (Unauthorized), 403 (Forbidden Signature), 404 (Not Found), 409 (Conflict Idempotency), 422 (Unprocessable Entity Mismatch), 500 (Internal Server Error).
 
+---
+
+## 15. Security Hardening P0, Lease Reaper & Aset Transparan Resmi (Module 02.19)
+
+1. **SEC-RES-01 (Label Resi Thermal IDOR Authorization)**:
+   - Halaman `src/app/pesanan/[nomorPesanan]/resi/page.tsx` kini mewajibkan verifikasi `tokenAkses` (IDOR Guard SEC-02) melalui cookie atau query parameter.
+   - Akses tanpa token valid menampilkan halaman penolakan resmi tanpa mengekspos PII nama, nomor telepon, dan alamat pembeli.
+
+2. **SEC-SIM-02 (Isolasi Terbatas Simulasi Kurir)**:
+   - Perbaikan bug kritis mass-update pada `simulasi-resi.action.ts`: klausul update kini menyertakan `and(eq(pesanan.id, pesananDb.id), or(...))` untuk menjamin hanya pesanan terkait yang terpengaruh.
+   - Ditambahkan proteksi `tokenAkses` dan guardrail produksi fail-closed (`ALLOW_PAYMENT_MOCK !== "true"`).
+
+3. **SEC-DEMO-03 (Isolasi Lingkungan Demo vs Produksi)**:
+   - `demo-simulator.action.ts` menerapkan guard fail-closed di lingkungan produksi untuk simulator pembayaran dan simulasi mutasi status logistik.
+
+4. **OPS-OUTBOX-04 (Transactional Outbox Lease Reaper & Email Check)**:
+   - `outbox.service.ts` dilengkapi mekanisme *Lease Reaper* otomatis yang memulihkan tugas berstatus 'diproses' yang tertahan lebih dari 5 menit akibat crash worker atau timeout serverless.
+   - Pengecekan hasil bisnis `hasilEmail.sukses` dipastikan agar kegagalan SMTP/Resend tercatat sebagai error untuk retry outbox.
+
+5. **ROUTE-KANONIKAL-05 (Konsolidasi Rute Pelacakan)**:
+   - Menghapus folder rute legacy `src/app/track/` yang menduplikasi fungsionalitas, menyelaraskan link footer dan `sitemap.ts` ke rute kanonikal `/lacak`.
+
+6. **ASSET-OFFICIAL-06 (Logo Resmi Metode Pembayaran & Kurir Transparan)**:
+   - Mengganti seluruh aset placeholder identik di `public/assets/payment/` dan `public/assets/shipping/` dengan logo resmi WebP transparan berkualitas tinggi (BCA, Mandiri, BNI, BRI, QRIS, GoPay, JNE, SiCepat, J&T).
+   - `PaymentCourierBadges.tsx` merender logo dengan filter grayscale brutalist 70% di default dan transisi full-color saat di-hover.
+
+7. **LEGAL-PAGE-07 (Dokumen Legal & Brand Anti-Slop)**:
+   - Rute resmi `/kebijakan-privasi`, `/syarat-ketentuan`, dan `/pengembalian` dibangun dengan tata bahasa Indonesia formal utilitarian tanpa em dash (`—`) sesuai panduan `/antislop-copywriting`.
+
+8. **TAILWIND-V4-08 (Zero IDE Warnings)**:
+   - Seluruh arbitrary values kelas CSS diselaraskan dengan standar utilitas Tailwind v4 (`max-w-105` dan `max-w-70`).
+
+
 
 
 
