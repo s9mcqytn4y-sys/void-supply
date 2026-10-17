@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db, pesanan, pengiriman, pelacakanPengiriman } from "@/lib/db";
 import { selesaikanKonfigurasiEnvironment } from "@/lib/environment";
 
@@ -289,13 +289,20 @@ export async function POST(req: Request) {
           })
           .where(eq(pengiriman.pesananId, pesananTerkait.id));
 
+        // Mutasikan ke 'selesai' dan catat timestamp tiba HANYA jika pesanan memang sudah dibayar/dikirim
         await tx
           .update(pesanan)
           .set({
             statusPesanan: "selesai",
+            diterimaPada: new Date(),
             diperbaruiPada: new Date(),
           })
-          .where(eq(pesanan.id, pesananTerkait.id));
+          .where(
+            and(
+              eq(pesanan.id, pesananTerkait.id),
+              sql`${pesanan.statusPesanan} IN ('dikirim', 'diproses')`
+            )
+          );
       } else if (statusNormal === "cancelled" || statusNormal === "rejected") {
         await tx
           .update(pengiriman)

@@ -10,6 +10,7 @@ import {
   pengiriman,
   itemPesanan,
 } from "@/lib/db";
+import { generateCode128Svg } from "@/lib/barcode/code128";
 import { TombolCetakResi } from "./TombolCetakResi";
 
 interface PropsHalamanResi {
@@ -144,15 +145,19 @@ export default async function HalamanResiThermal({
           </div>
         </div>
 
-        {/* Section Nomor Resi / Barcode Visual */}
+        {/* Section Nomor Resi / Barcode Visual Code 128 (Standar Ekspedisi Nasional) */}
         <div className="border-b-2 border-black py-3 text-center">
-          <div className="mx-auto flex h-12 w-full max-w-70 items-center justify-center border-y border-black bg-neutral-100 font-mono text-sm tracking-[0.35em] font-black">
-            ||| | |||| | ||| |||| | ||
-          </div>
-          <p className="mt-1 text-sm font-black tracking-wider">
-            {nomorResi}
-          </p>
-          <span className="text-[9px] text-neutral-600 uppercase">
+          <div
+            className="mx-auto flex justify-center py-1"
+            dangerouslySetInnerHTML={{
+              __html: generateCode128Svg(nomorResi, {
+                lebarBar: 2,
+                tinggi: 54,
+                tampilkanTeks: true,
+              }),
+            }}
+          />
+          <span className="mt-1 block text-[9px] text-neutral-600 uppercase">
             NO. PESANAN: {pesananDb.nomorPesanan}
           </span>
         </div>

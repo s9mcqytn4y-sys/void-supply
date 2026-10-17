@@ -305,6 +305,12 @@ describe("Fase 3: Biteship Webhook Contract & Tracking Integration Matrix", () =
   it("memproses event delivered dan memutasikan status pesanan ke 'selesai'", async () => {
     const pesananData = await buatPesananUji("delivered");
 
+    // Simulasikan pesanan telah dalam status 'dikirim' sebelum paket tiba di penerima
+    await db
+      .update(pesanan)
+      .set({ statusPesanan: "dikirim" })
+      .where(eq(pesanan.nomorPesanan, pesananData.nomorPesanan));
+
     const noResi = `RESI-DELIVERED-${Date.now()}`;
     const req = new Request("http://localhost:3000/api/biteship/webhook", {
       method: "POST",

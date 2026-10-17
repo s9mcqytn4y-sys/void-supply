@@ -233,6 +233,9 @@ export const pesanan = pgTable(
     rekonsiliasiTerakhirPada: timestamp("rekonsiliasi_terakhir_pada", { withTimezone: true }),
     perluTinjauanManual: boolean("perlu_tinjauan_manual").default(false).notNull(),
     kedaluwarsaPada: timestamp("kedaluwarsa_pada", { withTimezone: true }),
+    diterimaPada: timestamp("diterima_pada", { withTimezone: true }),
+    garansiBerakhirPada: timestamp("garansi_berakhir_pada", { withTimezone: true }),
+    catatanPenerima: text("catatan_penerima"),
     dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
     diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -282,6 +285,10 @@ export const pembayaran = pgTable("pembayaran", {
     .notNull(),
   snapToken: varchar("snap_token", { length: 255 }),
   snapRedirectUrl: text("snap_redirect_url"),
+  nomorVa: varchar("nomor_va", { length: 60 }),
+  bankVa: varchar("bank_va", { length: 30 }),
+  qrString: text("qr_string"),
+  instruksiPembayaran: jsonb("instruksi_pembayaran"),
   jumlahBayar: integer("jumlah_bayar").notNull(),
   dibayarPada: timestamp("dibayar_pada", { withTimezone: true }),
   metadataGateway: jsonb("metadata_gateway"),
@@ -373,6 +380,18 @@ export const faktur = pgTable("faktur", {
   pdfUrl: text("pdf_url"),
   metadataFaktur: jsonb("metadata_faktur"),
   diterbitkanPada: timestamp("diterbitkan_pada", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// 13.1 Tabel Arsip Faktur Imutabel (Legal Audit & Snapshot Storage)
+export const arsipFaktur = pgTable("arsip_faktur", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  fakturId: uuid("faktur_id")
+    .references(() => faktur.id, { onDelete: "cascade" })
+    .notNull(),
+  nomorFaktur: varchar("nomor_faktur", { length: 60 }).notNull(),
+  snapshotPayload: jsonb("snapshot_payload").notNull(),
+  hashIntegrity: varchar("hash_integrity", { length: 64 }).notNull(),
+  dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
 });
 
 // 14. Tabel Log Notifikasi Transaksi (Email Logs)
@@ -485,10 +504,18 @@ export const pesananRelasi = relations(pesanan, ({ many, one }) => ({
   outbox: many(outboxPekerjaan),
 }));
 
-export const fakturRelasi = relations(faktur, ({ one }) => ({
+export const fakturRelasi = relations(faktur, ({ one, many }) => ({
   pesanan: one(pesanan, {
     fields: [faktur.pesananId],
     references: [pesanan.id],
+  }),
+  arsip: many(arsipFaktur),
+}));
+
+export const arsipFakturRelasi = relations(arsipFaktur, ({ one }) => ({
+  faktur: one(faktur, {
+    fields: [arsipFaktur.fakturId],
+    references: [faktur.id],
   }),
 }));
 
