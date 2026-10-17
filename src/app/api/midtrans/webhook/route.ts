@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { eq, and, sql } from "drizzle-orm";
-import { db, pesanan, pembayaran, itemPesanan, varianProduk, pengiriman, pelacakanPengiriman } from "@/lib/db";
+import { db, pesanan, pembayaran, itemPesanan, varianProduk } from "@/lib/db";
 import { faktur } from "@/lib/db/schema";
 import { verifikasiSignatureMidtrans } from "@/lib/services/midtrans.service";
-import { kirimEmailNotifikasi } from "@/lib/services/email.service";
-import { buatOrderPengirimanBiteship } from "@/lib/services/biteship.service";
+import { tambahTugasOutbox, picuProsesOutboxNonBlocking } from "@/lib/services/outbox.service";
 
 interface PayloadWebhookMidtrans {
   order_id: string;
@@ -115,9 +114,6 @@ export async function POST(req: Request) {
       transaction_status === "failure";
 
     // 5. Eksekusi Mutasi Status Atomik (Compare-and-Set)
-    let emailNotifikasiKirim: Parameters<typeof kirimEmailNotifikasi>[0] | null = null;
-    let pesananSiapKirim: { pesananId: string; nomorPesanan: string } | null = null;
-
     await db.transaction(async (tx) => {
       if (isSuccess) {
         // Compare-and-Set: Hanya ubah jika status saat ini 'menunggu_pembayaran'
@@ -136,11 +132,6 @@ export async function POST(req: Request) {
           .returning({ id: pesanan.id });
 
         if (updatedOrder) {
-          pesananSiapKirim = {
-            pesananId: pesananTerkait.id,
-            nomorPesanan: order_id,
-          };
-
           await tx
             .update(pembayaran)
             .set({
@@ -174,19 +165,33 @@ export async function POST(req: Request) {
 
           console.log(`[MIDTRANS WEBHOOK] Pesanan ${order_id} berhasil diverifikasi & faktur ${nomorFaktur} diterbitkan.`);
 
-          // Siapkan muatan notifikasi email untuk eksekusi post-commit di luar transaksi DB
-          emailNotifikasiKirim = {
+          // Sisipkan tugas notifikasi email ke antrean Transactional Outbox secara atomik
+          await tambahTugasOutbox(tx, {
+            tipePekerjaan: "kirim_email",
             pesananId: pesananTerkait.id,
-            emailPenerima: pesananTerkait.emailPelanggan,
-            tipe: "pembayaran_berhasil",
-            subjek: `Pembayaran Berhasil // Faktur ${nomorFaktur}`,
-            data: {
-              nomorPesanan: order_id,
-              namaPelanggan: pesananTerkait.namaPelanggan,
-              rincian: `Pembayaran sebesar Rp ${pesananTerkait.totalAkhir.toLocaleString("id-ID")} melalui ${payment_type || "Midtrans"} telah terverifikasi.`,
-              total: `Rp ${pesananTerkait.totalAkhir.toLocaleString("id-ID")}`,
+            payload: {
+              pesananId: pesananTerkait.id,
+              emailPenerima: pesananTerkait.emailPelanggan,
+              tipe: "pembayaran_berhasil",
+              subjek: `Pembayaran Berhasil // Faktur ${nomorFaktur}`,
+              data: {
+                nomorPesanan: order_id,
+                namaPelanggan: pesananTerkait.namaPelanggan,
+                rincian: `Pembayaran sebesar Rp ${pesananTerkait.totalAkhir.toLocaleString("id-ID")} melalui ${payment_type || "Midtrans"} telah terverifikasi.`,
+                total: `Rp ${pesananTerkait.totalAkhir.toLocaleString("id-ID")}`,
+              },
             },
-          };
+          });
+
+          // Sisipkan tugas pemesanan kurir Biteship ke antrean Transactional Outbox secara atomik
+          await tambahTugasOutbox(tx, {
+            tipePekerjaan: "buat_order_biteship",
+            pesananId: pesananTerkait.id,
+            payload: {
+              pesananId: pesananTerkait.id,
+              nomorPesanan: order_id,
+            },
+          });
         } else {
           console.info(`[MIDTRANS WEBHOOK] Order ${order_id} sudah berada pada status final (${pesananTerkait.statusPesanan}). Mutasi sukses diabaikan.`);
         }
@@ -271,80 +276,8 @@ export async function POST(req: Request) {
       }
     });
 
-    // 6. Post-Commit Execution: Eksekusi pengiriman email di luar transaksi DB (P0: Resiliensi Provider)
-    if (emailNotifikasiKirim) {
-      kirimEmailNotifikasi(emailNotifikasiKirim).catch((emailErr) => {
-        console.error("[MIDTRANS WEBHOOK] Gagal mengirim notifikasi email post-commit:", emailErr);
-      });
-    }
-
-    // 7. Post-Commit Execution: Otomasi Pemesanan Kurir Biteship & Penerbitan Resi AWB (Full Automation)
-    if (pesananSiapKirim) {
-      const orderKirim = pesananSiapKirim as { pesananId: string; nomorPesanan: string };
-      (async () => {
-        try {
-          const [dataPengiriman] = await db
-            .select()
-            .from(pengiriman)
-            .where(eq(pengiriman.pesananId, orderKirim.pesananId))
-            .limit(1);
-
-          if (!dataPengiriman) {
-            console.warn(`[MIDTRANS WEBHOOK] Data logistik pengiriman tidak ditemukan untuk pesanan ${orderKirim.nomorPesanan}`);
-            return;
-          }
-
-          const daftarItem = await db
-            .select()
-            .from(itemPesanan)
-            .where(eq(itemPesanan.pesananId, orderKirim.pesananId));
-
-          const resBiteship = await buatOrderPengirimanBiteship({
-            nomorPesanan: orderKirim.nomorPesanan,
-            namaPenerima: dataPengiriman.namaPenerima,
-            teleponPenerima: dataPengiriman.teleponPenerima,
-            alamatLengkap: dataPengiriman.alamatLengkap,
-            kodePos: dataPengiriman.kodePos,
-            kodeKurir: dataPengiriman.kurir,
-            layanan: dataPengiriman.layanan,
-            totalBeratGram: dataPengiriman.beratTotalGram,
-            items: daftarItem.map((it) => ({
-              name: it.namaProduk,
-              value: it.hargaSatuan,
-              quantity: it.jumlah,
-              weight: it.beratGram,
-            })),
-          });
-
-          if (resBiteship.sukses && resBiteship.waybillId) {
-            await db
-              .update(pengiriman)
-              .set({
-                nomorResi: resBiteship.waybillId,
-                statusPengiriman: "dalam_pengiriman",
-                diperbaruiPada: new Date(),
-              })
-              .where(eq(pengiriman.pesananId, orderKirim.pesananId));
-
-            await db.insert(pelacakanPengiriman).values({
-              pesananId: orderKirim.pesananId,
-              nomorResi: resBiteship.waybillId,
-              kurir: dataPengiriman.kurir,
-              statusPelacakan: resBiteship.status || "allocated",
-              keterangan: "Pemesanan kurir berhasil otomatis di Biteship. Menunggu penjemputan.",
-              lokasi: "Warehouse Johar Baru, Jakarta Pusat",
-              waktuPeristiwa: new Date(),
-            });
-
-            console.log(
-              `[MIDTRANS WEBHOOK] Pemesanan kurir Biteship sukses: Resi ${resBiteship.waybillId} (Order ${orderKirim.nomorPesanan})`
-            );
-          }
-        } catch (biteshipErr) {
-          console.error("[MIDTRANS WEBHOOK] Gagal memicu fulfillment Biteship otomatis:", biteshipErr);
-        }
-      })();
-    }
+    // 6. Pasca-Commit DB: Picu proses outbox segera secara non-blocking
+    picuProsesOutboxNonBlocking();
 
     return NextResponse.json({ status: "ok" });
   } catch (error) {

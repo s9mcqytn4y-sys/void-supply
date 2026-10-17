@@ -1,32 +1,70 @@
-name: Staging Order Expiry Cron
+name: Staging Scheduled Maintenance (Expiry & Outbox Cron)
 
 on:
   schedule:
-    # Eksekusi setiap 5 menit untuk staging environment
+    # Eksekusi terjadwal setiap 5 menit (interval minimum GitHub Actions gratis)
     - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       manual_trigger:
-        description: "Picu eksekusi pembersihan pesanan kedaluwarsa secara manual"
+        description: "Picu eksekusi pembersihan pesanan kedaluwarsa & pemrosesan antrean outbox secara manual"
         required: false
         default: "true"
 
 jobs:
-  trigger-expiry:
-    name: Trigger Kadaluwarsa Pesanan Staging
+  maintenance-cron:
+    name: Eksekusi Cron Pemeliharaan Staging
     runs-on: ubuntu-latest
     steps:
-      - name: Eksekusi API Cron Kadaluwarsa Pesanan
+      - name: Validasi Secrets & Parameter Wajib
         env:
           CRON_SECRET: ${{ secrets[format('{0}', 'CRON_SECRET')] }}
-          STAGING_URL: ${{ secrets[format('{0}', 'STAGING_APP_URL')] }}
+          STAGING_APP_URL: ${{ secrets[format('{0}', 'STAGING_APP_URL')] }}
         run: |
-          TARGET_URL="${STAGING_URL:-https://void-supply.vercel.app}/api/cron/kadaluwarsa-pesanan"
-          echo "Memanggil cron target: $TARGET_URL"
-          if [ -n "$CRON_SECRET" ]; then
-            curl -s -f -X GET \
-              -H "Authorization: Bearer $CRON_SECRET" \
-              "$TARGET_URL" || echo "Peringatan: Gagal memanggil endpoint cron staging (mungkin server belum aktif)."
-          else
-            echo "CRON_SECRET tidak terpasang di repository secrets. Lewati eksekusi jaringan."
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET wajib dikonfigurasi pada GitHub Repository Secrets."
+            exit 1
           fi
+
+          if [ -z "$STAGING_APP_URL" ]; then
+            echo "::error::STAGING_APP_URL wajib dikonfigurasi pada GitHub Repository Secrets (misal: https://void-supply-lemon.vercel.app)."
+            exit 1
+          fi
+
+          # Bersihkan trailing slash jika ada
+          CLEAN_BASE_URL="${STAGING_APP_URL%/}"
+          echo "BASE_URL=$CLEAN_BASE_URL" >> $GITHUB_ENV
+
+      - name: Eksekusi API Cron Kadaluwarsa Pesanan (Reservasi 15 Menit)
+        env:
+          CRON_SECRET: ${{ secrets[format('{0}', 'CRON_SECRET')] }}
+        run: |
+          TARGET_URL="${{ env.BASE_URL }}/api/cron/kadaluwarsa-pesanan"
+          echo "Memanggil endpoint kadaluwarsa pesanan: $TARGET_URL"
+
+          curl --fail-with-body \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --retry 2 \
+            --retry-delay 3 \
+            -X GET \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "User-Agent: VOID-Supply-GitHub-Actions-Cron/1.0" \
+            "$TARGET_URL"
+
+      - name: Eksekusi API Cron Worker Outbox (Email & Fulfillment)
+        env:
+          CRON_SECRET: ${{ secrets[format('{0}', 'CRON_SECRET')] }}
+        run: |
+          TARGET_URL="${{ env.BASE_URL }}/api/cron/proses-outbox"
+          echo "Memanggil endpoint worker transactional outbox: $TARGET_URL"
+
+          curl --fail-with-body \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --retry 2 \
+            --retry-delay 3 \
+            -X GET \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "User-Agent: VOID-Supply-GitHub-Actions-Cron/1.0" \
+            "$TARGET_URL"

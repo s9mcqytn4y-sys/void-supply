@@ -130,8 +130,8 @@ export async function kirimEmailNotifikasi(params: ParameterKirimEmail): Promise
   const resendApiKey = process.env.RESEND_API_KEY;
 
   let driver = "console_mock";
-  let statusPengiriman: "terkirim" | "gagal" = "terkirim";
-  let pesanHasil = "Email disimulasikan dan dicatat di database log_email.";
+  let statusPengiriman: "terkirim" | "gagal" | "simulasi" = "simulasi";
+  let pesanHasil = "Email disimulasikan (console mock) dan dicatat di database log_email.";
 
   const htmlContent = buatHtmlEmail(tipeFinal, subjekFinal, payloadData);
 
@@ -156,6 +156,7 @@ export async function kirimEmailNotifikasi(params: ParameterKirimEmail): Promise
         statusPengiriman = "gagal";
         pesanHasil = `Resend API error: ${res.statusText}`;
       } else {
+        statusPengiriman = "terkirim";
         pesanHasil = "Email berhasil terkirim melalui Resend API.";
       }
     } catch (err) {
@@ -183,7 +184,7 @@ export async function kirimEmailNotifikasi(params: ParameterKirimEmail): Promise
       .returning({ id: logEmail.id });
 
     return {
-      sukses: statusPengiriman === "terkirim",
+      sukses: statusPengiriman === "terkirim" || statusPengiriman === "simulasi",
       logId: inserted?.id,
       driver,
       pesan: pesanHasil,
