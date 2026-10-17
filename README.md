@@ -145,8 +145,11 @@ npm run test
 # Jalankan pengujian interaktif (Vitest watch)
 npm run test:watch
 
-# Jalankan end-to-end test (Playwright)
+# Jalankan end-to-end test browser (Playwright)
 npm run test:e2e
+
+# Jalankan test transaksi end-to-end terpadu (Node REPL Runner)
+npm run test:repl
 
 # Pemeriksaan linter ESLint
 npm run lint
@@ -154,6 +157,21 @@ npm run lint
 # Format berkas kode
 npm run format
 ```
+
+---
+
+## Fitur Unggulan Sistem
+
+1. **Universal Order Tracking (`/lacak`)**:
+   Lacak status pesanan live menggunakan Nomor Pesanan (`VOID-...`) atau Nomor Resi ekspedisi (`WYB-...`, dll.) dengan sensor privasi data pembeli (SEC-03).
+2. **Brutalist E-Receipt / Faktur A4 Print-Ready**:
+   Desain faktur resmi 1 lembar A4 portrait (`@page { size: A4; margin: 8mm 10mm; }`) dengan kode barcode verifikasi digital, isolasi cetak tanpa header/footer navigasi.
+3. **Interactive Demo Sandbox Controller**:
+   Panel kontrol simulasi terpasang di status pesanan untuk pengujian webhook pelunasan Midtrans (integrasi langsung dengan [Midtrans Sandbox Simulator](https://simulator.sandbox.midtrans.com/)) dan webhook logistik Biteship.
+4. **Colorways & Interactive Swatches**:
+   Pemilih warna dinamis di Product Detail Page (`PemilihVarian.tsx`) yang menyinkronkan stok dan ukuran secara real-time.
+5. **Server-Authoritative Shipping & Hybrid Outbox**:
+   Perhitungan ongkir resmi dari basis data dan eksekusi non-blocking outbox menggunakan `waitUntil()` dari `@vercel/functions` untuk keandalan di lingkungan Vercel serverless.
 
 ---
 

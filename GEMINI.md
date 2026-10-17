@@ -423,5 +423,46 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
    - Memperbaiki peringatan IDE pada `TimelinePengiriman.tsx` (`-left-[5px]` -> `-left-1.25`).
    - Mempertahankan standar ketat: 0 kesalahan ESLint, 0 galat TypeScript (`tsc --noEmit`), 0 em dash (`—`), dan 100% lulus pada 62 pengujian Vitest.
 
+---
+
+## 14. Audit Integrasi, Hardening Logistik & Release Consolidation (Penyelesaian 13 Poin Audit)
+
+1. **Akar Masalah Biteship Tidak Tercatat & Solusi Hibrida (Fase 1)**:
+   - Ditemukan dua akar masalah utama:
+     a. Ketidakcocokan kode layanan kurir: Biteship API menolak request jika `courier_type` dikirim sebagai teks display lokal (misal: "Besok Sampai Tujuan" bukannya kode resmi "best"). Telah dibuat fungsi kanonikal `petakanKodeLayananBiteship()` yang menormalisasi kode layanan resmi seluruh ekspedisi.
+     b. Pembekuan promise di Vercel Serverless: Eksekusi background unawaited promise dibekukan saat HTTP response terkirim. Diselesaikan dengan arsitektur hibrida: timeout sinkron 3.5 detik + `@vercel/functions` `waitUntil()` + fallback terjadwal GitHub Actions cron outbox.
+   - Guard penghematan saldo kuota Biteship: Pengecekan idempotensi `dataPengiriman.biteshipOrderId` mencegah request pemotongan saldo berulang.
+
+2. **UX Pemilihan Kurir Terkategorisasi & Cache Ongkir (Fase 2)**:
+   - Komponen `PilihanKurir.tsx` mendistribusikan opsi kurir ke dalam 4 kategori terstruktur:
+     - Reguler (2-3 hari)
+     - Next Day / Kilat (1 hari)
+     - Instant / Same Day (3-8 jam)
+     - Kargo / Hemat (3-7 hari)
+   - Badge harga, badge estimasi kecepatan, dan indikator rekomendasi ("HEMAT", "TERCEPAT").
+   - `cacheOngkirRef` di `useCheckout.ts` mencegah pemanggilan API berulang saat pengguna mengedit data kontak, menghemat panggilan Biteship rates API.
+
+3. **Halaman Universal Order Tracking (`/lacak`) (Fase 3)**:
+   - Halaman mandiri `/lacak` yang menerima Nomor Pesanan (`VOID-...`) atau Nomor Resi ekspedisi (`WYB-...`, dsb.) via query parameter atau input formulir interaktif.
+   - PII pembeli disamarkan otomatis untuk melindungi privasi.
+   - Timeline kurir vertikal dengan status waktu nyata (Order Dibuat -> Kurir Dijadwalkan -> Dalam Pengantaran -> Terkirim).
+
+4. **Sleek Brutalist E-Receipt / Faktur A4 Print-Ready (Fase 4)**:
+   - Mengatasi masalah cetak 2 lembar pada halaman faktur (`/pesanan/[nomorPesanan]/faktur`).
+   - CSS Print Terisolasi: `@page { size: A4 portrait; margin: 8mm 10mm; }`, menyembunyikan navigasi global (`nav, header, footer`), padding mikro-skala, SVG barcode verifikasi digital, dan penjaminan 1 lembar kertas A4 tanpa overflow.
+
+5. **Colorway Swatches & Varian Produk Lengkap (Fase 5)**:
+   - Pemilih warna interaktif (swatches) pada PDP (`PemilihVarian.tsx`) yang menyinkronkan ketersediaan ukuran dan stok secara real-time.
+   - Data seed `seed.ts` diperkaya dengan pilihan warna autentik: Jet Black, Bone White, Charcoal, Vintage Wash Moss, Cyber Silver, Concrete Grey, Olive Drab, Shadow Black, Black Onyx, dan Desaturated Khaki.
+
+6. **Interactive Sandbox Demo Controller & Node E2E REPL (Fase 6)**:
+   - Panel controller demo di `/pesanan/[nomorPesanan]` dengan tombol salin order ID, tautan ke Midtrans Simulator resmi (`https://simulator.sandbox.midtrans.com/`), tombol 1-klik webhook trigger pelunasan settlement, dan tombol simulasi delivery Biteship.
+   - Script runner `scripts/test-e2e-repl.ts` (`npm run test:repl`) yang mengeksekusi pengujian seluruh siklus transaksi end-to-end tanpa browser dan menghasilkan tabel ringkasan ANSI terverifikasi 100% PASSED.
+
+7. **Sentry Integration Free Tier & Clean Architecture (Fase 7)**:
+   - Konfigurasi `sentry.client.config.ts` dan `sentry.server.config.ts` dengan budget-safe sampling (10% sampling traces di produksi) guna mencegah pemborosan kuota gratis.
+   - Semantic HTTP codes diterapkan ketat pada seluruh endpoint: 200 (OK), 400 (Bad Request), 401 (Unauthorized), 403 (Forbidden Signature), 404 (Not Found), 409 (Conflict Idempotency), 422 (Unprocessable Entity Mismatch), 500 (Internal Server Error).
+
+
 
 
