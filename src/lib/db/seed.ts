@@ -1,12 +1,8 @@
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
+import { db } from "./index";
 import * as schema from "./schema";
 
 const connectionString =
   process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/void_supply";
-
-const client = postgres(connectionString, { max: 1 });
-const db = drizzle(client, { schema });
 
 async function seed() {
   if (process.env.NODE_ENV === "production") {
@@ -509,11 +505,10 @@ async function seed() {
   });
 
   console.log("--- Seeding Selesai dengan Sukses ---");
-  await client.end();
+  process.exit(0);
 }
 
-seed().catch(async (err) => {
+seed().catch((err) => {
   console.error("Galat saat seeding database:", err);
-  await client.end();
   process.exit(1);
 });

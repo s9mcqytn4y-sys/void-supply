@@ -1,6 +1,15 @@
-import { drizzle } from "drizzle-orm/postgres-js";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import { drizzle as drizzleNeon, type NeonDatabase } from "drizzle-orm/neon-serverless";
+import { drizzle as drizzlePostgres, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
+import type { PgDatabase } from "drizzle-orm/pg-core";
 import postgres from "postgres";
+import ws from "ws";
 import * as schema from "./schema";
+
+// Konfigurasi WebSocket constructor untuk runtime Node.js jika belum tersedia secara native
+if (typeof WebSocket === "undefined") {
+  neonConfig.webSocketConstructor = ws;
+}
 
 const isDeployedEnv =
   Boolean(process.env.VERCEL) ||
@@ -23,26 +32,58 @@ const isLocalhost =
   connectionString.includes("127.0.0.1") ||
   connectionString.includes("::1");
 
+const isNeon =
+  connectionString.includes("neon.tech") ||
+  Boolean(process.env.NEON_BRANCH);
+
 const isVercelServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
-// Konfigurasi pool koneksi yang resilien terhadap lonjakan traffic dan serverless SSR
-const clientOptions: postgres.Options<{}> = {
-  max: isVercelServerless ? 1 : process.env.DB_MAX_CONNECTIONS ? Number(process.env.DB_MAX_CONNECTIONS) : 10,
-  idle_timeout: 20,
-  connect_timeout: 10,
-  prepare: false, // Menghindari prepared statements conflicts pada connection pooler
-  ssl: isLocalhost ? false : "require",
-};
+type AppDatabase = PgDatabase<any, typeof schema>;
 
 const globalForDb = globalThis as unknown as {
-  conn: postgres.Sql | undefined;
+  db: AppDatabase | undefined;
+  neonPool: Pool | undefined;
+  pgConn: postgres.Sql | undefined;
 };
 
-// Singleton instance connection pool di dev maupun production
-const conn = globalForDb.conn ?? postgres(connectionString, clientOptions);
-if (!globalForDb.conn) {
-  globalForDb.conn = conn;
+function createDatabaseClient(): AppDatabase {
+  if (isNeon) {
+    const pool =
+      globalForDb.neonPool ??
+      new Pool({
+        connectionString,
+        max: isVercelServerless ? 5 : Number(process.env.DB_MAX_CONNECTIONS || 10),
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+      });
+
+    if (!globalForDb.neonPool) {
+      globalForDb.neonPool = pool;
+    }
+
+    return drizzleNeon(pool, { schema }) as unknown as AppDatabase;
+  }
+
+  // Fallback ke postgres.js untuk environment local / CI tanpa WebSocket proxy
+  const clientOptions: postgres.Options<{}> = {
+    max: isVercelServerless ? 1 : Number(process.env.DB_MAX_CONNECTIONS || 10),
+    idle_timeout: 20,
+    connect_timeout: 10,
+    prepare: false,
+    ssl: isLocalhost ? false : "require",
+  };
+
+  const conn = globalForDb.pgConn ?? postgres(connectionString, clientOptions);
+  if (!globalForDb.pgConn) {
+    globalForDb.pgConn = conn;
+  }
+
+  return drizzlePostgres(conn, { schema }) as unknown as AppDatabase;
 }
 
-export const db = drizzle(conn, { schema });
+export const db: AppDatabase = globalForDb.db ?? createDatabaseClient();
+if (!globalForDb.db) {
+  globalForDb.db = db;
+}
+
 export * from "./schema";
