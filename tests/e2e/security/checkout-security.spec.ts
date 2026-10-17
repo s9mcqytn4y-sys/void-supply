@@ -8,8 +8,8 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
     await expect(kartuProduk).toBeVisible();
     await kartuProduk.click({ force: true });
 
-    // Tunggu masuk ke halaman PDP
-    await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
+    // Tunggu navigasi selesai ke PDP
+    await page.waitForURL(/\/katalog\/[a-z0-9-]+/, { timeout: 15000 });
 
     // Pilih ukuran varian yang tersedia
     const tombolUkuran = page.locator('button[role="radio"]:not([disabled])').first();
@@ -80,11 +80,10 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
     await page.locator('input[name="kodePos"]').fill("12190");
 
     // Tunggu opsi kurir muncul dan pilih salah satu
-    const pilihanRadioKurir = page.locator('input[type="radio"][name="kurir"]').first();
-    await pilihanRadioKurir.waitFor({ state: "attached", timeout: 20000 });
-    await pilihanRadioKurir.scrollIntoViewIfNeeded();
-    await expect(pilihanRadioKurir).toBeVisible({ timeout: 10000 });
-    await pilihanRadioKurir.check({ force: true });
+    const opsiKurir = page.locator('label:has(input[name="kurir"])').first();
+    await opsiKurir.waitFor({ state: "visible", timeout: 20000 });
+    await opsiKurir.scrollIntoViewIfNeeded();
+    await opsiKurir.click();
 
     // Verifikasi tombol submit aktif dan klik
     const tombolBayar = page.locator('button:has-text("LANJUT KE PEMBAYARAN")');
