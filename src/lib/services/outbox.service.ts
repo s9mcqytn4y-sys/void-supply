@@ -59,6 +59,28 @@ export async function tambahTugasOutbox(
 export async function prosesAntreanOutbox(batchLimit = 10): Promise<HasilProsesOutbox> {
   const sekarang = new Date();
 
+  // 0. Lease Reaper (P0 Ghost Bug / Serverless Recovery):
+  // Pulihkan tugas 'diproses' yang tertahan > 5 menit akibat function termination tak terduga
+  const batasTimeoutLease = new Date(sekarang.getTime() - 5 * 60 * 1000);
+  try {
+    await db
+      .update(outboxPekerjaan)
+      .set({
+        status: "antre",
+        pesanKesalahan: "Lease timeout: tugas dipulihkan secara otomatis oleh outbox reaper.",
+        diperbaruiPada: sekarang,
+      })
+      .where(
+        and(
+          eq(outboxPekerjaan.status, "diproses"),
+          lt(outboxPekerjaan.diperbaruiPada, batasTimeoutLease),
+          lt(outboxPekerjaan.percobaan, outboxPekerjaan.maksimalPercobaan)
+        )
+      );
+  } catch (reaperErr) {
+    console.warn("[OUTBOX REAPER] Peringatan saat memulihkan lease tugas tertahan:", reaperErr);
+  }
+
   // 1. Ambil daftar tugas yang siap dieksekusi
   const antrean = await db
     .select()
@@ -117,7 +139,12 @@ export async function prosesAntreanOutbox(batchLimit = 10): Promise<HasilProsesO
     try {
       if (tugas.tipePekerjaan === "kirim_email") {
         const payloadEmail = tugas.payload as unknown as ParameterKirimEmail;
-        await kirimEmailNotifikasi(payloadEmail);
+        const hasilEmail = await kirimEmailNotifikasi(payloadEmail);
+        if (!hasilEmail.sukses) {
+          throw new Error(
+            hasilEmail.pesan || "Pengiriman email gagal di tingkat provider logistik/email."
+          );
+        }
       } else if (tugas.tipePekerjaan === "buat_order_biteship") {
         const payloadOrder = tugas.payload as {
           pesananId: string;

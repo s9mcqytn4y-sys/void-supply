@@ -20,6 +20,13 @@ export async function simulasikanPembayaranBerhasilAction(
 ): Promise<HasilSimulasiDemo> {
   try {
     const env = selesaikanKonfigurasiEnvironment();
+    if (env.appEnv === "production" && process.env.ALLOW_PAYMENT_MOCK !== "true") {
+      return {
+        sukses: false,
+        pesan: "Simulasi pembayaran demo dinonaktifkan di lingkungan produksi.",
+      };
+    }
+
     const serverKey = env.midtrans.serverKey;
 
     const dataPesanan = await db.query.pesanan.findFirst({
@@ -105,6 +112,13 @@ export async function simulasikanStatusLogistikBiteshipAction(
 ): Promise<HasilSimulasiDemo> {
   try {
     const env = selesaikanKonfigurasiEnvironment();
+    if (env.appEnv === "production" && process.env.ALLOW_PAYMENT_MOCK !== "true") {
+      return {
+        sukses: false,
+        pesan: "Simulasi logistik demo dinonaktifkan di lingkungan produksi.",
+      };
+    }
+
     const dataPesanan = await db.query.pesanan.findFirst({
       where: eq(pesanan.nomorPesanan, nomorPesanan),
     });

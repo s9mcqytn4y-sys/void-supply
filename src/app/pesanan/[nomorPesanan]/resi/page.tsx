@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import {
@@ -13,6 +15,9 @@ import { TombolCetakResi } from "./TombolCetakResi";
 interface PropsHalamanResi {
   params: Promise<{
     nomorPesanan: string;
+  }>;
+  searchParams: Promise<{
+    token?: string;
   }>;
 }
 
@@ -32,8 +37,13 @@ export async function generateMetadata({
 
 export default async function HalamanResiThermal({
   params,
+  searchParams,
 }: PropsHalamanResi) {
   const { nomorPesanan } = await params;
+  const { token } = await searchParams;
+  const cookieStore = await cookies();
+  const tokenCookie = cookieStore.get(`void_order_token_${nomorPesanan}`)?.value;
+  const tokenPengguna = (tokenCookie || (typeof token === "string" ? token.trim() : undefined))?.trim();
 
   // 1. Ambil data pesanan
   const [pesananDb] = await db
@@ -46,7 +56,40 @@ export default async function HalamanResiThermal({
     notFound();
   }
 
-  // 2. Ambil data pengiriman & artikel
+  // 2. Proteksi IDOR (SEC-02): Verifikasi token akses
+  const isAuthorized =
+    Boolean(pesananDb.tokenAkses) &&
+    Boolean(tokenPengguna) &&
+    tokenPengguna === pesananDb.tokenAkses;
+
+  if (!isAuthorized) {
+    return (
+      <main className="mx-auto min-h-[70vh] max-w-xl px-4 py-20 text-center sm:px-6">
+        <div className="border border-neutral-800 bg-neutral-950 p-8">
+          <span className="font-mono text-xs font-bold text-rose-400 uppercase">
+            AKSES DITOLAK (SEC-02)
+          </span>
+          <h1 className="mt-2 font-mono text-xl font-black text-white uppercase">
+            OTORISASI TIDAK VALID
+          </h1>
+          <p className="mt-4 font-mono text-xs text-neutral-400">
+            Label resi ini hanya dapat diakses melalui perangkat yang sama saat melakukan pemesanan
+            atau tautan resmi dengan token otentikasi.
+          </p>
+          <div className="mt-6">
+            <Link
+              href={`/pesanan/${nomorPesanan}`}
+              className="inline-flex min-h-11 items-center justify-center border border-white bg-white px-6 font-mono text-xs font-bold text-black uppercase hover:bg-neutral-200"
+            >
+              LIHAT STATUS PESANAN
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // 3. Ambil data pengiriman & artikel
   const [pengirimanDb] = await db
     .select()
     .from(pengiriman)
@@ -78,7 +121,7 @@ export default async function HalamanResiThermal({
       </div>
 
       {/* Kontainer Label Stiker Thermal 100mm x 150mm */}
-      <div className="mx-auto w-full max-w-[420px] border-2 border-dashed border-neutral-700 bg-white p-4 font-mono text-black print:m-0 print:w-full print:max-w-none print:border-none print:p-4">
+      <div className="mx-auto w-full max-w-105 border-2 border-dashed border-neutral-700 bg-white p-4 font-mono text-black print:m-0 print:w-full print:max-w-none print:border-none print:p-4">
         {/* Header Label: Brand & Ekspedisi */}
         <div className="border-b-2 border-black pb-2">
           <div className="flex items-center justify-between">
@@ -103,7 +146,7 @@ export default async function HalamanResiThermal({
 
         {/* Section Nomor Resi / Barcode Visual */}
         <div className="border-b-2 border-black py-3 text-center">
-          <div className="mx-auto flex h-12 w-full max-w-[280px] items-center justify-center border-y border-black bg-neutral-100 font-mono text-sm tracking-[0.35em] font-black">
+          <div className="mx-auto flex h-12 w-full max-w-70 items-center justify-center border-y border-black bg-neutral-100 font-mono text-sm tracking-[0.35em] font-black">
             ||| | |||| | ||| |||| | ||
           </div>
           <p className="mt-1 text-sm font-black tracking-wider">

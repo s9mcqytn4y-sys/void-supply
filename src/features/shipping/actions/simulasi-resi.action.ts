@@ -20,7 +20,8 @@ export interface HasilSimulasiKurir {
  */
 export async function simulasiPergerakanKurirAction(
   nomorPesanan: string,
-  tahap: TahapSimulasiKurir
+  tahap: TahapSimulasiKurir,
+  tokenAkses?: string
 ): Promise<HasilSimulasiKurir> {
   try {
     const env = selesaikanKonfigurasiEnvironment();
@@ -43,6 +44,7 @@ export async function simulasiPergerakanKurirAction(
         id: pesanan.id,
         nomorPesanan: pesanan.nomorPesanan,
         statusPesanan: pesanan.statusPesanan,
+        tokenAkses: pesanan.tokenAkses,
       })
       .from(pesanan)
       .where(eq(pesanan.nomorPesanan, nomorPesanan.trim()))
@@ -52,6 +54,14 @@ export async function simulasiPergerakanKurirAction(
       return {
         sukses: false,
         pesan: `Pesanan '${nomorPesanan}' tidak ditemukan.`,
+      };
+    }
+
+    // IDOR Protection: Verifikasi token akses
+    if (pesananDb.tokenAkses && pesananDb.tokenAkses !== tokenAkses) {
+      return {
+        sukses: false,
+        pesan: "Akses ditolak: Token otentikasi pesanan tidak cocok.",
       };
     }
 
@@ -101,7 +111,7 @@ export async function simulasiPergerakanKurirAction(
         })
         .where(eq(pengiriman.id, pengirimanDb.id));
 
-      // Perbarui status pesanan
+      // Perbarui status pesanan secara terisolasi per ID pesanan spesifik
       if (tahap === "delivered") {
         await tx
           .update(pesanan)
@@ -118,9 +128,12 @@ export async function simulasiPergerakanKurirAction(
             diperbaruiPada: new Date(),
           })
           .where(
-            or(
-              eq(pesanan.statusPesanan, "diproses"),
-              eq(pesanan.statusPesanan, "menunggu_pembayaran")
+            and(
+              eq(pesanan.id, pesananDb.id),
+              or(
+                eq(pesanan.statusPesanan, "diproses"),
+                eq(pesanan.statusPesanan, "menunggu_pembayaran")
+              )
             )
           );
       }

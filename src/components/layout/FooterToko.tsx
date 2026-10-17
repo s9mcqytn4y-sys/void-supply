@@ -130,7 +130,7 @@ export function FooterToko() {
               </li>
               <li>
                 <Link
-                  href="/track"
+                  href="/lacak"
                   className="transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
                 >
                   LACAK PENGIRIMAN

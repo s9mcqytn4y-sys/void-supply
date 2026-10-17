@@ -18,8 +18,8 @@ jobs:
     steps:
       - name: Validasi Secrets & Parameter Wajib
         env:
-          CRON_SECRET: ${{ secrets[format('{0}', 'CRON_SECRET')] }}
-          STAGING_APP_URL: ${{ secrets[format('{0}', 'STAGING_APP_URL')] }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          STAGING_APP_URL: ${{ secrets.STAGING_APP_URL }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
             echo "::error::CRON_SECRET wajib dikonfigurasi pada GitHub Repository Secrets."
@@ -33,13 +33,13 @@ jobs:
 
           # Bersihkan trailing slash jika ada
           CLEAN_BASE_URL="${STAGING_APP_URL%/}"
-          echo "BASE_URL=$CLEAN_BASE_URL" >> $GITHUB_ENV
+          echo "BASE_URL=$CLEAN_BASE_URL" >> "$GITHUB_ENV"
 
       - name: Eksekusi API Cron Kadaluwarsa Pesanan (Reservasi 15 Menit)
         env:
-          CRON_SECRET: ${{ secrets[format('{0}', 'CRON_SECRET')] }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          TARGET_URL="${{ env.BASE_URL }}/api/cron/kadaluwarsa-pesanan"
+          TARGET_URL="${BASE_URL}/api/cron/kadaluwarsa-pesanan"
           echo "Memanggil endpoint kadaluwarsa pesanan: $TARGET_URL"
 
           curl --fail-with-body \
@@ -54,9 +54,9 @@ jobs:
 
       - name: Eksekusi API Cron Worker Outbox (Email & Fulfillment)
         env:
-          CRON_SECRET: ${{ secrets[format('{0}', 'CRON_SECRET')] }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
-          TARGET_URL="${{ env.BASE_URL }}/api/cron/proses-outbox"
+          TARGET_URL="${BASE_URL}/api/cron/proses-outbox"
           echo "Memanggil endpoint worker transactional outbox: $TARGET_URL"
 
           curl --fail-with-body \
