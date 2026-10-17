@@ -8,6 +8,7 @@ import {
   type DetailStatusPesanan,
 } from "../actions/status-pesanan.action";
 import { TimelinePengiriman } from "@/features/shipping/components/TimelinePengiriman";
+import { DemoSandboxController } from "./DemoSandboxController";
 
 interface PropsKartuStatusPesanan {
   pesananAwal: DetailStatusPesanan;
@@ -334,6 +335,20 @@ export function KartuStatusPesanan({
           </Link>
         </div>
       </div>
+
+      {/* Demo Sandbox Controller (Poin 11: Midtrans Simulator & Biteship Testing) */}
+      {pesanan.isAuthorized && (
+        <DemoSandboxController
+          nomorPesanan={pesanan.nomorPesanan}
+          tokenAkses={tokenAkses}
+          statusPesanan={pesanan.statusPesanan}
+          statusPembayaran={pesanan.statusPembayaran}
+          statusPengiriman={pesanan.pelacakan?.statusPengiriman}
+          nomorResi={pesanan.kurir?.nomorResi}
+          snapToken={pesanan.pembayaran?.snapToken}
+          onSinkronUlang={sinkronkanStatus}
+        />
+      )}
 
       {/* Komponen Pelacakan Kurir Biteship (Fase 2) */}
       {pesanan.isAuthorized && (

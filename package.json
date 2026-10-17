@@ -16,7 +16,8 @@
     "db:seed": "tsx --env-file-if-exists=.env src/lib/db/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:repl": "tsx --env-file-if-exists=.env scripts/test-e2e-repl.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
