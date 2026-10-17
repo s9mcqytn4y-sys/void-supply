@@ -289,13 +289,16 @@ export async function POST(req: Request) {
           })
           .where(eq(pengiriman.pesananId, pesananTerkait.id));
 
-        // Mutasikan ke 'selesai' dan catat timestamp tiba HANYA jika pesanan memang sudah dibayar/dikirim
+        // Mutasikan ke 'selesai' dan catat timestamp tiba beserta masa garansi 2x24 jam
+        const waktuTiba = new Date();
+        const batasGaransi = new Date(waktuTiba.getTime() + 48 * 60 * 60 * 1000);
         await tx
           .update(pesanan)
           .set({
             statusPesanan: "selesai",
-            diterimaPada: new Date(),
-            diperbaruiPada: new Date(),
+            diterimaPada: waktuTiba,
+            garansiBerakhirPada: batasGaransi,
+            diperbaruiPada: waktuTiba,
           })
           .where(
             and(

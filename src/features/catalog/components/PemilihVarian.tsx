@@ -37,6 +37,16 @@ const PALET_WARNA: Record<string, { label: string; hex: string; border?: string 
   "Desaturated Khaki": { label: "Tactical Khaki", hex: "#635f52" },
   "Deep Grey": { label: "Deep Grey", hex: "#2a2d32" },
   "Concrete Grey": { label: "Concrete Grey", hex: "#7a7d82" },
+  "Charcoal Acid Wash": { label: "Acid Wash Charcoal", hex: "#2c2d32" },
+  "Vintage Slate": { label: "Vintage Slate", hex: "#383a42" },
+  "Steel Grey": { label: "Steel Grey", hex: "#484b54" },
+  "Midnight Black": { label: "Midnight Black", hex: "#0a0b10" },
+  "Sage Green": { label: "Sage Green", hex: "#465042" },
+  "Matte Black": { label: "Matte Black", hex: "#141416" },
+  "Dark Khaki": { label: "Dark Khaki", hex: "#565144" },
+  "Deep Charcoal": { label: "Deep Charcoal", hex: "#222326" },
+  "Off-Black": { label: "Off-Black", hex: "#18191c" },
+  "Obsidian Black": { label: "Obsidian Black", hex: "#09090b" },
 };
 
 function ambilInfoWarna(namaWarna: string): { label: string; hex: string; border?: string } {
@@ -283,9 +293,16 @@ export function PemilihVarian({
                 disabled={!isTersedia}
                 onClick={() => tanganiPilihVarian(v.id)}
                 onKeyDown={(e) => tanganiRadioKeyDown(e, idx)}
-                className={`flex min-h-11 flex-col items-center justify-center border font-mono text-xs font-semibold tracking-wider uppercase transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${buttonStateClass}`}
+                className={`flex min-h-11 flex-col items-center justify-center py-1 border font-mono text-xs font-semibold tracking-wider uppercase transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${buttonStateClass}`}
               >
                 <span>{v.ukuran}</span>
+                {!isTersedia ? (
+                  <span className="text-[9px] font-normal tracking-tight text-neutral-500">HABIS</span>
+                ) : v.stok <= 5 ? (
+                  <span className={`text-[9px] font-normal tracking-tight ${isSelected ? "text-neutral-900" : "text-amber-400"}`}>
+                    SISA {v.stok}
+                  </span>
+                ) : null}
               </button>
             );
           })}

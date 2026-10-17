@@ -268,13 +268,13 @@ export function DevToolsSandboxDrawer({
                   </h3>
                   <div className="grid grid-cols-2 gap-2">
                     <Link
-                      href={`/pesanan/${encodeURIComponent(nomorPesanan)}/faktur`}
+                      href={`/pesanan/${encodeURIComponent(nomorPesanan)}/faktur${tokenAkses ? `?token=${encodeURIComponent(tokenAkses)}` : ""}`}
                       className="inline-flex min-h-9 items-center justify-center border border-neutral-800 bg-neutral-900/80 px-2 py-1 text-center font-semibold text-neutral-300 hover:border-neutral-600 hover:text-white"
                     >
                       FAKTUR (A4)
                     </Link>
                     <Link
-                      href={`/pesanan/${encodeURIComponent(nomorPesanan)}/resi`}
+                      href={`/pesanan/${encodeURIComponent(nomorPesanan)}/resi${tokenAkses ? `?token=${encodeURIComponent(tokenAkses)}` : ""}`}
                       target="_blank"
                       className="inline-flex min-h-9 items-center justify-center border border-neutral-800 bg-neutral-900/80 px-2 py-1 text-center font-semibold text-neutral-300 hover:border-neutral-600 hover:text-white"
                     >

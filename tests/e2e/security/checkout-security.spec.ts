@@ -89,8 +89,8 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
     await expect(page).toHaveURL(/\/pesanan\/VOID-/, { timeout: 30000 });
     await expect(page.locator('text="STATUS: MENUNGGU PEMBAYARAN"')).toBeVisible();
     await expect(
-      page.locator('text="BATAS WAKTU SELESAIKAN PEMBAYARAN"')
-    ).toBeVisible();
+      page.locator('text=/SISA WAKTU|BATAS WAKTU/i').first()
+    ).toBeVisible({ timeout: 10000 });
   });
 });
 

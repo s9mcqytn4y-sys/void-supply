@@ -255,7 +255,8 @@ export function KartuStatusPesanan({
 
         {/* Kartu Konfirmasi Penerimaan Barang (Dual-Trigger Progressive Acceptance) */}
         {pesanan.isAuthorized &&
-          pesanan.pelacakan?.statusPengiriman === "terkirim" &&
+          (pesanan.pelacakan?.statusPengiriman === "terkirim" ||
+            pesanan.statusPesanan === "dikirim") &&
           pesanan.statusPesanan !== "selesai" && (
             <div className="mt-6 border border-emerald-500/50 bg-emerald-950/30 p-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -263,11 +264,15 @@ export function KartuStatusPesanan({
                   <div className="flex items-center gap-2">
                     <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="font-mono text-xs font-bold text-emerald-300 uppercase tracking-wider">
-                      STATUS LOGISTIK: PAKET TIBA DI TUJUAN
+                      {pesanan.pelacakan?.statusPengiriman === "terkirim"
+                        ? "STATUS LOGISTIK: PAKET TIBA DI TUJUAN"
+                        : "KONFIRMASI PENERIMAAN BARANG"}
                     </span>
                   </div>
                   <p className="mt-1 font-mono text-xs text-neutral-300">
-                    Kurir Biteship telah mencatat paket sampai. Mohon periksa fisik paket dan lakukan konfirmasi penerimaan untuk mengaktifkan proteksi garansi unboxing 2x24 jam.
+                    {pesanan.pelacakan?.statusPengiriman === "terkirim"
+                      ? "Kurir Biteship telah mencatat paket sampai. Mohon periksa fisik paket dan lakukan konfirmasi penerimaan untuk mengaktifkan proteksi garansi unboxing 2x24 jam."
+                      : "Jika paket pesanan fisik telah Anda terima dengan baik, lakukan konfirmasi penerimaan untuk mengaktifkan garansi unboxing 2x24 jam."}
                   </p>
                 </div>
                 <button
