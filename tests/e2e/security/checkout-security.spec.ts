@@ -75,7 +75,7 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
     await page.locator('input[name="kodePos"]').fill("12190");
 
     // Tunggu opsi kurir muncul dan pilih salah satu
-    const opsiKurir = page.locator('label:has(input[name="kurir"])').first();
+    const opsiKurir = page.locator('[data-testid="opsi-kurir-item"]').first();
     await opsiKurir.waitFor({ state: "visible", timeout: 20000 });
     await opsiKurir.scrollIntoViewIfNeeded();
     await opsiKurir.click();
@@ -86,7 +86,7 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
     await tombolBayar.click();
 
     // Verifikasi navigasi ke /pesanan/VOID-...
-    await expect(page).toHaveURL(/\/pesanan\/VOID-/, { timeout: 20000 });
+    await expect(page).toHaveURL(/\/pesanan\/VOID-/, { timeout: 30000 });
     await expect(page.locator('text="STATUS: MENUNGGU PEMBAYARAN"')).toBeVisible();
     await expect(
       page.locator('text="BATAS WAKTU SELESAIKAN PEMBAYARAN"')

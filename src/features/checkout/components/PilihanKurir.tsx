@@ -47,6 +47,8 @@ export function PilihanKurir({
             return (
               <label
                 key={`${kurir.kodeKurir}-${kurir.layanan}`}
+                data-testid="opsi-kurir-item"
+                onClick={() => onPilihKurir(kurir)}
                 className={`flex min-h-11 cursor-pointer items-center justify-between border p-3 font-mono text-xs transition-colors ${
                   isSelected
                     ? "border-white bg-neutral-900 text-white"

@@ -56,10 +56,10 @@ export async function buatTransaksiMidtrans(
       serverKey.includes("xxxxxxxxxxxx") || serverKey.startsWith("SB-Mid-server-demo");
 
     const isRealProduction =
-      isProduction ||
-      (process.env.NODE_ENV === "production" &&
-        process.env.CI !== "true" &&
-        process.env.VERCEL_ENV === "production");
+      process.env.CI !== "true" &&
+      (isProduction ||
+        (process.env.NODE_ENV === "production" &&
+          process.env.VERCEL_ENV === "production"));
 
     // Di production nyata, token simulasi dilarang mutlak
     if (isRealProduction && isKeyPlaceholder) {

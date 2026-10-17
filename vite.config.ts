@@ -20,6 +20,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
+    fileParallelism: false,
     setupFiles: [],
     include: ["src/**/*.{test,spec}.{ts,tsx}", "tests/**/*.{test,spec}.{ts,tsx}"],
     exclude: ["**/node_modules/**", "**/dist/**", "**/tests/e2e/**"],

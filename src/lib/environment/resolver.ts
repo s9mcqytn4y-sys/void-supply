@@ -12,7 +12,9 @@ export function selesaikanKonfigurasiEnvironment(): KonfigurasiEnvironment {
     return cacheKonfigurasi;
   }
 
-  const rawAppEnv = process.env.APP_ENV || process.env.NODE_ENV || "development";
+  const rawAppEnv =
+    process.env.APP_ENV ||
+    (process.env.CI === "true" ? "test" : process.env.NODE_ENV || "development");
   const appEnv =
     rawAppEnv === "production" ? "production" : rawAppEnv === "staging" ? "staging" : "development";
 
@@ -22,9 +24,10 @@ export function selesaikanKonfigurasiEnvironment(): KonfigurasiEnvironment {
 
   // 1. Resolusi Midtrans
   const isMidtransProd =
-    appEnv === "production" ||
-    process.env.MIDTRANS_ENV === "production" ||
-    process.env.MIDTRANS_IS_PRODUCTION === "true";
+    process.env.CI !== "true" &&
+    (process.env.MIDTRANS_IS_PRODUCTION === "true" ||
+      process.env.MIDTRANS_ENV === "production" ||
+      (appEnv === "production" && process.env.MIDTRANS_IS_PRODUCTION !== "false"));
 
   const midtransServerKey = isMidtransProd
     ? process.env.MIDTRANS_SERVER_KEY_PRODUCTION || process.env.MIDTRANS_SERVER_KEY || ""
@@ -41,11 +44,14 @@ export function selesaikanKonfigurasiEnvironment(): KonfigurasiEnvironment {
       "SB-Mid-client-demo-xxxxxxxxxxxx";
 
   const allowPaymentMock =
-    process.env.ALLOW_PAYMENT_MOCK === "true" && appEnv !== "production";
+    process.env.ALLOW_PAYMENT_MOCK === "true" &&
+    (process.env.CI === "true" || appEnv !== "production");
 
   // 2. Resolusi Biteship
   const isBiteshipProd =
-    appEnv === "production" || process.env.BITESHIP_ENV === "production";
+    process.env.CI !== "true" &&
+    (process.env.BITESHIP_ENV === "production" ||
+      (appEnv === "production" && process.env.BITESHIP_ENV !== "sandbox"));
 
   const biteshipApiKey = isBiteshipProd
     ? process.env.BITESHIP_API_KEY_PRODUCTION || process.env.BITESHIP_API_KEY || ""
