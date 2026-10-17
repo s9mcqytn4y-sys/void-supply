@@ -6,6 +6,7 @@ import { z } from "zod";
  * berdasarkan APP_ENV eksplisit, mencegah kebocoran atau kesalahan penggunaan key di production.
  */
 export const skemaKonfigurasiEnvironment = z.object({
+  demoMode: z.boolean().default(true),
   appEnv: z.enum(["development", "staging", "production"]).default("development"),
   nodeEnv: z.enum(["development", "test", "production"]).default("development"),
   siteUrl: z.string().default("http://localhost:3000"),
@@ -20,6 +21,8 @@ export const skemaKonfigurasiEnvironment = z.object({
     isProduction: z.boolean(),
     apiKey: z.string().min(1, "API Key Biteship wajib diisi."),
     originPostalCode: z.string().default("10560"),
+    webhookHeaderKey: z.string().default("x-void-biteship-secret"),
+    webhookSecret: z.string().optional(),
   }),
   resend: z.object({
     apiKey: z.string().optional(),
