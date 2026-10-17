@@ -162,7 +162,7 @@ export function verifikasiSignatureMidtrans(
   }
 }
 
-export type StatusRekonsiliasiMidtrans = "PAID" | "UNPAID_TERMINAL" | "UNKNOWN";
+export type StatusRekonsiliasiMidtrans = "PAID" | "PENDING" | "UNPAID_TERMINAL" | "UNKNOWN";
 
 export interface HasilCekStatusMidtrans {
   ditemukan: boolean;
@@ -175,8 +175,9 @@ export interface HasilCekStatusMidtrans {
 
 /**
  * Periksa Status Transaksi Langsung ke Gateway Midtrans (OPS-02 & PAY-04)
- * Menerapkan rekonsiliasi tri-state:
+ * Menerapkan rekonsiliasi status gateway:
  * - PAID: Transaksi sukses/settlement/capture
+ * - PENDING: Transaksi masih menunggu pembayaran di gateway (jangan lepas stok sebelum dibatalkan secara eksplisit)
  * - UNPAID_TERMINAL: Transaksi pasti belum dibayar & final (expire, cancel, deny, failure, atau 404 pada batas waktu)
  * - UNKNOWN: Gateway unreachable / 5xx / timeout (tidak boleh batalkan order / release stok otomatis)
  */
@@ -267,13 +268,14 @@ export async function cekStatusTransaksiMidtrans(
       };
     }
 
-    // Status masih pending di gateway, tetapi jika dicek oleh cron pembatalan berarti window 15 menit sudah lewat
+    // Status masih pending di gateway: kembalikan state PENDING secara eksplisit
+    // Stok tidak boleh dilepaskan sampai pembatalan gateway diverifikasi
     if (status === "pending") {
       return {
         ditemukan: true,
         statusTransaksi: status,
         fraudStatus: fraud,
-        state: "UNPAID_TERMINAL",
+        state: "PENDING",
         apakahSudahDibayar: false,
       };
     }
@@ -296,6 +298,77 @@ export async function cekStatusTransaksiMidtrans(
   }
 }
 
+/**
+ * Batalkan Transaksi di Gateway Midtrans secara Eksplisit (Midtrans Cancel API)
+ * Digunakan saat masa kedaluwarsa bisnis (15 menit) terlewati dan status di Midtrans masih 'pending'.
+ * Endpoint Midtrans: POST /v2/{order_id}/cancel
+ * Midtrans mengubah status menjadi 'cancel' dan merespons HTTP 200.
+ */
+export async function batalkanTransaksiMidtrans(
+  nomorPesanan: string
+): Promise<{ sukses: boolean; pesan: string; statusTransaksi?: string }> {
+  // Flag simulasi mock lokal
+  if (serverKey.includes("xxxxxxxxxxxx") || serverKey.startsWith("SB-Mid-server-demo")) {
+    if (process.env.ALLOW_PAYMENT_MOCK === "true") {
+      return {
+        sukses: true,
+        pesan: "Simulasi sandbox/mock: Transaksi berhasil dibatalkan di gateway.",
+        statusTransaksi: "cancel",
+      };
+    }
+  }
 
+  try {
+    const baseUrl = isProduction
+      ? "https://api.midtrans.com"
+      : "https://api.sandbox.midtrans.com";
 
+    const authHeader = `Basic ${Buffer.from(`${serverKey}:`).toString("base64")}`;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const res = await fetch(`${baseUrl}/v2/${encodeURIComponent(nomorPesanan)}/cancel`, {
+      method: "POST",
+      headers: {
+        Authorization: authHeader,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+      signal: controller.signal,
+    }).finally(() => {
+      clearTimeout(timeoutId);
+    });
+
+    if (res.status === 404) {
+      // 404 berarti transaksi tidak pernah terdaftar atau sudah dibersihkan gateway
+      return {
+        sukses: true,
+        pesan: "Transaksi tidak ditemukan di gateway (404), aman dibatalkan di internal.",
+        statusTransaksi: "cancel",
+      };
+    }
+
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      return {
+        sukses: false,
+        pesan: `Gagal membatalkan transaksi di Midtrans (${res.status}): ${errJson?.status_message || res.statusText}`,
+      };
+    }
+
+    const data = await res.json();
+    return {
+      sukses: true,
+      pesan: data.status_message || "Transaksi berhasil dibatalkan di Midtrans.",
+      statusTransaksi: data.transaction_status || "cancel",
+    };
+  } catch (err) {
+    console.error("Galat saat memanggil cancel API Midtrans:", err);
+    return {
+      sukses: false,
+      pesan: err instanceof Error ? err.message : "Network error / timeout",
+    };
+  }
+}

@@ -1,6 +1,6 @@
 import { and, eq, lte, sql } from "drizzle-orm";
 import { db, pesanan, pembayaran, itemPesanan, varianProduk } from "@/lib/db";
-import { cekStatusTransaksiMidtrans } from "@/lib/services/midtrans.service";
+import { cekStatusTransaksiMidtrans, batalkanTransaksiMidtrans } from "@/lib/services/midtrans.service";
 
 export interface HasilBatalKedaluwarsa {
   sukses: boolean;
@@ -103,6 +103,26 @@ export async function batalkanPesananKedaluwarsa(
           })
           .where(eq(pesanan.id, order.id));
         continue;
+      }
+
+      // KASUS 3: PENDING (Transaksi masih pending di gateway saat batas waktu habis)
+      // Panggil Cancel API Midtrans terlebih dahulu agar gateway tidak lagi menerima pembayaran
+      if (statusGateway.state === "PENDING") {
+        const hasilBatalGateway = await batalkanTransaksiMidtrans(order.nomorPesanan);
+        if (!hasilBatalGateway.sukses) {
+          console.warn(
+            `[RESERVASI] Gagal membatalkan transaksi ${order.nomorPesanan} di gateway Midtrans: ${hasilBatalGateway.pesan}. Pelepasan stok ditunda.`
+          );
+          await db
+            .update(pesanan)
+            .set({
+              percobaanRekonsiliasi: sql`${pesanan.percobaanRekonsiliasi} + 1`,
+              rekonsiliasiTerakhirPada: sekarang,
+              diperbaruiPada: sekarang,
+            })
+            .where(eq(pesanan.id, order.id));
+          continue;
+        }
       }
 
       // KASUS 3: UNPAID_TERMINAL -> Pembatalan pesanan, pemulihan stok artikel, dan update pembayaran secara atomik
