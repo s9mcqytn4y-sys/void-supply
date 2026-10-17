@@ -11,7 +11,10 @@ import {
   pengiriman,
   pembayaran,
 } from "@/lib/db";
+import { arsipFaktur } from "@/lib/db/schema";
 import { formatRupiah } from "@/lib/utils";
+import { generateCode128Svg } from "@/lib/barcode/code128";
+import { simpanSnapshotArsipFaktur } from "@/features/checkout/services/arsip-faktur.service";
 import { TombolCetakFaktur } from "./TombolCetakFaktur";
 
 interface PropsHalamanFaktur {
@@ -118,6 +121,39 @@ export default async function HalamanFaktur({
   const nomorFaktur =
     fakturDb?.nomorFaktur ||
     `INV/${pesananDb.dibuatPada.toISOString().slice(0, 10).replace(/-/g, "")}/${pesananDb.nomorPesanan.slice(-5)}`;
+
+  // Ambil arsip faktur legal snapshot (atau buat snapshot jika pesanan sudah lunas)
+  let arsipFakturDb = fakturDb
+    ? await db.query.arsipFaktur.findFirst({
+        where: eq(arsipFaktur.fakturId, fakturDb.id),
+      })
+    : null;
+
+  if (!arsipFakturDb && fakturDb && pembayaranDb?.statusPembayaran === "berhasil") {
+    const hasilArsip = await simpanSnapshotArsipFaktur(
+      fakturDb.id,
+      nomorFaktur,
+      pesananDb.id
+    );
+    if (hasilArsip.sukses) {
+      arsipFakturDb = await db.query.arsipFaktur.findFirst({
+        where: eq(arsipFaktur.fakturId, fakturDb.id),
+      });
+    }
+  }
+
+  // Hitung PPN 11% (Included)
+  const pajakPersen = 11;
+  const pajakTermasukIdr = Math.round(
+    (pesananDb.totalAkhir * pajakPersen) / (100 + pajakPersen)
+  );
+
+  // Generate SVG Code128 Barcode Vector Resmi
+  const barcodeFakturSvg = generateCode128Svg(nomorFaktur, {
+    tinggi: 30,
+    lebarBar: 1.2,
+    tampilkanTeks: false,
+  });
 
   return (
     <>
@@ -280,7 +316,7 @@ export default async function HalamanFaktur({
             </table>
           </div>
 
-          {/* Ringkasan Biaya */}
+          {/* Ringkasan Biaya & Pajak PPN 11% */}
           <div className="mt-4 border-t border-neutral-800 pt-4 font-mono text-xs print:border-neutral-300">
             <div className="ml-auto max-w-xs space-y-1.5">
               <div className="flex justify-between text-neutral-400 print:text-neutral-700">
@@ -303,6 +339,10 @@ export default async function HalamanFaktur({
                   {formatRupiah(pesananDb.totalOngkir)}
                 </span>
               </div>
+              <div className="flex justify-between text-[11px] text-neutral-400 print:text-neutral-700">
+                <span>PPN 11% (TERMASUK):</span>
+                <span>{formatRupiah(pajakTermasukIdr)}</span>
+              </div>
               <div className="flex justify-between border-t border-neutral-800 pt-2 text-sm font-black text-white print:border-neutral-300 print:text-black">
                 <span>TOTAL PEMBAYARAN:</span>
                 <span className="text-emerald-400 print:text-black">
@@ -312,27 +352,28 @@ export default async function HalamanFaktur({
             </div>
           </div>
 
-          {/* Barcode & Digital Verification Seal */}
+          {/* Barcode Code128 & Segel Integritas Kriptografis SHA-256 */}
           <div className="mt-6 flex flex-col items-center justify-between gap-3 border-t border-neutral-800 pt-4 sm:flex-row print:border-neutral-300">
             <div className="flex items-center gap-3">
-              <div className="flex h-6 w-36 items-center justify-between overflow-hidden">
-                {[
-                  2, 1, 3, 1, 2, 1, 1, 3, 2, 1, 2, 3, 1, 2, 1, 3, 2, 1, 1, 2, 3,
-                  1, 2, 1, 3, 1, 2, 1, 3, 2,
-                ].map((width, idx) => (
-                  <span
-                    key={idx}
-                    style={{ width: `${width}px` }}
-                    className="h-full bg-white print:bg-black"
-                  />
-                ))}
-              </div>
+              <div
+                className="overflow-hidden print:invert"
+                dangerouslySetInnerHTML={{ __html: barcodeFakturSvg }}
+              />
               <span className="font-mono text-[9px] text-neutral-400 uppercase print:text-neutral-700">
                 VERIFIED // ELECTRONIC RECEIPT
               </span>
             </div>
             <div className="font-mono text-[9px] text-neutral-400 text-right print:text-neutral-700">
-              HASH ID: {pesananDb.id.slice(0, 12).toUpperCase()} // SEC-02 VALIDATED
+              {arsipFakturDb?.hashIntegrity ? (
+                <>
+                  <span className="block font-bold text-emerald-400 print:text-black">
+                    SHA-256: {arsipFakturDb.hashIntegrity.slice(0, 16)}...{arsipFakturDb.hashIntegrity.slice(-8)}
+                  </span>
+                  <span className="text-neutral-400">IMMUTABLE ARCHIVE VERIFIED</span>
+                </>
+              ) : (
+                <>HASH ID: {pesananDb.id.slice(0, 12).toUpperCase()} // SEC-02 VALIDATED</>
+              )}
             </div>
           </div>
 

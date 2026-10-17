@@ -7,3 +7,5 @@ export * from "./components/PilihanKurir";
 export * from "./components/RingkasanPesananCheckout";
 export * from "./actions/status-pesanan.action";
 export * from "./components/KartuStatusPesanan";
+export * from "./components/InAppPaymentViewer";
+export * from "./components/DevToolsSandboxDrawer";

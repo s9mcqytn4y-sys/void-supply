@@ -8,7 +8,10 @@ import {
   type DetailStatusPesanan,
 } from "../actions/status-pesanan.action";
 import { TimelinePengiriman } from "@/features/shipping/components/TimelinePengiriman";
-import { DemoSandboxController } from "./DemoSandboxController";
+import { DevToolsSandboxDrawer } from "./DevToolsSandboxDrawer";
+import { InAppPaymentViewer } from "./InAppPaymentViewer";
+import { konfirmasiPesananDiterimaAction } from "../actions/konfirmasi-diterima.action";
+import { toast } from "sonner";
 
 interface PropsKartuStatusPesanan {
   pesananAwal: DetailStatusPesanan;
@@ -28,8 +31,16 @@ export function KartuStatusPesanan({
     );
     return Math.max(0, sisa);
   });
+  const [sedangKonfirmasiDiterima, setSedangKonfirmasiDiterima] = useState(false);
+  const [sisaGaransiDetik, setSisaGaransiDetik] = useState<number>(() => {
+    if (!pesananAwal.garansiBerakhirPada) return 0;
+    const sisa = Math.floor(
+      (new Date(pesananAwal.garansiBerakhirPada).getTime() - Date.now()) / 1000
+    );
+    return Math.max(0, sisa);
+  });
 
-  // Countdown Timer Interval
+  // Countdown Timer Interval Pembayaran
   useEffect(() => {
     if (pesanan.statusPesanan !== "menunggu_pembayaran" || sisaWaktuDetik <= 0) {
       return;
@@ -39,7 +50,6 @@ export function KartuStatusPesanan({
       setSisaWaktuDetik((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          // Batas waktu habis: Segera sinkronkan ulang ke server
           sinkronkanStatus();
           return 0;
         }
@@ -49,6 +59,23 @@ export function KartuStatusPesanan({
 
     return () => clearInterval(timer);
   }, [pesanan.statusPesanan, sisaWaktuDetik]);
+
+  // Countdown Timer Garansi Purna Jual 2x24 Jam
+  useEffect(() => {
+    if (!pesanan.garansiBerakhirPada) return;
+
+    const timerGaransi = setInterval(() => {
+      const sisa = Math.floor(
+        (new Date(pesanan.garansiBerakhirPada!).getTime() - Date.now()) / 1000
+      );
+      setSisaGaransiDetik(Math.max(0, sisa));
+      if (sisa <= 0) {
+        clearInterval(timerGaransi);
+      }
+    }, 1000);
+
+    return () => clearInterval(timerGaransi);
+  }, [pesanan.garansiBerakhirPada]);
 
   // Fungsi Sinkronisasi Status Pesanan
   const sinkronkanStatus = useCallback(async () => {
@@ -64,6 +91,36 @@ export function KartuStatusPesanan({
       setSedangMenyinkronkan(false);
     }
   }, [pesanan.nomorPesanan, tokenAkses]);
+
+  // Konfirmasi Penerimaan Paket oleh Pembeli (Dual-State Progressive Acceptance)
+  const tanganiKonfirmasiDiterima = async () => {
+    if (!tokenAkses) {
+      toast.error("Token akses otorisasi tidak ditemukan.");
+      return;
+    }
+    setSedangKonfirmasiDiterima(true);
+    try {
+      const hasil = await konfirmasiPesananDiterimaAction({
+        nomorPesanan: pesanan.nomorPesanan,
+        tokenAkses,
+      });
+      if (hasil.sukses) {
+        toast.success("Pesanan Diterima!", {
+          description: hasil.pesan,
+        });
+        await sinkronkanStatus();
+      } else {
+        toast.error("Gagal Mengonfirmasi", {
+          description: hasil.pesan,
+        });
+      }
+    } catch (err) {
+      toast.error("Terjadi galat saat mengonfirmasi penerimaan barang.");
+      console.error(err);
+    } finally {
+      setSedangKonfirmasiDiterima(false);
+    }
+  };
 
   // Polling Status Otomatis setiap 5 detik (maksimal 2 menit = 24 polling)
   useEffect(() => {
@@ -96,6 +153,12 @@ export function KartuStatusPesanan({
   const stringCountdown = `${menit.toString().padStart(2, "0")}:${detik
     .toString()
     .padStart(2, "0")}`;
+
+  // Format Timer Garansi (Jam, Menit, Detik)
+  const jamGaransi = Math.floor(sisaGaransiDetik / 3600);
+  const menitGaransi = Math.floor((sisaGaransiDetik % 3600) / 60);
+  const detikGaransi = sisaGaransiDetik % 60;
+  const formatSisaGaransi = `${jamGaransi} jam ${menitGaransi} mnt ${detikGaransi} dtk`;
 
   const isMenungguBayar = pesanan.statusPesanan === "menunggu_pembayaran";
   const isSukses =
@@ -149,40 +212,24 @@ export function KartuStatusPesanan({
           </button>
         </div>
 
-        {/* Banner Instruksi Pembayaran & Countdown */}
+        {/* In-App Native Payment UX: Virtual Account & QRIS */}
         {isMenungguBayar && (
-          <div className="mt-6 border border-amber-900/40 bg-amber-950/20 p-4">
-            <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-              <div>
-                <p className="font-mono text-xs font-bold text-amber-300 uppercase">
-                  BATAS WAKTU SELESAIKAN PEMBAYARAN
-                </p>
-                <p className="mt-1 text-xs text-neutral-300">
-                  Selesaikan transaksi sebelum waktu habis agar stok varian tidak
-                  dilepaskan otomatis ke katalog.
-                </p>
-              </div>
-              <div className="flex h-12 min-w-28 items-center justify-center border border-amber-500/40 bg-neutral-950 px-4 font-mono text-xl font-black text-amber-400">
-                {stringCountdown}
-              </div>
-            </div>
-
-            {pesanan.isAuthorized && pesanan.pembayaran?.snapRedirectUrl && (
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href={pesanan.pembayaran.snapRedirectUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex min-h-11 flex-1 items-center justify-center border border-white bg-white px-6 font-mono text-xs font-bold text-black uppercase transition-colors hover:bg-neutral-200"
-                >
-                  BAYAR SEKARANG (MIDTRANS SNAP)
-                </a>
-              </div>
-            )}
-
-            {!pesanan.isAuthorized && (
-              <div className="mt-4 border border-neutral-800 bg-neutral-900/60 p-3 font-mono text-[11px] text-neutral-400">
-                DATA PRIBADI TERPROTEKSI: Informasi pelanggan dan link pembayaran disamarkan demi privasi. Akses melalui tautan checkout resmi untuk otorisasi penuh.
+          <div className="mt-6">
+            {pesanan.isAuthorized ? (
+              <InAppPaymentViewer
+                nomorPesanan={pesanan.nomorPesanan}
+                nominal={pesanan.totalAkhir}
+                metodePembayaran={pesanan.pembayaran?.metode}
+                nomorVa={pesanan.pembayaran?.nomorVa}
+                bankVa={pesanan.pembayaran?.bankVa}
+                qrString={pesanan.pembayaran?.qrString}
+                snapRedirectUrl={pesanan.pembayaran?.snapRedirectUrl}
+                sisaWaktuDetik={sisaWaktuDetik}
+                stringCountdown={stringCountdown}
+              />
+            ) : (
+              <div className="border border-neutral-800 bg-neutral-900/60 p-4 font-mono text-xs text-neutral-400">
+                DATA PRIBADI TERPROTEKSI: Informasi pelanggan dan tagihan disamarkan demi privasi. Akses melalui tautan checkout resmi untuk otorisasi penuh.
               </div>
             )}
           </div>
@@ -198,8 +245,71 @@ export function KartuStatusPesanan({
 
         {isSukses && (
           <div className="mt-6 border border-emerald-900/50 bg-emerald-950/20 p-4 font-mono text-xs text-emerald-300">
-            Pembayaran telah diverifikasi secara resmi. Pesanan Anda saat ini sedang
-            dipersiapkan oleh tim operasional untuk pengiriman.
+            {pesanan.statusPesanan === "selesai"
+              ? "Transaksi telah diselesaikan. Seluruh artikel telah diterima secara resmi oleh pemesan."
+              : pesanan.statusPesanan === "dikirim"
+              ? "Paket pesanan Anda sedang dalam perjalanan oleh kurir ekspedisi menuju alamat tujuan."
+              : "Pembayaran telah diverifikasi secara resmi. Pesanan Anda saat ini sedang dipersiapkan oleh tim operasional untuk pengiriman."}
+          </div>
+        )}
+
+        {/* Kartu Konfirmasi Penerimaan Barang (Dual-Trigger Progressive Acceptance) */}
+        {pesanan.isAuthorized &&
+          pesanan.pelacakan?.statusPengiriman === "terkirim" &&
+          pesanan.statusPesanan !== "selesai" && (
+            <div className="mt-6 border border-emerald-500/50 bg-emerald-950/30 p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-mono text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                      STATUS LOGISTIK: PAKET TIBA DI TUJUAN
+                    </span>
+                  </div>
+                  <p className="mt-1 font-mono text-xs text-neutral-300">
+                    Kurir Biteship telah mencatat paket sampai. Mohon periksa fisik paket dan lakukan konfirmasi penerimaan untuk mengaktifkan proteksi garansi unboxing 2x24 jam.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={tanganiKonfirmasiDiterima}
+                  disabled={sedangKonfirmasiDiterima}
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center border border-emerald-400 bg-emerald-400 px-6 font-mono text-xs font-black text-black uppercase transition-colors hover:bg-emerald-300 disabled:opacity-50"
+                >
+                  {sedangKonfirmasiDiterima
+                    ? "MENYIMPAN..."
+                    : "KONFIRMASI PESANAN DITERIMA"}
+                </button>
+              </div>
+            </div>
+          )}
+
+        {/* Kartu Garansi Purna Jual 2x24 Jam (Aktif Setelah Status Selesai) */}
+        {pesanan.statusPesanan === "selesai" && pesanan.garansiBerakhirPada && (
+          <div className="mt-6 border border-neutral-700 bg-neutral-900/60 p-5 font-mono">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="text-xs font-bold text-white uppercase tracking-wider">
+                  GARANSI PURNA JUAL 2X24 JAM AKTIF
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-neutral-400 uppercase mr-2">
+                  SISA WAKTU KLAIM:
+                </span>
+                <span
+                  className={`text-xs font-bold ${
+                    sisaGaransiDetik > 0 ? "text-emerald-400" : "text-neutral-500"
+                  }`}
+                >
+                  {sisaGaransiDetik > 0 ? formatSisaGaransi : "GARANSI BERAKHIR"}
+                </span>
+              </div>
+            </div>
+            <p className="mt-3 text-[11px] text-neutral-400 leading-relaxed">
+              Pastikan Anda merekam video proses unboxing paket tanpa jeda sejak label resi dibuka. Apabila terdapat cacat manufaktur atau kesalahan kirim varian, segera ajukan klaim retur sebelum masa garansi di atas berakhir.
+            </p>
           </div>
         )}
 
@@ -336,16 +446,17 @@ export function KartuStatusPesanan({
         </div>
       </div>
 
-      {/* Demo Sandbox Controller (Poin 11: Midtrans Simulator & Biteship Testing) */}
+      {/* Interactive Sandbox DevTools Drawer (Poin 12 & Fase 3) */}
       {pesanan.isAuthorized && (
-        <DemoSandboxController
+        <DevToolsSandboxDrawer
           nomorPesanan={pesanan.nomorPesanan}
           tokenAkses={tokenAkses}
           statusPesanan={pesanan.statusPesanan}
           statusPembayaran={pesanan.statusPembayaran}
           statusPengiriman={pesanan.pelacakan?.statusPengiriman}
           nomorResi={pesanan.kurir?.nomorResi}
-          snapToken={pesanan.pembayaran?.snapToken}
+          nomorVa={pesanan.pembayaran?.nomorVa}
+          bankVa={pesanan.pembayaran?.bankVa}
           onSinkronUlang={sinkronkanStatus}
         />
       )}

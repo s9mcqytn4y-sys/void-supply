@@ -42,6 +42,8 @@ export interface DetailStatusPesanan {
   kodeVoucher?: string | null;
   dibuatPada: string;
   kedaluwarsaPada?: string | null;
+  diterimaPada?: string | null;
+  garansiBerakhirPada?: string | null;
   namaPelanggan: string;
   emailPelanggan: string;
   teleponPelanggan: string;
@@ -56,6 +58,10 @@ export interface DetailStatusPesanan {
     metode?: string | null;
     snapToken?: string | null;
     snapRedirectUrl?: string | null;
+    nomorVa?: string | null;
+    bankVa?: string | null;
+    qrString?: string | null;
+    instruksiPembayaran?: unknown;
     dibayarPada?: string | null;
   };
   items: Array<{
@@ -232,6 +238,8 @@ export async function ambilStatusPesanan(
         kodeVoucher: pesananDb.kodeVoucher,
         dibuatPada: pesananDb.dibuatPada.toISOString(),
         kedaluwarsaPada: batasKedaluwarsa.toISOString(),
+        diterimaPada: pesananDb.diterimaPada ? pesananDb.diterimaPada.toISOString() : null,
+        garansiBerakhirPada: pesananDb.garansiBerakhirPada ? pesananDb.garansiBerakhirPada.toISOString() : null,
         namaPelanggan: pesananDb.namaPelanggan,
         emailPelanggan: pesananDb.emailPelanggan,
         teleponPelanggan: pesananDb.teleponPelanggan,
@@ -266,6 +274,10 @@ export async function ambilStatusPesanan(
               metode: pembayaranDb.metodePembayaran,
               snapToken: pembayaranDb.snapToken,
               snapRedirectUrl: pembayaranDb.snapRedirectUrl,
+              nomorVa: pembayaranDb.nomorVa,
+              bankVa: pembayaranDb.bankVa,
+              qrString: pembayaranDb.qrString,
+              instruksiPembayaran: pembayaranDb.instruksiPembayaran,
               dibayarPada: pembayaranDb.dibayarPada?.toISOString() || null,
             }
           : undefined,

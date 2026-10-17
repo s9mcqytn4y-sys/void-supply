@@ -4,6 +4,7 @@ import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { Search, Package, MapPin, ExternalLink, AlertCircle, ArrowRight } from "lucide-react";
 import { TimelinePengiriman } from "./TimelinePengiriman";
+import { DevToolsSandboxDrawer } from "@/features/checkout/components/DevToolsSandboxDrawer";
 import {
   lacakPengirimanPublikAction,
   type HasilPelacakanPublik,
@@ -166,6 +167,16 @@ export function HalamanLacakClient({
               </a>
             )}
           </div>
+
+          {/* Floating DevTools Sandbox Drawer (Poin 12) */}
+          <DevToolsSandboxDrawer
+            nomorPesanan={dataHasil.nomorPesanan}
+            statusPesanan={dataHasil.statusPesanan}
+            statusPembayaran="berhasil"
+            statusPengiriman={dataHasil.pelacakan.statusPengiriman}
+            nomorResi={dataHasil.pelacakan.nomorResi}
+            onSinkronUlang={async () => handleCari(dataHasil.nomorPesanan)}
+          />
         </div>
       )}
     </div>

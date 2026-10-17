@@ -9,6 +9,7 @@ import {
   prosesAntreanOutbox,
   picuProsesOutboxNonBlocking,
 } from "@/lib/services/outbox.service";
+import { simpanSnapshotArsipFaktur } from "@/features/checkout/services/arsip-faktur.service";
 
 interface PayloadWebhookMidtrans {
   order_id: string;
@@ -153,7 +154,7 @@ export async function POST(req: Request) {
           const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
           const nomorFaktur = `INV/${dateStr}/${order_id.replace(/^VOID-/, "")}`;
 
-          await tx
+          const [fakturBaru] = await tx
             .insert(faktur)
             .values({
               nomorFaktur,
@@ -166,9 +167,20 @@ export async function POST(req: Request) {
                 settlementTime: settlement_time || new Date().toISOString(),
               },
             })
-            .onConflictDoNothing();
+            .onConflictDoNothing()
+            .returning({ id: faktur.id });
 
           console.log(`[MIDTRANS WEBHOOK] Pesanan ${order_id} berhasil diverifikasi & faktur ${nomorFaktur} diterbitkan.`);
+
+          // Rekam snapshot arsip faktur imutabel secara non-blocking via waitUntil
+          const idFakturFinal = fakturBaru?.id;
+          if (idFakturFinal) {
+            waitUntil(
+              simpanSnapshotArsipFaktur(idFakturFinal, nomorFaktur, pesananTerkait.id).catch(
+                (err) => console.error("[MIDTRANS WEBHOOK] Gagal arsip faktur:", err)
+              )
+            );
+          }
 
           // Sisipkan tugas notifikasi email ke antrean Transactional Outbox secara atomik
           await tambahTugasOutbox(tx, {

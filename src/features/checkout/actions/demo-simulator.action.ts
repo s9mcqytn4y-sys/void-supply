@@ -195,3 +195,93 @@ export async function simulasikanStatusLogistikBiteshipAction(
     };
   }
 }
+
+/**
+ * Simulasi Pembatalan / Kadaluwarsa Pesanan Midtrans
+ * Menembak internal webhook Midtrans dengan status 'expire' untuk menguji Compare-and-Set pemulihan stok atomik.
+ */
+export async function simulasikanPembatalanPesananAction(
+  nomorPesanan: string,
+  tokenAkses?: string
+): Promise<HasilSimulasiDemo> {
+  try {
+    const env = selesaikanKonfigurasiEnvironment();
+    if (env.appEnv === "production" && process.env.ALLOW_PAYMENT_MOCK !== "true") {
+      return {
+        sukses: false,
+        pesan: "Simulasi pembatalan demo dinonaktifkan di lingkungan produksi.",
+      };
+    }
+
+    const serverKey = env.midtrans.serverKey;
+
+    const dataPesanan = await db.query.pesanan.findFirst({
+      where: eq(pesanan.nomorPesanan, nomorPesanan),
+    });
+
+    if (!dataPesanan) {
+      return { sukses: false, pesan: "Pesanan tidak ditemukan di database." };
+    }
+
+    if (dataPesanan.tokenAkses && dataPesanan.tokenAkses !== tokenAkses) {
+      return { sukses: false, pesan: "Akses ditolak: Token otentikasi pesanan tidak cocok." };
+    }
+
+    if (dataPesanan.statusPesanan !== "menunggu_pembayaran") {
+      return {
+        sukses: false,
+        pesan: `Pesanan sudah berada pada status '${dataPesanan.statusPesanan}', tidak dapat dibatalkan melalui simulator ini.`,
+      };
+    }
+
+    const grossAmount = `${dataPesanan.totalAkhir}.00`;
+    const statusCode = "200";
+    const signatureKey = crypto
+      .createHash("sha512")
+      .update(`${nomorPesanan}${statusCode}${grossAmount}${serverKey}`)
+      .digest("hex");
+
+    const payload = {
+      order_id: nomorPesanan,
+      status_code: statusCode,
+      gross_amount: grossAmount,
+      signature_key: signatureKey,
+      transaction_status: "expire",
+      fraud_status: "accept",
+      payment_type: "bank_transfer",
+      transaction_id: `SIM-EXP-${Date.now()}`,
+    };
+
+    const host = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+    const webhookUrl = `${host}/api/midtrans/webhook`;
+
+    const res = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      return {
+        sukses: false,
+        pesan: `Gagal memicu webhook pembatalan (${res.status}): ${errText}`,
+      };
+    }
+
+    return {
+      sukses: true,
+      pesan: `Pesanan #${nomorPesanan} berhasil dibatalkan dan kuota stok varian telah dipulihkan secara atomik.`,
+    };
+  } catch (err) {
+    console.error("Gagal menjalankan simulasi pembatalan:", err);
+    return {
+      sukses: false,
+      pesan: err instanceof Error ? err.message : "Terjadi kesalahan internal simulator.",
+    };
+  }
+}
+
