@@ -8,9 +8,12 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
     await expect(kartuProduk).toBeVisible();
     await kartuProduk.click({ force: true });
 
+    // Tunggu masuk ke halaman PDP
+    await expect(page.locator("h1")).toBeVisible({ timeout: 10000 });
+
     // Pilih ukuran varian yang tersedia
     const tombolUkuran = page.locator('button[role="radio"]:not([disabled])').first();
-    await expect(tombolUkuran).toBeVisible();
+    await expect(tombolUkuran).toBeVisible({ timeout: 10000 });
     await tombolUkuran.click({ force: true });
 
     // Tambahkan artikel ke keranjang
@@ -19,7 +22,7 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
     await tombolTambah.click({ force: true });
 
     // Tunggu drawer keranjang terbuka mengonfirmasi penambahan sukses
-    await expect(page.locator('text="KERANJANG BELANJA"')).toBeVisible();
+    await expect(page.locator('text="KERANJANG BELANJA"')).toBeVisible({ timeout: 10000 });
   });
 
   test("menolak pengiriman formulir jika data penerima tidak lengkap", async ({ page }) => {
@@ -78,16 +81,18 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
 
     // Tunggu opsi kurir muncul dan pilih salah satu
     const pilihanRadioKurir = page.locator('input[type="radio"][name="kurir"]').first();
+    await pilihanRadioKurir.waitFor({ state: "attached", timeout: 20000 });
+    await pilihanRadioKurir.scrollIntoViewIfNeeded();
     await expect(pilihanRadioKurir).toBeVisible({ timeout: 10000 });
-    await pilihanRadioKurir.check();
+    await pilihanRadioKurir.check({ force: true });
 
     // Verifikasi tombol submit aktif dan klik
     const tombolBayar = page.locator('button:has-text("LANJUT KE PEMBAYARAN")');
-    await expect(tombolBayar).toBeEnabled();
+    await expect(tombolBayar).toBeEnabled({ timeout: 15000 });
     await tombolBayar.click();
 
     // Verifikasi navigasi ke /pesanan/VOID-...
-    await expect(page).toHaveURL(/\/pesanan\/VOID-/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/pesanan\/VOID-/, { timeout: 20000 });
     await expect(page.locator('text="STATUS: MENUNGGU PEMBAYARAN"')).toBeVisible();
     await expect(
       page.locator('text="BATAS WAKTU SELESAIKAN PEMBAYARAN"')

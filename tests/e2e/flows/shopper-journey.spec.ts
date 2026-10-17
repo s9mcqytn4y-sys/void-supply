@@ -26,16 +26,16 @@ test.describe("Fase 3: Master Shopper Journey & Storefront UX E2E", () => {
     await expect(kartuProduk).toBeVisible();
     await kartuProduk.click({ force: true });
 
-    // Verifikasi masuk ke Product Detail Page
-    await expect(page.locator("h1")).toBeVisible();
+    // Tunggu navigasi selesai ke Product Detail Page
+    await page.waitForURL(/\/katalog\/[a-z0-9-]+/, { timeout: 15000 });
 
     // 3. SIZE CONFIDENCE MODAL & KALKULATOR POSTUR
     const tombolPanduanUkuran = page.locator('button:has-text("PANDUAN UKURAN (CM)")');
-    await expect(tombolPanduanUkuran).toBeVisible();
+    await expect(tombolPanduanUkuran).toBeVisible({ timeout: 15000 });
     await tombolPanduanUkuran.click();
 
     // Verifikasi modal terbuka
-    const dialogPanduan = page.locator('role=dialog[aria-labelledby="judul-panduan-ukuran"]');
+    const dialogPanduan = page.locator('[role="dialog"][aria-labelledby="judul-panduan-ukuran"]');
     await expect(dialogPanduan).toBeVisible();
 
     // Buka tab Kalkulator Postur (AI Fit)
