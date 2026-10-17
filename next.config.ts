@@ -50,7 +50,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value: "camera=(), microphone=(), geolocation=(self)",
           },
           {
             key: "Strict-Transport-Security",
@@ -72,6 +72,11 @@ export default withSentryConfig(nextConfig, {
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
+
+  // Cegah error 403 Forbidden pada Vercel build jika SENTRY_AUTH_TOKEN belum terpasang
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
 
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/

@@ -40,6 +40,10 @@ export function useCheckout() {
   const [opsiKurir, setOpsiKurir] = useState<OpsiKurir[]>([]);
   const [kurirTerpilih, setKurirTerpilih] = useState<OpsiKurir | null>(null);
 
+  // State Koordinat GPS / Geocoding untuk Kurir Instant (Gojek / Grab)
+  const [koordinat, setKoordinat] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [statusGps, setStatusGps] = useState<"idle" | "mencari" | "berhasil" | "gagal">("idle");
+
   // State Voucher Diskon (Module 02.17)
   const [kodeVoucherInput, setKodeVoucherInput] = useState("");
   const [voucherDiterapkan, setVoucherDiterapkan] = useState<HasilValidasiVoucher | null>(null);
@@ -69,19 +73,27 @@ export function useCheckout() {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // Panggil Server Action Hitung Ongkir
+  // Panggil Server Action Hitung Ongkir (terintegrasi koordinat instant)
   const muatTarifOngkir = useCallback(
-    async (kodePos: string, itemDaftar: typeof items) => {
+    async (
+      kodePos: string,
+      itemDaftar: typeof items,
+      coordsParam?: { latitude: number; longitude: number } | null
+    ) => {
       if (!kodePos || kodePos.length !== 5 || !/^[0-9]+$/.test(kodePos)) {
         return;
       }
       if (itemDaftar.length === 0) return;
+
+      const activeCoords = coordsParam !== undefined ? coordsParam : koordinat;
 
       setSedangHitungOngkir(true);
       try {
         const hasil = await hitungOngkirServerAction({
           kodePosTujuan: kodePos,
           items: itemDaftar.map((i) => ({ varianId: i.varianId, jumlah: i.jumlah })),
+          latitude: activeCoords?.latitude,
+          longitude: activeCoords?.longitude,
         });
 
         if (hasil.sukses && hasil.opsiKurir.length > 0) {
@@ -103,8 +115,63 @@ export function useCheckout() {
         setSedangHitungOngkir(false);
       }
     },
-    []
+    [items, koordinat]
   );
+
+  // Deteksi Lokasi GPS Browser dengan fallback Geocoding Alamat
+  const deteksiLokasiGps = useCallback(async () => {
+    setStatusGps("mencari");
+    if (typeof window !== "undefined" && "geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords = {
+            latitude: Number(pos.coords.latitude.toFixed(6)),
+            longitude: Number(pos.coords.longitude.toFixed(6)),
+          };
+          setKoordinat(coords);
+          setStatusGps("berhasil");
+          toast.success("Titik lokasi GPS berhasil disematkan.");
+          if (formData.kodePos.length === 5) {
+            muatTarifOngkir(formData.kodePos, items, coords);
+          }
+        },
+        async (error) => {
+          console.warn("GPS browser ditolak/gagal, menggunakan geocoding alamat:", error.message);
+          try {
+            const query = [formData.alamatLengkap, formData.kota, formData.kodePos, "Indonesia"]
+              .filter(Boolean)
+              .join(", ");
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`,
+              { headers: { "Accept-Language": "id" } }
+            );
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              const coords = {
+                latitude: parseFloat(data[0].lat),
+                longitude: parseFloat(data[0].lon),
+              };
+              setKoordinat(coords);
+              setStatusGps("berhasil");
+              toast.success("Titik koordinat berhasil diselaraskan dari alamat.");
+              if (formData.kodePos.length === 5) {
+                muatTarifOngkir(formData.kodePos, items, coords);
+              }
+              return;
+            }
+          } catch (geoErr) {
+            console.error("Geocoding fallback gagal:", geoErr);
+          }
+          setStatusGps("gagal");
+          toast.info("Gunakan kode pos untuk layanan reguler jika titik GPS tidak aktif.");
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+      );
+    } else {
+      setStatusGps("gagal");
+      toast.info("Fitur geolokasi tidak didukung browser ini.");
+    }
+  }, [formData.alamatLengkap, formData.kota, formData.kodePos, items, muatTarifOngkir]);
 
   // 1. Rekonsiliasi Server Saat Checkout Dimuat
   useEffect(() => {
@@ -220,6 +287,8 @@ export function useCheckout() {
           idempotensiKey: idempotensiKeyRef.current || undefined,
           kodeKurir: kurirTerpilih.kodeKurir,
           layananKurir: kurirTerpilih.layanan,
+          latitude: koordinat?.latitude,
+          longitude: koordinat?.longitude,
           kodeVoucher: voucherDiterapkan?.sukses ? voucherDiterapkan.kode : undefined,
           items: items.map((i) => ({ varianId: i.varianId, jumlah: i.jumlah })),
         });
@@ -305,5 +374,9 @@ export function useCheckout() {
     sedangValidasiVoucher,
     handleTerapkanVoucher,
     handleHapusVoucher,
+    // Lokasi GPS & Geocoding Instant
+    koordinat,
+    statusGps,
+    deteksiLokasiGps,
   };
 }

@@ -210,6 +210,8 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
     const opsiOngkir = await hitungOngkirBiteship({
       kodePosTujuan: data.kodePos,
       totalBeratGram: totalBeratServer,
+      latitudeTujuan: data.latitude,
+      longitudeTujuan: data.longitude,
     });
 
     // Validasi ketat (strict matching): Tolak jika layanan yang dipilih tidak cocok persis

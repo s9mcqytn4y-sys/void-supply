@@ -5,12 +5,20 @@ import * as schema from "./schema";
 const connectionString =
   process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/void_supply";
 
+const isLocalhost =
+  connectionString.includes("localhost") ||
+  connectionString.includes("127.0.0.1") ||
+  connectionString.includes("::1");
+
+const isVercelServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
 // Konfigurasi pool koneksi yang resilien terhadap lonjakan traffic dan serverless SSR
 const clientOptions: postgres.Options<{}> = {
-  max: process.env.DB_MAX_CONNECTIONS ? Number(process.env.DB_MAX_CONNECTIONS) : 10,
+  max: isVercelServerless ? 1 : process.env.DB_MAX_CONNECTIONS ? Number(process.env.DB_MAX_CONNECTIONS) : 10,
   idle_timeout: 20,
   connect_timeout: 10,
   prepare: false, // Menghindari prepared statements conflicts pada connection pooler
+  ssl: isLocalhost ? false : "require",
 };
 
 const globalForDb = globalThis as unknown as {

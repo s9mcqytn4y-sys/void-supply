@@ -128,6 +128,14 @@ export function FooterToko() {
                   {t.nav.contact}
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/track"
+                  className="transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+                >
+                  LACAK PENGIRIMAN
+                </Link>
+              </li>
             </ul>
           </div>
 

@@ -88,6 +88,11 @@ export async function buatTransaksiMidtrans(
       };
     }
 
+    const siteUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "https://voidsupply.com";
+
     const payload = {
       transaction_details: {
         order_id: params.nomorPesanan,
@@ -109,6 +114,13 @@ export async function buatTransaksiMidtrans(
           phone: params.pelanggan.telepon,
           address: params.pelanggan.alamat,
         },
+      },
+      expiry: {
+        unit: "minutes",
+        duration: 15,
+      },
+      callbacks: {
+        finish: `${siteUrl}/pesanan/${params.nomorPesanan}`,
       },
     };
 

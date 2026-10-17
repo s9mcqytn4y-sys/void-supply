@@ -17,7 +17,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
   } catch (err) {
-    console.warn("Gagal memuat katalog untuk sitemap:", err);
+    console.warn("Gagal memuat katalog untuk sitemap dari database, menggunakan daftar statis Drop 04:", err);
+    // Fallback katalog statis Drop 04 agar proses build static generator Vercel selalu sukses
+    const slugStatisDrop04 = [
+      "oversized-heavyweight-t-shirt-black",
+      "tactical-cargo-pants-dark-grey",
+      "cyberpunk-graphic-hoodie-black",
+      "minimalist-coach-jacket-black",
+      "technical-crossbody-bag-black",
+      "embroidered-distressed-cap-black",
+    ];
+    ruteProduk = slugStatisDrop04.map((slug) => ({
+      url: `${baseUrl}/katalog/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    }));
   }
 
   const ruteStatis: MetadataRoute.Sitemap = [
@@ -32,6 +47,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "daily" as const,
       priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/track`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/material`,

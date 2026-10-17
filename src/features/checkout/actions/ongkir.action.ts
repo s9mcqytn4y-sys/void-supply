@@ -9,6 +9,8 @@ import { niatItemKeranjangSkema } from "@/features/cart/schemas/cart.schema";
 const permintaanOngkirSkema = z.object({
   kodePosTujuan: z.string().length(5, "Kode pos harus terdiri dari 5 digit angka"),
   items: z.array(niatItemKeranjangSkema).min(1, "Daftar item tidak boleh kosong"),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 export interface HasilCekOngkirServer {
@@ -36,7 +38,7 @@ export async function hitungOngkirServerAction(
     };
   }
 
-  const { kodePosTujuan, items } = parseResult.data;
+  const { kodePosTujuan, items, latitude, longitude } = parseResult.data;
 
   try {
     const daftarVarianId = items.map((i) => i.varianId);
@@ -70,6 +72,8 @@ export async function hitungOngkirServerAction(
     const opsiKurir = await hitungOngkirBiteship({
       kodePosTujuan,
       totalBeratGram,
+      latitudeTujuan: latitude,
+      longitudeTujuan: longitude,
     });
 
     return {

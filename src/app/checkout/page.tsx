@@ -33,6 +33,9 @@ export default function HalamanCheckout() {
     sedangValidasiVoucher,
     handleTerapkanVoucher,
     handleHapusVoucher,
+    koordinat,
+    statusGps,
+    deteksiLokasiGps,
   } = useCheckout();
 
   return (
@@ -84,6 +87,9 @@ export default function HalamanCheckout() {
               formData={formData}
               formErrors={formErrors}
               onInputChange={handleInputChange}
+              koordinat={koordinat}
+              statusGps={statusGps}
+              onDeteksiGps={deteksiLokasiGps}
             />
 
             <PilihanKurir

@@ -8,12 +8,18 @@ interface PropsFormulirPengiriman {
   onInputChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
+  koordinat?: { latitude: number; longitude: number } | null;
+  statusGps?: "idle" | "mencari" | "berhasil" | "gagal";
+  onDeteksiGps?: () => void;
 }
 
 export function FormulirPengiriman({
   formData,
   formErrors,
   onInputChange,
+  koordinat,
+  statusGps = "idle",
+  onDeteksiGps,
 }: PropsFormulirPengiriman) {
   return (
     <div className="space-y-6">
@@ -126,17 +132,42 @@ export function FormulirPengiriman({
 
       {/* 02 // Alamat Pengiriman */}
       <div className="border border-neutral-800 bg-neutral-950 p-6">
-        <h2 className="border-b border-neutral-800 pb-3 font-mono text-xs font-bold text-white uppercase">
-          02 // ALAMAT PENGIRIMAN
-        </h2>
+        <div className="flex flex-col gap-2 border-b border-neutral-800 pb-3 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="font-mono text-xs font-bold text-white uppercase">
+            02 // ALAMAT PENGIRIMAN
+          </h2>
+          {onDeteksiGps && (
+            <button
+              type="button"
+              onClick={onDeteksiGps}
+              disabled={statusGps === "mencari"}
+              className="inline-flex min-h-9 items-center justify-center border border-neutral-700 bg-neutral-900 px-3 py-1 font-mono text-[11px] font-medium text-neutral-200 transition-colors hover:border-white hover:text-white disabled:opacity-50"
+            >
+              {statusGps === "mencari" ? (
+                "MENYELARASKAN LOKASI..."
+              ) : koordinat ? (
+                `LOKASI AKTIF (${koordinat.latitude}, ${koordinat.longitude})`
+              ) : (
+                "GUNAKAN TITIK GPS / INSTANT"
+              )}
+            </button>
+          )}
+        </div>
         <div className="mt-4 space-y-4">
           <div>
-            <label
-              htmlFor="input-alamat"
-              className="block font-mono text-[11px] text-neutral-300"
-            >
-              ALAMAT LENGKAP
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="input-alamat"
+                className="block font-mono text-[11px] text-neutral-300"
+              >
+                ALAMAT LENGKAP
+              </label>
+              {koordinat && (
+                <span className="font-mono text-[10px] text-emerald-400">
+                  Koordinat terverifikasi untuk Gojek / Grab Instant
+                </span>
+              )}
+            </div>
             <textarea
               id="input-alamat"
               name="alamatLengkap"

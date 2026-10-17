@@ -286,14 +286,27 @@ export function KartuStatusPesanan({
               </div>
             </div>
 
-            {/* Tombol Faktur / E-Receipt Resmi (Module 02.17) */}
+            {/* Tombol Faktur & Pelacakan Logistik Resmi (Phase 4) */}
             {isSukses && (
-              <div className="mt-6 border-t border-neutral-800 pt-4">
+              <div className="mt-6 flex flex-col gap-2 border-t border-neutral-800 pt-4 sm:flex-row">
                 <Link
                   href={`/pesanan/${encodeURIComponent(pesanan.nomorPesanan)}/faktur`}
-                  className="flex min-h-11 w-full items-center justify-center border border-emerald-500/50 bg-emerald-950/20 px-4 font-mono text-xs font-bold text-emerald-300 uppercase transition-colors hover:bg-emerald-900/30"
+                  className="flex min-h-11 flex-1 items-center justify-center border border-emerald-500/50 bg-emerald-950/20 px-4 font-mono text-xs font-bold text-emerald-300 uppercase transition-colors hover:bg-emerald-900/30"
                 >
-                  LIHAT & CETAK FAKTUR RESMI (E-RECEIPT)
+                  FAKTUR RESMI (E-RECEIPT)
+                </Link>
+                <Link
+                  href={`/track/${encodeURIComponent(pesanan.nomorPesanan)}`}
+                  className="flex min-h-11 flex-1 items-center justify-center border border-neutral-700 bg-neutral-900 px-4 font-mono text-xs font-bold text-white uppercase transition-colors hover:border-white"
+                >
+                  LACAK PENGIRIMAN LIVE
+                </Link>
+                <Link
+                  href={`/pesanan/${encodeURIComponent(pesanan.nomorPesanan)}/resi`}
+                  target="_blank"
+                  className="flex min-h-11 flex-1 items-center justify-center border border-neutral-800 bg-neutral-950 px-4 font-mono text-xs font-bold text-neutral-300 uppercase transition-colors hover:border-neutral-600 hover:text-white"
+                >
+                  LABEL RESI (100x150)
                 </Link>
               </div>
             )}

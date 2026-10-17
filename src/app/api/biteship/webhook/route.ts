@@ -45,8 +45,18 @@ export async function POST(req: Request) {
 
     const body: PayloadWebhookBiteship = await req.json();
 
+    const event = body.event;
+    const rawStatus = body.status || event;
+
+    if (!rawStatus) {
+      return NextResponse.json(
+        { error: "Payload webhook tidak memuat atribut 'status' atau 'event'." },
+        { status: 400 }
+      );
+    }
+
+    const status = rawStatus;
     const {
-      status,
       courier_waybill_id,
       courier_company,
       note,
@@ -54,13 +64,6 @@ export async function POST(req: Request) {
       location,
       metadata,
     } = body;
-
-    if (!status) {
-      return NextResponse.json(
-        { error: "Payload webhook tidak memuat atribut 'status'." },
-        { status: 400 }
-      );
-    }
 
     const nomorPesananTarget =
       metadata?.nomor_pesanan ||
@@ -119,9 +122,19 @@ export async function POST(req: Request) {
     const nomorResiFinal = courier_waybill_id || "MENUNGGU-RESI";
     const kurirFinal = courier_company || "Kurir Resmi";
     const waktuPeristiwa = updated_at ? new Date(updated_at) : new Date();
-    const keteranganFinal = note || `Status logistik diperbarui: ${status}`;
-
     const statusNormal = status.toLowerCase();
+
+    // Penyesuaian keterangan berdasarkan event logistik Biteship
+    let keteranganFinal = note;
+    if (!keteranganFinal) {
+      if (statusNormal.includes("price_changed")) {
+        keteranganFinal = "Penyesuaian tarif ongkos kirim dari ekspedisi (selisih ditanggung sepenuhnya oleh VOID Supply).";
+      } else if (statusNormal.includes("waybill_id_updated")) {
+        keteranganFinal = `Pembaruan nomor resi fisik ekspedisi: ${courier_waybill_id}`;
+      } else {
+        keteranganFinal = `Status logistik diperbarui: ${status}`;
+      }
+    }
 
     // 2. Transaksi Mutasi Status & Pencatatan Titik Pelacakan
     await db.transaction(async (tx) => {
