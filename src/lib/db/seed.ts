@@ -154,7 +154,11 @@ async function seed() {
         { ukuran: "M", warna: "Hitam", sku: "VOID-D04-TEE-BLK-M", stok: 35, berat: 450 },
         { ukuran: "L", warna: "Hitam", sku: "VOID-D04-TEE-BLK-L", stok: 30, berat: 480 },
         { ukuran: "XL", warna: "Hitam", sku: "VOID-D04-TEE-BLK-XL", stok: 15, berat: 510 },
-        { ukuran: "XXL", warna: "Hitam", sku: "VOID-D04-TEE-BLK-XXL", stok: 0, berat: 540 }, // Stok 0 untuk verifikasi disabled
+        { ukuran: "XXL", warna: "Hitam", sku: "VOID-D04-TEE-BLK-XXL", stok: 0, berat: 540 },
+        { ukuran: "S", warna: "Bone White", sku: "VOID-D04-TEE-WHT-S", stok: 15, berat: 420 },
+        { ukuran: "M", warna: "Bone White", sku: "VOID-D04-TEE-WHT-M", stok: 22, berat: 450 },
+        { ukuran: "L", warna: "Bone White", sku: "VOID-D04-TEE-WHT-L", stok: 18, berat: 480 },
+        { ukuran: "XL", warna: "Bone White", sku: "VOID-D04-TEE-WHT-XL", stok: 10, berat: 510 },
       ],
     },
     {
@@ -200,6 +204,10 @@ async function seed() {
         { ukuran: "M", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-M", stok: 24, berat: 460 },
         { ukuran: "L", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-L", stok: 20, berat: 490 },
         { ukuran: "XL", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-XL", stok: 12, berat: 520 },
+        { ukuran: "S", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-S", stok: 12, berat: 430 },
+        { ukuran: "M", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-M", stok: 16, berat: 460 },
+        { ukuran: "L", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-L", stok: 14, berat: 490 },
+        { ukuran: "XL", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-XL", stok: 8, berat: 520 },
       ],
     },
     {
@@ -245,6 +253,10 @@ async function seed() {
         { ukuran: "M", warna: "Hitam", sku: "VOID-D04-LS-BLK-M", stok: 28, berat: 510 },
         { ukuran: "L", warna: "Hitam", sku: "VOID-D04-LS-BLK-L", stok: 25, berat: 540 },
         { ukuran: "XL", warna: "Hitam", sku: "VOID-D04-LS-BLK-XL", stok: 14, berat: 570 },
+        { ukuran: "S", warna: "Cyber Silver", sku: "VOID-D04-LS-SLV-S", stok: 10, berat: 480 },
+        { ukuran: "M", warna: "Cyber Silver", sku: "VOID-D04-LS-SLV-M", stok: 15, berat: 510 },
+        { ukuran: "L", warna: "Cyber Silver", sku: "VOID-D04-LS-SLV-L", stok: 12, berat: 540 },
+        { ukuran: "XL", warna: "Cyber Silver", sku: "VOID-D04-LS-SLV-XL", stok: 6, berat: 570 },
       ],
     },
     {
@@ -288,6 +300,9 @@ async function seed() {
         { ukuran: "M", warna: "Pitch Black", sku: "VOID-D04-HD-BLK-M", stok: 20, berat: 920 },
         { ukuran: "L", warna: "Pitch Black", sku: "VOID-D04-HD-BLK-L", stok: 25, berat: 980 },
         { ukuran: "XL", warna: "Pitch Black", sku: "VOID-D04-HD-BLK-XL", stok: 12, berat: 1040 },
+        { ukuran: "M", warna: "Concrete Grey", sku: "VOID-D04-HD-GRY-M", stok: 14, berat: 920 },
+        { ukuran: "L", warna: "Concrete Grey", sku: "VOID-D04-HD-GRY-L", stok: 18, berat: 980 },
+        { ukuran: "XL", warna: "Concrete Grey", sku: "VOID-D04-HD-GRY-XL", stok: 10, berat: 1040 },
       ],
     },
     {
@@ -332,6 +347,9 @@ async function seed() {
         { ukuran: "M", warna: "Olive Drab", sku: "VOID-D04-BMB-OLV-M", stok: 10, berat: 850 },
         { ukuran: "L", warna: "Olive Drab", sku: "VOID-D04-BMB-OLV-L", stok: 15, berat: 900 },
         { ukuran: "XL", warna: "Olive Drab", sku: "VOID-D04-BMB-OLV-XL", stok: 8, berat: 950 },
+        { ukuran: "M", warna: "Shadow Black", sku: "VOID-D04-BMB-BLK-M", stok: 8, berat: 850 },
+        { ukuran: "L", warna: "Shadow Black", sku: "VOID-D04-BMB-BLK-L", stok: 12, berat: 900 },
+        { ukuran: "XL", warna: "Shadow Black", sku: "VOID-D04-BMB-BLK-XL", stok: 6, berat: 950 },
       ],
     },
     {
@@ -377,6 +395,10 @@ async function seed() {
         { ukuran: "M", warna: "Black Onyx", sku: "VOID-D04-CRG-BLK-M", stok: 24, berat: 720 },
         { ukuran: "L", warna: "Black Onyx", sku: "VOID-D04-CRG-BLK-L", stok: 20, berat: 760 },
         { ukuran: "XL", warna: "Black Onyx", sku: "VOID-D04-CRG-BLK-XL", stok: 10, berat: 800 },
+        { ukuran: "S", warna: "Desaturated Khaki", sku: "VOID-D04-CRG-KHK-S", stok: 10, berat: 680 },
+        { ukuran: "M", warna: "Desaturated Khaki", sku: "VOID-D04-CRG-KHK-M", stok: 15, berat: 720 },
+        { ukuran: "L", warna: "Desaturated Khaki", sku: "VOID-D04-CRG-KHK-L", stok: 12, berat: 760 },
+        { ukuran: "XL", warna: "Desaturated Khaki", sku: "VOID-D04-CRG-KHK-XL", stok: 6, berat: 800 },
       ],
     },
     {
@@ -422,6 +444,10 @@ async function seed() {
         { ukuran: "M", warna: "Deep Grey", sku: "VOID-D04-PLT-GRY-M", stok: 20, berat: 630 },
         { ukuran: "L", warna: "Deep Grey", sku: "VOID-D04-PLT-GRY-L", stok: 18, berat: 670 },
         { ukuran: "XL", warna: "Deep Grey", sku: "VOID-D04-PLT-GRY-XL", stok: 9, berat: 710 },
+        { ukuran: "S", warna: "Hitam", sku: "VOID-D04-PLT-BLK-S", stok: 12, berat: 590 },
+        { ukuran: "M", warna: "Hitam", sku: "VOID-D04-PLT-BLK-M", stok: 16, berat: 630 },
+        { ukuran: "L", warna: "Hitam", sku: "VOID-D04-PLT-BLK-L", stok: 15, berat: 670 },
+        { ukuran: "XL", warna: "Hitam", sku: "VOID-D04-PLT-BLK-XL", stok: 8, berat: 710 },
       ],
     },
     {
@@ -460,6 +486,7 @@ async function seed() {
       ],
       varians: [
         { ukuran: "ALL", warna: "Hitam", sku: "VOID-D04-ACC-BAL-ALL", stok: 40, berat: 180 },
+        { ukuran: "ALL", warna: "Concrete Grey", sku: "VOID-D04-ACC-BAL-GRY", stok: 25, berat: 180 },
       ],
     },
   ];

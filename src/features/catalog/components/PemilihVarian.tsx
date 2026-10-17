@@ -20,6 +20,32 @@ export interface PropertiPemilihVarian {
   apakahHabisTotal: boolean;
 }
 
+const PALET_WARNA: Record<string, { label: string; hex: string; border?: string }> = {
+  Hitam: { label: "Jet Black", hex: "#0c0d0e" },
+  "Bone White": { label: "Bone White", hex: "#e5e5dc", border: "#737373" },
+  Charcoal: { label: "Charcoal Grey", hex: "#2b2b2b" },
+  "Vintage Wash Moss": { label: "Washed Moss", hex: "#3b443b" },
+  "Cyber Silver": { label: "Cyber Silver", hex: "#8c929d" },
+  "Pitch Black": { label: "Pitch Black", hex: "#050505" },
+  "Olive Drab": { label: "Mil-Spec Olive", hex: "#3f4637" },
+  "Shadow Black": { label: "Shadow Black", hex: "#141518" },
+  "Black Onyx": { label: "Black Onyx", hex: "#111215" },
+  "Desaturated Khaki": { label: "Tactical Khaki", hex: "#635f52" },
+  "Deep Grey": { label: "Deep Grey", hex: "#2a2d32" },
+  "Concrete Grey": { label: "Concrete Grey", hex: "#7a7d82" },
+};
+
+function ambilInfoWarna(namaWarna: string): { label: string; hex: string; border?: string } {
+  if (PALET_WARNA[namaWarna]) return PALET_WARNA[namaWarna];
+  const warnaLower = namaWarna.toLowerCase();
+  if (warnaLower.includes("black") || warnaLower.includes("hitam")) return { label: namaWarna, hex: "#0c0d0e" };
+  if (warnaLower.includes("white") || warnaLower.includes("putih")) return { label: namaWarna, hex: "#e5e5dc", border: "#737373" };
+  if (warnaLower.includes("grey") || warnaLower.includes("abu")) return { label: namaWarna, hex: "#4b4d52" };
+  if (warnaLower.includes("olive") || warnaLower.includes("green")) return { label: namaWarna, hex: "#3f4637" };
+  if (warnaLower.includes("khaki") || warnaLower.includes("tan")) return { label: namaWarna, hex: "#635f52" };
+  return { label: namaWarna, hex: "#262626" };
+}
+
 export function PemilihVarian({
   kategori,
   produkId,
@@ -34,10 +60,23 @@ export function PemilihVarian({
   const tambahItem = useKeranjangStore((state) => state.tambahItem);
   const setBukaKeranjang = useKeranjangStore((state) => state.setBuka);
 
+  // Daftar warna unik yang ada pada artikel produk
+  const daftarWarna = Array.from(new Set(varian.map((v) => v.warna || "Hitam")));
+
   // Cari varian default pertama yang memiliki stok
-  const varianPertamaTersedia = varian.find((v) => v.stok > 0);
+  const varianPertamaTersedia = varian.find((v) => v.stok > 0) ?? varian[0];
+
+  const [warnaTerpilih, setWarnaTerpilih] = useState<string>(
+    varianPertamaTersedia?.warna ?? daftarWarna[0] ?? "Hitam"
+  );
+
+  // Varian yang termasuk dalam warna terpilih
+  const varianDalamWarna = varian.filter((v) => (v.warna || "Hitam") === warnaTerpilih);
+
   const [varianTerpilihId, setVarianTerpilihId] = useState<string | null>(
-    varianPertamaTersedia ? varianPertamaTersedia.id : varian[0]?.id ?? null
+    varianPertamaTersedia && (varianPertamaTersedia.warna || "Hitam") === warnaTerpilih
+      ? varianPertamaTersedia.id
+      : varianDalamWarna[0]?.id ?? null
   );
 
   const varianAktif = varian.find((v) => v.id === varianTerpilihId);
@@ -49,7 +88,19 @@ export function PemilihVarian({
   const [pesanStatus, setPesanStatus] = useState<string | null>(null);
   const [apakahPesanSukses, setApakahPesanSukses] = useState<boolean>(true);
 
-  // Penanganan perubahan seleksi varian
+  // Penanganan perubahan seleksi warna
+  const tanganiPilihWarna = (warnaBaru: string) => {
+    setWarnaTerpilih(warnaBaru);
+    setPesanStatus(null);
+    const varianWarnaBaru = varian.filter((v) => (v.warna || "Hitam") === warnaBaru);
+    const varianTersedia = varianWarnaBaru.find((v) => v.stok > 0) ?? varianWarnaBaru[0];
+    if (varianTersedia) {
+      setVarianTerpilihId(varianTersedia.id);
+      setKuantitas(varianTersedia.stok > 0 ? 1 : 0);
+    }
+  };
+
+  // Penanganan perubahan seleksi varian ukuran
   const tanganiPilihVarian = (idVarian: string) => {
     setVarianTerpilihId(idVarian);
     setPesanStatus(null);
@@ -69,14 +120,14 @@ export function PemilihVarian({
     let indexTarget = -1;
     if (e.key === "ArrowRight" || e.key === "ArrowDown") {
       e.preventDefault();
-      indexTarget = (indexSekarang + 1) % varian.length;
+      indexTarget = (indexSekarang + 1) % varianDalamWarna.length;
     } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
       e.preventDefault();
-      indexTarget = (indexSekarang - 1 + varian.length) % varian.length;
+      indexTarget = (indexSekarang - 1 + varianDalamWarna.length) % varianDalamWarna.length;
     }
 
     if (indexTarget !== -1) {
-      const target = varian[indexTarget];
+      const target = varianDalamWarna[indexTarget];
       if (target && target.stok > 0) {
         tanganiPilihVarian(target.id);
       }
@@ -116,7 +167,7 @@ export function PemilihVarian({
 
     if (hasil.sukses) {
       toast.success("Artikel ditambahkan ke keranjang", {
-        description: `${namaProduk} (${varianAktif.ukuran}) // ${kuantitas} unit`,
+        description: `${namaProduk} (${varianAktif.warna} / ${varianAktif.ukuran}) // ${kuantitas} unit`,
       });
       // Tampilkan notifikasi lalu buka slide-over keranjang belanja
       setBukaKeranjang(true);
@@ -129,19 +180,68 @@ export function PemilihVarian({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* 0. Pemilihan Colorway / Varian Warna */}
+      <div>
+        <div className="mb-2.5 flex items-center justify-between">
+          <label className="font-mono text-xs font-semibold tracking-wider text-neutral-300 uppercase">
+            PILIH WARNA // [{ambilInfoWarna(warnaTerpilih).label.toUpperCase()}]
+          </label>
+          <span className="font-mono text-[10px] text-neutral-400">
+            {daftarWarna.length} WARNA TERSEDIA
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5" data-testid="pilihan-warna-group">
+          {daftarWarna.map((w) => {
+            const info = ambilInfoWarna(w);
+            const isSelected = w === warnaTerpilih;
+            const varianWarna = varian.filter((v) => (v.warna || "Hitam") === w);
+            const totalStokWarna = varianWarna.reduce((acc, curr) => acc + curr.stok, 0);
+            const isHabis = totalStokWarna <= 0;
+
+            return (
+              <button
+                key={w}
+                type="button"
+                onClick={() => tanganiPilihWarna(w)}
+                disabled={isHabis}
+                title={`${info.label} (${isHabis ? "Habis" : `${totalStokWarna} stok`})`}
+                aria-label={`Pilih warna ${info.label}`}
+                className={`flex items-center gap-2 border px-3 py-1.5 font-mono text-xs transition-all duration-150 ${
+                  isSelected
+                    ? "border-white bg-neutral-900 text-white ring-1 ring-white"
+                    : isHabis
+                      ? "cursor-not-allowed border-neutral-900 bg-neutral-950 text-neutral-600 opacity-50"
+                      : "border-neutral-800 bg-neutral-950 text-neutral-300 hover:border-neutral-500 hover:text-white"
+                }`}
+              >
+                <span
+                  className="h-3.5 w-3.5 border shrink-0"
+                  style={{
+                    backgroundColor: info.hex,
+                    borderColor: info.border || (isSelected ? "#ffffff" : "#525252"),
+                  }}
+                />
+                <span className="font-medium tracking-wide">{info.label}</span>
+                {isHabis && <span className="text-[10px] text-rose-400">(Habis)</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* 1. Header Pemilihan Ukuran + Link Modal Panduan Ukuran */}
       <div>
         <div className="mb-3 flex items-center justify-between">
           <label className="font-mono text-xs font-semibold tracking-wider text-neutral-300 uppercase">
-            PILIH UKURAN {varianAktif ? `// [${varianAktif.ukuran} - ${varianAktif.warna}]` : ""}
+            PILIH UKURAN {varianAktif ? `// [${varianAktif.ukuran}]` : ""}
           </label>
           <PanduanUkuran
             kategori={kategori}
             namaProduk={namaProduk}
             panduanUkuran={panduanUkuran}
-            ukuranTersedia={varian.map((v) => v.ukuran)}
+            ukuranTersedia={varianDalamWarna.map((v) => v.ukuran)}
             onPilihUkuran={(ukuran) => {
-              const varianTarget = varian.find((v) => v.ukuran === ukuran && v.stok > 0);
+              const varianTarget = varianDalamWarna.find((v) => v.ukuran === ukuran && v.stok > 0);
               if (varianTarget) {
                 tanganiPilihVarian(varianTarget.id);
               } else {
@@ -153,13 +253,13 @@ export function PemilihVarian({
           />
         </div>
 
-        {/* Grid Ukuran Buttons (Berdasarkan ID Unik Varian) */}
+        {/* Grid Ukuran Buttons (Berdasarkan Warna Aktif) */}
         <div
           role="radiogroup"
           aria-label="Pilihan ukuran produk"
           className="grid grid-cols-5 gap-2 sm:gap-3"
         >
-          {varian.map((v, idx) => {
+          {varianDalamWarna.map((v, idx) => {
             const isTersedia = v.stok > 0;
             const isSelected = v.id === varianTerpilihId;
 

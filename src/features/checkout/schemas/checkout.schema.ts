@@ -24,6 +24,7 @@ export const formulirCheckoutSkema = z.object({
   idempotensiKey: z.string().max(64, "Kunci idempotensi maksimal 64 karakter").optional(),
   kodeKurir: z.string().min(2, "Pilihan kurir wajib dipilih"),
   layananKurir: z.string().min(2, "Layanan kurir wajib dipilih"),
+  kodeLayananKurir: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   kodeVoucher: z.string().max(50).optional(),
