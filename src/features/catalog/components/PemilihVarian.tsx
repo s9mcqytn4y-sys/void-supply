@@ -21,7 +21,11 @@ export interface PropertiPemilihVarian {
 }
 
 const PALET_WARNA: Record<string, { label: string; hex: string; border?: string }> = {
-  Hitam: { label: "Jet Black", hex: "#0c0d0e" },
+  Hitam: { label: "Jet Black", hex: "#0a0a0a" },
+  "Jet Black": { label: "Jet Black", hex: "#0a0a0a" },
+  "Washed Black": { label: "Washed Black", hex: "#1a1a1a" },
+  "Phantom Charcoal": { label: "Phantom Charcoal", hex: "#2e3033" },
+  "Raw Olive": { label: "Raw Olive", hex: "#4a4b3a" },
   "Bone White": { label: "Bone White", hex: "#e5e5dc", border: "#737373" },
   Charcoal: { label: "Charcoal Grey", hex: "#2b2b2b" },
   "Vintage Wash Moss": { label: "Washed Moss", hex: "#3b443b" },

@@ -1,0 +1,194 @@
+{
+  "version": "2.0.0",
+  "updatedAt": "2026-10-17T14:32:34.203Z",
+  "totalAssets": 17,
+  "assets": [
+    {
+      "id": "brand-logo-mark.webp",
+      "fileName": "logo-mark.webp",
+      "filePath": "/assets/brand/logo-mark.webp",
+      "fileSizeBytes": 324620,
+      "width": 1024,
+      "height": 1024,
+      "format": "webp",
+      "category": "brand",
+      "sha256": "9b9dacd1acfa860ba7f6040df11f83134077f3cdd1449cae97c7f0d2108b40e2"
+    },
+    {
+      "id": "brand-logo-white.webp",
+      "fileName": "logo-white.webp",
+      "filePath": "/assets/brand/logo-white.webp",
+      "fileSizeBytes": 265660,
+      "width": 1024,
+      "height": 1024,
+      "format": "webp",
+      "category": "brand",
+      "sha256": "5257d0e04e8d7eb3015a067527364c9a762d49024ba7ad2da7b00bfcb262a741"
+    },
+    {
+      "id": "brand-logo.webp",
+      "fileName": "logo.webp",
+      "filePath": "/assets/brand/logo.webp",
+      "fileSizeBytes": 268106,
+      "width": 1024,
+      "height": 1024,
+      "format": "webp",
+      "category": "brand",
+      "sha256": "587c77e0bd338cb693fff6a9d2fed45ea68c53ddc61cca5506defaf57ecd07b1"
+    },
+    {
+      "id": "brand-og-image.webp",
+      "fileName": "og-image.webp",
+      "filePath": "/assets/brand/og-image.webp",
+      "fileSizeBytes": 156208,
+      "width": 1376,
+      "height": 768,
+      "format": "webp",
+      "category": "brand",
+      "sha256": "6e452e27cc3ece3df1fc30cea5385620a262b7a0795eab55a2a35743fc8c07bb"
+    },
+    {
+      "id": "payment-bca.webp",
+      "fileName": "bca.webp",
+      "filePath": "/assets/payment/bca.webp",
+      "fileSizeBytes": 11108,
+      "width": 448,
+      "height": 448,
+      "format": "png",
+      "category": "payment",
+      "sha256": "fdf4babd3207db173b1396fe0a59de6608693feda495341e217bf0dc40f415d5"
+    },
+    {
+      "id": "payment-bni.webp",
+      "fileName": "bni.webp",
+      "filePath": "/assets/payment/bni.webp",
+      "fileSizeBytes": 9467,
+      "width": 448,
+      "height": 448,
+      "format": "png",
+      "category": "payment",
+      "sha256": "4dddb9cd49074bd3c6e0415aee7b8613eea3e9869b347df329586a25a86b3955"
+    },
+    {
+      "id": "payment-bri.webp",
+      "fileName": "bri.webp",
+      "filePath": "/assets/payment/bri.webp",
+      "fileSizeBytes": 8831,
+      "width": 448,
+      "height": 448,
+      "format": "png",
+      "category": "payment",
+      "sha256": "67895f21b22bda5b403d7aa2b6a8d0f4d2128b73694d1e0a005ab57bc518f917"
+    },
+    {
+      "id": "payment-gopay.webp",
+      "fileName": "gopay.webp",
+      "filePath": "/assets/payment/gopay.webp",
+      "fileSizeBytes": 9179,
+      "width": 448,
+      "height": 448,
+      "format": "png",
+      "category": "payment",
+      "sha256": "d5e2f30fbdf8761de4ed48abd509f7bd42be1f4cac7e52ca22314a27643abd1f"
+    },
+    {
+      "id": "payment-mandiri.webp",
+      "fileName": "mandiri.webp",
+      "filePath": "/assets/payment/mandiri.webp",
+      "fileSizeBytes": 12470,
+      "width": 448,
+      "height": 448,
+      "format": "png",
+      "category": "payment",
+      "sha256": "96d2d802efcf313cb07dc765d1f582a9de8000e5689be10378ece57a90ecb383"
+    },
+    {
+      "id": "payment-midtrans.webp",
+      "fileName": "midtrans.webp",
+      "filePath": "/assets/payment/midtrans.webp",
+      "fileSizeBytes": 8019,
+      "width": 448,
+      "height": 448,
+      "format": "png",
+      "category": "payment",
+      "sha256": "e2a4b6838d043c1c4d1d1a651651562a7e8a92d09f1ca38020987d6acca15f63"
+    },
+    {
+      "id": "payment-payment-badges.webp",
+      "fileName": "payment-badges.webp",
+      "filePath": "/assets/payment/payment-badges.webp",
+      "fileSizeBytes": 292030,
+      "width": 1024,
+      "height": 1024,
+      "format": "webp",
+      "category": "payment",
+      "sha256": "fedc33c76a20a3bc2493303f23e691fabf8951ae7ae70b1092443bf3a6f60b6f"
+    },
+    {
+      "id": "payment-qris.webp",
+      "fileName": "qris.webp",
+      "filePath": "/assets/payment/qris.webp",
+      "fileSizeBytes": 5097,
+      "width": 448,
+      "height": 448,
+      "format": "png",
+      "category": "payment",
+      "sha256": "5259f4ceca48d0c4c8fe1ddf84eabe230d8cdfa122cc8f8d5b17bcc9ee7ab74f"
+    },
+    {
+      "id": "shipping-biteship.webp",
+      "fileName": "biteship.webp",
+      "filePath": "/assets/shipping/biteship.webp",
+      "fileSizeBytes": 5312,
+      "width": 200,
+      "height": 120,
+      "format": "webp",
+      "category": "shipping",
+      "sha256": "7bb73cf4bbb4015a4fff083c81e843de2448357a7d38dd8d257b7b57162f8962"
+    },
+    {
+      "id": "shipping-jne.webp",
+      "fileName": "jne.webp",
+      "filePath": "/assets/shipping/jne.webp",
+      "fileSizeBytes": 1140,
+      "width": 57,
+      "height": 80,
+      "format": "webp",
+      "category": "shipping",
+      "sha256": "d224a1c2e865acd8b1a8e98feb29ad660f400b0a712336626a0c89d3552a5c7c"
+    },
+    {
+      "id": "shipping-jnt.webp",
+      "fileName": "jnt.webp",
+      "filePath": "/assets/shipping/jnt.webp",
+      "fileSizeBytes": 20854,
+      "width": 2840,
+      "height": 620,
+      "format": "png",
+      "category": "shipping",
+      "sha256": "e7931b952fb17381a7f152aa36d57b9fab9aef8cb5ba38fdf8f9a4b73b58c109"
+    },
+    {
+      "id": "shipping-shipping-badges.webp",
+      "fileName": "shipping-badges.webp",
+      "filePath": "/assets/shipping/shipping-badges.webp",
+      "fileSizeBytes": 222216,
+      "width": 1024,
+      "height": 1024,
+      "format": "webp",
+      "category": "shipping",
+      "sha256": "eccb341eb2618667360c2789087e817cd1bdaa4564ad2e8b9c7b055ce0a3802a"
+    },
+    {
+      "id": "shipping-sicepat.webp",
+      "fileName": "sicepat.webp",
+      "filePath": "/assets/shipping/sicepat.webp",
+      "fileSizeBytes": 1202,
+      "width": 57,
+      "height": 80,
+      "format": "webp",
+      "category": "shipping",
+      "sha256": "8420b1057fd63d78af8899d8a5a09a80236c3369169b939cb800bf3d01c74780"
+    }
+  ]
+}

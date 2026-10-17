@@ -1,63 +1,41 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { JOURNAL_ARCHIVE } from "@/features/journal/data/journal-archive";
 
 export const metadata: Metadata = {
   title: "Editorial Journal | VOID Supply",
   description:
-    "Arsip narasi desain, dokumentasi kampanye editorial, dan kronologi perilisan batch VOID Supply.",
+    "Arsip narasi desain, dokumentasi kampanye editorial, dan kronologi perilisan batch studio VOID Supply.",
   openGraph: {
     title: "Editorial Journal | VOID Supply",
     description: "Arsip narasi desain dan dokumentasi kampanye editorial VOID Supply.",
+    images: [
+      {
+        url: "/images/lookbook/journal-editorial-archive.jpg",
+        width: 1920,
+        height: 1080,
+        alt: "Arsip Kampanye Editorial VOID Supply",
+      },
+    ],
   },
 };
-
-const entries = [
-  {
-    drop: "DROP 04",
-    title: "NIGHT TRANSMISSION",
-    date: "Oktober 2026",
-    status: "AKTIF",
-    desc: "Eksplorasi siluet pelindung perkotaan dengan fokus pada balaclava hooded fleece, overcoat modular, dan celana cargo lipit ganda berbahan katun ripstop.",
-  },
-  {
-    drop: "DROP 03",
-    title: "CONCRETE MONOLITH",
-    date: "Juni 2026",
-    status: "ARSIP",
-    desc: "Penelitian mendalam mengenai struktur siluet boxy 500 GSM French Terry tanpa jahitan samping untuk menciptakan struktur jatuh pakaian yang kokoh.",
-  },
-  {
-    drop: "DROP 02",
-    title: "NOCTURNAL DYNAMICS",
-    date: "Januari 2026",
-    status: "ARSIP",
-    desc: "Perkenalan pertama sistem ribbing leher elastan 330 GSM dan finishing benang doff pada kaos lengan panjang katun combed.",
-  },
-  {
-    drop: "DROP 01",
-    title: "INITIAL PROTOCOL",
-    date: "Agustus 2025",
-    status: "ARSIP",
-    desc: "Rilisan foundational pertama studio: pengujian awal daya tahan kain katun terhadap kelembaban udara malam hari di Jakarta Pusat.",
-  },
-];
 
 export default function HalamanJournal() {
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100">
       {/* Header Section */}
-      <section className="border-b border-neutral-800 bg-neutral-900/40 py-16 sm:py-20">
+      <section className="border-b border-neutral-800 bg-neutral-900/40 py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <span className="font-mono text-xs font-semibold tracking-widest text-neutral-400 uppercase">
               DOKUMENTASI STUDIO // JOURNAL
             </span>
-            <h1 className="mt-4 font-sans text-3xl font-extrabold uppercase tracking-tight text-white sm:text-5xl">
+            <h1 className="mt-4 font-sans text-3xl font-extrabold uppercase tracking-tight text-white sm:text-5xl lg:text-6xl">
               EDITORIAL JOURNAL
             </h1>
             <p className="mt-4 font-mono text-sm leading-relaxed text-neutral-300">
-              Catatan kronologis setiap batch rilisan dan eksplorasi bentuk pakaian teknikal dari studio VOID Supply.
+              Catatan kronologis setiap babak perilisan batch dan eksplorasi bentuk pakaian teknikal dari studio VOID Supply.
             </p>
           </div>
         </div>
@@ -83,30 +61,37 @@ export default function HalamanJournal() {
       </section>
 
       {/* Timeline Entries */}
-      <section className="py-16">
+      <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="font-mono text-xs font-semibold tracking-widest text-neutral-400 uppercase mb-8">
-            KRONOLOGI BATCH RILISAN
-          </h2>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="font-mono text-xs font-semibold tracking-widest text-neutral-400 uppercase">
+              KRONOLOGI BATCH RILISAN ({JOURNAL_ARCHIVE.length} BATCH)
+            </h2>
+            <span className="font-mono text-[11px] text-neutral-500">
+              JAKARTA PUSAT // 2025:2026
+            </span>
+          </div>
 
-          <div className="space-y-6">
-            {entries.map((entry) => (
+          <div className="space-y-8">
+            {JOURNAL_ARCHIVE.map((entry) => (
               <article
-                key={entry.drop}
-                className="border border-neutral-800 bg-neutral-900/30 p-6 sm:p-8 transition-colors hover:border-neutral-700"
+                key={entry.slug}
+                className="group border border-neutral-800 bg-neutral-900/30 p-6 sm:p-8 transition-colors hover:border-neutral-600"
               >
                 <div className="flex flex-col justify-between sm:flex-row sm:items-baseline gap-2">
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-xs font-bold text-neutral-400">
-                      {entry.drop}
+                      {entry.nomorDrop}
                     </span>
-                    <span className="text-neutral-700">|</span>
-                    <h3 className="font-sans text-lg font-bold text-white uppercase tracking-wider">
-                      {entry.title}
+                    <span className="text-neutral-700" aria-hidden="true">
+                      |
+                    </span>
+                    <h3 className="font-sans text-xl font-bold text-white uppercase tracking-wider group-hover:text-neutral-200">
+                      {entry.judul}
                     </h3>
                   </div>
                   <div className="flex items-center gap-3 font-mono text-xs text-neutral-400">
-                    <span>{entry.date}</span>
+                    <span>{entry.periode}</span>
                     <span
                       className={`px-2 py-0.5 text-[10px] font-bold ${
                         entry.status === "AKTIF"
@@ -119,20 +104,46 @@ export default function HalamanJournal() {
                   </div>
                 </div>
 
-                <p className="mt-4 text-xs leading-relaxed text-neutral-300 max-w-3xl">
-                  {entry.desc}
+                <p className="mt-2 font-mono text-xs text-neutral-400 uppercase tracking-wide">
+                  {entry.subjudul}
                 </p>
 
-                {entry.status === "AKTIF" && (
-                  <div className="mt-6">
+                <p className="mt-4 text-xs leading-relaxed text-neutral-300 max-w-3xl font-sans">
+                  {entry.ringkasan}
+                </p>
+
+                {/* Historical Colorway Preview */}
+                <div className="mt-6 flex items-center gap-2">
+                  <span className="font-mono text-[10px] text-neutral-500 uppercase tracking-wider mr-2">
+                    PALET:
+                  </span>
+                  {entry.paletWarna.map((swatch) => (
+                    <span
+                      key={swatch.nama}
+                      title={`${swatch.nama} (${swatch.hex})`}
+                      className="inline-block h-4 w-4 rounded-xs border border-neutral-700"
+                      style={{ backgroundColor: swatch.hex }}
+                    />
+                  ))}
+                </div>
+
+                <div className="mt-6 flex flex-wrap items-center gap-4 pt-4 border-t border-neutral-800/80">
+                  <Link
+                    href={`/journal/${entry.slug}`}
+                    className="inline-flex min-h-11 items-center justify-center border border-neutral-700 bg-neutral-900 px-5 py-2 font-mono text-xs font-semibold text-white uppercase transition-colors hover:border-white hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  >
+                    BACA DOKUMENTASI LENGKAP
+                  </Link>
+
+                  {entry.status === "AKTIF" && (
                     <Link
                       href="/katalog"
-                      className="inline-flex min-h-11 items-center justify-center border border-neutral-700 bg-neutral-900 px-4 py-2 font-mono text-xs font-semibold text-white uppercase transition-colors hover:border-neutral-500 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                      className="inline-flex min-h-11 items-center justify-center border border-white bg-white px-5 py-2 font-mono text-xs font-bold text-black uppercase transition-colors hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                     >
                       LIHAT ARTIKEL DROP 04
                     </Link>
-                  </div>
-                )}
+                  )}
+                </div>
               </article>
             ))}
           </div>
