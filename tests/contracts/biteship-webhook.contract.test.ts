@@ -12,7 +12,9 @@ import {
 } from "@/lib/db";
 import { buatPesanan } from "@/features/checkout/actions/buat-pesanan.action";
 
-describe("Fase 2: Biteship Webhook Contract & Tracking Integration Matrix", () => {
+import { resetCacheKonfigurasi } from "@/lib/environment/resolver";
+
+describe("Fase 3: Biteship Webhook Contract & Tracking Integration Matrix", () => {
   let varianTerisolasiId: string;
   let produkTerisolasiId: string;
 
@@ -21,6 +23,8 @@ describe("Fase 2: Biteship Webhook Contract & Tracking Integration Matrix", () =
   beforeAll(async () => {
     process.env.ALLOW_PAYMENT_MOCK = "true";
     process.env.BITESHIP_WEBHOOK_SECRET = WEBHOOK_SECRET_TEST;
+    process.env.BITESHIP_WEBHOOK_HEADER_KEY = "x-void-biteship-secret";
+    resetCacheKonfigurasi();
 
     const [kat] = await db.select({ id: kategori.id }).from(kategori).limit(1);
 
@@ -88,21 +92,38 @@ describe("Fase 2: Biteship Webhook Contract & Tracking Integration Matrix", () =
     };
   }
 
-  it("menolak request jika payload tidak memuat atribut status (HTTP 400)", async () => {
+  it("menerima handshake instalasi dengan body kosong dan merespons HTTP 200 'ok'", async () => {
     const req = new Request("http://localhost:3000/api/biteship/webhook", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${WEBHOOK_SECRET_TEST}`,
       },
-      body: JSON.stringify({ courier_company: "jne" }),
+      body: "",
     });
 
     const res = await POST(req);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toBe("ok");
+    expect(res.headers.get("content-type")).toContain("text/plain");
+  });
 
-    const body = await res.json();
-    expect(body.error).toContain("status");
+  it("menerima request jika menggunakan custom header x-void-biteship-secret yang valid", async () => {
+    const req = new Request("http://localhost:3000/api/biteship/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-void-biteship-secret": WEBHOOK_SECRET_TEST,
+      },
+      body: JSON.stringify({
+        status: "picking_up",
+        order_id: "VOID-ORDER-TIDAK-ADA",
+      }),
+    });
+
+    const res = await POST(req);
+    // Karena token valid, lanjut ke pencarian pesanan (mengembalikan 404 karena order tidak ada)
+    expect(res.status).toBe(404);
   });
 
   it("menolak request jika token secret dikonfigurasi namun header tidak valid (HTTP 403)", async () => {
@@ -122,6 +143,23 @@ describe("Fase 2: Biteship Webhook Contract & Tracking Integration Matrix", () =
     expect(res.status).toBe(403);
   });
 
+  it("menolak request jika payload tidak memuat atribut status (HTTP 400)", async () => {
+    const req = new Request("http://localhost:3000/api/biteship/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${WEBHOOK_SECRET_TEST}`,
+      },
+      body: JSON.stringify({ courier_company: "jne" }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+
+    const body = await res.json();
+    expect(body.error).toContain("status");
+  });
+
   it("mengembalikan 404 jika nomor pesanan / waybill tidak ditemukan di database", async () => {
     const req = new Request("http://localhost:3000/api/biteship/webhook", {
       method: "POST",
@@ -139,8 +177,45 @@ describe("Fase 2: Biteship Webhook Contract & Tracking Integration Matrix", () =
     expect(res.status).toBe(404);
   });
 
-  it("memproses event picking_up dan memutasikan status pesanan ke 'dikirim'", async () => {
+  it("TIDAK mengubah status pesanan yang masih 'menunggu_pembayaran' menjadi 'dikirim'", async () => {
+    const pesananData = await buatPesananUji("unpaid-pickup");
+
+    const req = new Request("http://localhost:3000/api/biteship/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${WEBHOOK_SECRET_TEST}`,
+      },
+      body: JSON.stringify({
+        event: "order.status_updated",
+        order_id: pesananData.nomorPesanan,
+        courier_waybill_id: `RESI-UNPAID-${Date.now()}`,
+        courier_company: "jne",
+        status: "picking_up",
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+
+    // Verifikasi database: pesanan harus TETAP 'menunggu_pembayaran'
+    const [pesananDb] = await db
+      .select({ statusPesanan: pesanan.statusPesanan })
+      .from(pesanan)
+      .where(eq(pesanan.nomorPesanan, pesananData.nomorPesanan))
+      .limit(1);
+
+    expect(pesananDb.statusPesanan).toBe("menunggu_pembayaran");
+  });
+
+  it("memproses event picking_up dan memutasikan status pesanan 'diproses' ke 'dikirim'", async () => {
     const pesananData = await buatPesananUji("pickup");
+
+    // Simulasikan pembayaran selesai sehingga status pesanan menjadi 'diproses'
+    await db
+      .update(pesanan)
+      .set({ statusPesanan: "diproses" })
+      .where(eq(pesanan.nomorPesanan, pesananData.nomorPesanan));
 
     const req = new Request("http://localhost:3000/api/biteship/webhook", {
       method: "POST",
@@ -183,6 +258,48 @@ describe("Fase 2: Biteship Webhook Contract & Tracking Integration Matrix", () =
     expect(titikPelacakan.length).toBeGreaterThanOrEqual(1);
     expect(titikPelacakan[0].statusPelacakan).toBe("picking_up");
     expect(titikPelacakan[0].lokasi).toBe("Johar Baru Hub");
+  });
+
+  it("mencari pesanan via external biteshipOrderId dan memperbarui biayaPengirimanAktual pada order.price", async () => {
+    const pesananData = await buatPesananUji("ext-id-price");
+    const biteshipOrderIdUji = `biteship-order-ext-${Date.now()}`;
+
+    // Simpan biteshipOrderId pada pengiriman
+    const [pesananDb] = await db
+      .select({ id: pesanan.id })
+      .from(pesanan)
+      .where(eq(pesanan.nomorPesanan, pesananData.nomorPesanan))
+      .limit(1);
+
+    await db
+      .update(pengiriman)
+      .set({ biteshipOrderId: biteshipOrderIdUji })
+      .where(eq(pengiriman.pesananId, pesananDb.id));
+
+    const req = new Request("http://localhost:3000/api/biteship/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${WEBHOOK_SECRET_TEST}`,
+      },
+      body: JSON.stringify({
+        event: "order.price",
+        order_id: biteshipOrderIdUji,
+        status: "price_updated",
+        courier_price: 18500,
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+
+    const [pengirimanDb] = await db
+      .select({ biayaPengirimanAktual: pengiriman.biayaPengirimanAktual })
+      .from(pengiriman)
+      .where(eq(pengiriman.pesananId, pesananDb.id))
+      .limit(1);
+
+    expect(pengirimanDb.biayaPengirimanAktual).toBe(18500);
   });
 
   it("memproses event delivered dan memutasikan status pesanan ke 'selesai'", async () => {

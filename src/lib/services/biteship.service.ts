@@ -27,6 +27,7 @@ export interface OpsiKurir {
   namaKurir: string;
   kodeKurir: string;
   layanan: string;
+  kodeLayananKurir?: string;
   estimasiHari: string;
   tarifIdr: number;
 }
@@ -53,6 +54,7 @@ export interface ParameterBuatOrderBiteship {
   kodePos: string;
   kodeKurir: string;
   layanan: string;
+  kodeLayananKurir?: string;
   totalBeratGram: number;
   items: ItemOrderBiteship[];
   latitudeTujuan?: number;
@@ -214,7 +216,7 @@ export async function hitungOngkirBiteship(
       payload,
       {
         headers: {
-          Authorization: `Bearer ${BITESHIP_API_KEY}`,
+          Authorization: BITESHIP_API_KEY,
           "Content-Type": "application/json",
         },
         timeout: 7000,
@@ -228,12 +230,16 @@ export async function hitungOngkirBiteship(
           courier_name: string;
           courier_code: string;
           courier_service_name: string;
+          courier_service_code?: string;
           duration: string;
           price: number;
         }) => ({
           namaKurir: p.courier_name,
           kodeKurir: p.courier_code,
           layanan: p.courier_service_name,
+          kodeLayananKurir:
+            p.courier_service_code ||
+            p.courier_service_name.toLowerCase().replace(/[^a-z0-9]/g, ""),
           estimasiHari: p.duration,
           tarifIdr: p.price,
         })
@@ -333,7 +339,9 @@ export async function buatOrderPengirimanBiteship(
       destination_address: params.alamatLengkap,
       destination_postal_code: Number(params.kodePos),
       courier_company: params.kodeKurir.toLowerCase(),
-      courier_type: params.layanan.toLowerCase().replace(/[^a-z0-9]/g, ""),
+      courier_type: (params.kodeLayananKurir || params.layanan)
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, ""),
       delivery_type: "now",
       order_note: `Streetwear Drop: ${params.nomorPesanan}`,
       reference_id: params.nomorPesanan,
@@ -361,7 +369,7 @@ export async function buatOrderPengirimanBiteship(
       payloadOrder,
       {
         headers: {
-          Authorization: `Bearer ${BITESHIP_API_KEY}`,
+          Authorization: BITESHIP_API_KEY,
           "Content-Type": "application/json",
         },
         timeout: 10000,
@@ -442,7 +450,7 @@ export async function lacakPengirimanBiteship(
 
     const res = await axios.get(url, {
       headers: {
-        Authorization: `Bearer ${BITESHIP_API_KEY}`,
+        Authorization: BITESHIP_API_KEY,
       },
       timeout: 8000,
     });

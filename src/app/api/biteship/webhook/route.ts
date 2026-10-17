@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq, or } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db, pesanan, pengiriman, pelacakanPengiriman } from "@/lib/db";
 import { selesaikanKonfigurasiEnvironment } from "@/lib/environment";
 
@@ -9,7 +9,10 @@ export interface PayloadWebhookBiteship {
   courier_tracking_id?: string;
   courier_waybill_id?: string;
   courier_company?: string;
-  status: string;
+  status?: string;
+  price?: number;
+  courier_price?: number;
+  shipping_fee?: number;
   note?: string;
   updated_at?: string;
   location?: string;
@@ -20,22 +23,49 @@ export interface PayloadWebhookBiteship {
 }
 
 /**
- * Route Handler Webhook Biteship Tracking
- * Menangani notifikasi pergerakan kurir dan waybill tracking:
- * 1. Mengidentifikasi pesanan berdasarkan nomor pesanan (order_id/reference_id) atau nomor resi
- * 2. Mencatat timeline titik peristiwa ke tabel 'pelacakan_pengiriman'
- * 3. Memutasikan status pesanan dan pengiriman (diproses -> dikirim -> selesai)
+ * Route Handler Webhook Biteship Tracking & Logistics Lifecycle
+ * Menangani:
+ * 1. Handshake instalasi Biteship: POST dengan body kosong merespons 200 "ok" text/plain.
+ * 2. Autentikasi custom header (x-void-biteship-secret / Authorization).
+ * 3. Pemetaan pesanan via internal reference atau external Biteship ID (order_id, courier_tracking_id, courier_waybill_id).
+ * 4. Pembaruan terisolasi status pesanan (hanya untuk pesanan target, guard status diproses -> dikirim).
+ * 5. Pencatatan biaya riil ekspedisi untuk event 'order.price'.
+ * 6. Idempotensi pencatatan titik pelacakan resi.
  */
 export async function POST(req: Request) {
   try {
+    const rawBody = await req.text();
+
+    // 1. Handshake Instalasi Biteship:
+    // Biteship mengirimkan POST kosong saat registrasi URL webhook di dashboard.
+    // Request kosong harus langsung merespons "ok" (HTTP 200) tanpa memodifikasi database.
+    if (!rawBody.trim()) {
+      return new Response("ok", {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+        },
+      });
+    }
+
     const env = selesaikanKonfigurasiEnvironment();
 
-    // Verifikasi Token / Signature jika webhook secret dikonfigurasi
-    const webhookSecret = process.env.BITESHIP_WEBHOOK_SECRET;
+    // 2. Verifikasi Autentikasi Custom Header jika Secret Dikonfigurasi
+    const webhookSecret = env.biteship.webhookSecret;
     if (webhookSecret && webhookSecret.trim().length > 0) {
-      const authHeader = req.headers.get("authorization") || req.headers.get("x-biteship-signature");
-      const expectedToken = `Bearer ${webhookSecret}`;
-      if (!authHeader || (authHeader !== webhookSecret && authHeader !== expectedToken)) {
+      const headerKey = env.biteship.webhookHeaderKey.toLowerCase();
+      const customHeader = req.headers.get(headerKey);
+      const authHeader = req.headers.get("authorization");
+      const sigHeader = req.headers.get("x-biteship-signature");
+
+      const expectedBearer = `Bearer ${webhookSecret}`;
+      const headerCocok =
+        customHeader === webhookSecret ||
+        authHeader === webhookSecret ||
+        authHeader === expectedBearer ||
+        sigHeader === webhookSecret;
+
+      if (!headerCocok) {
         return NextResponse.json(
           { error: "Autentikasi webhook Biteship tidak valid." },
           { status: 403 }
@@ -43,7 +73,16 @@ export async function POST(req: Request) {
       }
     }
 
-    const body: PayloadWebhookBiteship = await req.json();
+    // 3. Parsing JSON Payload
+    let body: PayloadWebhookBiteship;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return NextResponse.json(
+        { error: "Payload webhook bukan format JSON yang valid." },
+        { status: 400 }
+      );
+    }
 
     const event = body.event;
     const rawStatus = body.status || event;
@@ -57,6 +96,8 @@ export async function POST(req: Request) {
 
     const status = rawStatus;
     const {
+      order_id,
+      courier_tracking_id,
       courier_waybill_id,
       courier_company,
       note,
@@ -68,11 +109,12 @@ export async function POST(req: Request) {
     const nomorPesananTarget =
       metadata?.nomor_pesanan ||
       metadata?.reference_id ||
-      body.order_id;
+      order_id;
 
-    // 1. Cari pesanan terkait di database
+    // 4. Pencarian Pesanan Terkait di Database
     let pesananTerkait: { id: string; nomorPesanan: string; statusPesanan: string } | undefined;
 
+    // 4a. Cari berdasarkan nomor pesanan internal
     if (nomorPesananTarget) {
       const [order] = await db
         .select({
@@ -87,15 +129,36 @@ export async function POST(req: Request) {
       pesananTerkait = order;
     }
 
-    // Jika belum ditemukan lewat nomor pesanan, cari lewat nomor resi
-    if (!pesananTerkait && courier_waybill_id) {
-      const [pengirimanOrder] = await db
-        .select({
-          pesananId: pengiriman.pesananId,
-        })
-        .from(pengiriman)
-        .where(eq(pengiriman.nomorResi, courier_waybill_id.trim()))
-        .limit(1);
+    // 4b. Jika belum ditemukan, cari via external Biteship ID pada entitas pengiriman
+    if (!pesananTerkait && (order_id || courier_tracking_id || courier_waybill_id)) {
+      let pengirimanOrder: { pesananId: string } | undefined;
+
+      if (order_id) {
+        const [p] = await db
+          .select({ pesananId: pengiriman.pesananId })
+          .from(pengiriman)
+          .where(eq(pengiriman.biteshipOrderId, order_id.trim()))
+          .limit(1);
+        pengirimanOrder = p;
+      }
+
+      if (!pengirimanOrder && courier_tracking_id) {
+        const [p] = await db
+          .select({ pesananId: pengiriman.pesananId })
+          .from(pengiriman)
+          .where(eq(pengiriman.biteshipTrackingId, courier_tracking_id.trim()))
+          .limit(1);
+        pengirimanOrder = p;
+      }
+
+      if (!pengirimanOrder && courier_waybill_id) {
+        const [p] = await db
+          .select({ pesananId: pengiriman.pesananId })
+          .from(pengiriman)
+          .where(eq(pengiriman.nomorResi, courier_waybill_id.trim()))
+          .limit(1);
+        pengirimanOrder = p;
+      }
 
       if (pengirimanOrder) {
         const [order] = await db
@@ -127,40 +190,69 @@ export async function POST(req: Request) {
     // Penyesuaian keterangan berdasarkan event logistik Biteship
     let keteranganFinal = note;
     if (!keteranganFinal) {
-      if (statusNormal.includes("price_changed")) {
+      if (statusNormal.includes("price") || event === "order.price") {
         keteranganFinal = "Penyesuaian tarif ongkos kirim dari ekspedisi (selisih ditanggung sepenuhnya oleh VOID Supply).";
-      } else if (statusNormal.includes("waybill_id_updated")) {
+      } else if (statusNormal.includes("waybill") || event === "order.waybill_id") {
         keteranganFinal = `Pembaruan nomor resi fisik ekspedisi: ${courier_waybill_id}`;
       } else {
         keteranganFinal = `Status logistik diperbarui: ${status}`;
       }
     }
 
-    // 2. Transaksi Mutasi Status & Pencatatan Titik Pelacakan
+    // 5. Transaksi Mutasi Status, Pengiriman, & Titik Pelacakan
     await db.transaction(async (tx) => {
-      // Catat entri titik pelacakan baru
-      await tx.insert(pelacakanPengiriman).values({
-        pesananId: pesananTerkait.id,
-        nomorResi: nomorResiFinal,
-        kurir: kurirFinal,
-        statusPelacakan: status,
-        keterangan: keteranganFinal,
-        lokasi: location || null,
-        waktuPeristiwa,
-      });
+      // 5a. Idempotensi Titik Pelacakan: Cek apakah titik peristiwa yang sama persis sudah ada
+      const [pelacakanEksis] = await tx
+        .select({ id: pelacakanPengiriman.id })
+        .from(pelacakanPengiriman)
+        .where(
+          and(
+            eq(pelacakanPengiriman.pesananId, pesananTerkait.id),
+            eq(pelacakanPengiriman.statusPelacakan, status),
+            eq(pelacakanPengiriman.nomorResi, nomorResiFinal)
+          )
+        )
+        .limit(1);
 
-      // Perbarui nomor resi pada entitas pengiriman jika tersedia
-      if (courier_waybill_id) {
-        await tx
-          .update(pengiriman)
-          .set({
-            nomorResi: courier_waybill_id.trim(),
-            diperbaruiPada: new Date(),
-          })
-          .where(eq(pengiriman.pesananId, pesananTerkait.id));
+      if (!pelacakanEksis) {
+        await tx.insert(pelacakanPengiriman).values({
+          pesananId: pesananTerkait.id,
+          nomorResi: nomorResiFinal,
+          kurir: kurirFinal,
+          statusPelacakan: status,
+          keterangan: keteranganFinal,
+          lokasi: location || null,
+          waktuPeristiwa,
+        });
       }
 
-      // Pemetaan transisi status pesanan dan pengiriman
+      // 5b. Update data pengiriman dengan ID eksternal dan biaya aktual jika ada
+      const nilaiUpdatePengiriman: Record<string, unknown> = {
+        diperbaruiPada: new Date(),
+      };
+
+      if (courier_waybill_id) {
+        nilaiUpdatePengiriman.nomorResi = courier_waybill_id.trim();
+      }
+      if (order_id) {
+        nilaiUpdatePengiriman.biteshipOrderId = order_id.trim();
+      }
+      if (courier_tracking_id) {
+        nilaiUpdatePengiriman.biteshipTrackingId = courier_tracking_id.trim();
+      }
+
+      // Tangani event order.price (biaya riil ekspedisi)
+      const rawPrice = body.price ?? body.courier_price ?? body.shipping_fee;
+      if (typeof rawPrice === "number" && !isNaN(rawPrice)) {
+        nilaiUpdatePengiriman.biayaPengirimanAktual = Math.round(rawPrice);
+      }
+
+      await tx
+        .update(pengiriman)
+        .set(nilaiUpdatePengiriman)
+        .where(eq(pengiriman.pesananId, pesananTerkait.id));
+
+      // 5c. Pemetaan Transisi Status Pesanan dan Pengiriman (ISOLASI KETAT PER PESANAN)
       if (
         statusNormal === "picking_up" ||
         statusNormal === "dropping_off" ||
@@ -174,7 +266,8 @@ export async function POST(req: Request) {
           })
           .where(eq(pengiriman.pesananId, pesananTerkait.id));
 
-        // Transisi pesanan ke 'dikirim' jika sebelumnya berstatus 'diproses'
+        // Transisi pesanan ke 'dikirim' HANYA jika pesanan terkait saat ini berstatus 'diproses'
+        // Mencegah perubahan pesanan lain dan pesanan yang masih 'menunggu_pembayaran'
         await tx
           .update(pesanan)
           .set({
@@ -182,9 +275,9 @@ export async function POST(req: Request) {
             diperbaruiPada: new Date(),
           })
           .where(
-            or(
-              eq(pesanan.statusPesanan, "diproses"),
-              eq(pesanan.statusPesanan, "menunggu_pembayaran")
+            and(
+              eq(pesanan.id, pesananTerkait.id),
+              eq(pesanan.statusPesanan, "diproses")
             )
           );
       } else if (statusNormal === "delivered") {
@@ -215,13 +308,13 @@ export async function POST(req: Request) {
     });
 
     console.log(
-      `[BITESHIP WEBHOOK] Berhasil mencatat pelacakan resi ${nomorResiFinal} untuk pesanan ${pesananTerkait.nomorPesanan} (Status: ${status}).`
+      `[BITESHIP WEBHOOK] Berhasil memproses event logistik ${status} untuk pesanan ${pesananTerkait.nomorPesanan} (Resi: ${nomorResiFinal}).`
     );
 
     const statusPesananAkhir =
       statusNormal === "delivered"
         ? "selesai"
-        : statusNormal === "picking_up" || statusNormal === "dropping_off"
+        : (statusNormal === "picking_up" || statusNormal === "dropping_off") && pesananTerkait.statusPesanan === "diproses"
         ? "dikirim"
         : pesananTerkait.statusPesanan;
 

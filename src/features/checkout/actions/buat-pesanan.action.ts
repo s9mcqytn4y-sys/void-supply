@@ -393,6 +393,7 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         pesananId: pesananBaru.id,
         kurir: namaKurir,
         layanan: layananKurir,
+        kodeLayananKurir: opsiCocok.kodeLayananKurir || null,
         biayaOngkir: totalOngkir,
         beratTotalGram: totalBeratServer,
         alamatLengkap: data.alamatLengkap,
