@@ -11,7 +11,7 @@ import {
   pelacakanPengiriman,
 } from "@/lib/db";
 import { buatPesanan } from "@/features/checkout/actions/buat-pesanan.action";
-
+import { petakanKodeLayananBiteship } from "@/lib/services/biteship.service";
 import { resetCacheKonfigurasi } from "@/lib/environment/resolver";
 
 describe("Fase 3: Biteship Webhook Contract & Tracking Integration Matrix", () => {
@@ -347,5 +347,31 @@ describe("Fase 3: Biteship Webhook Contract & Tracking Integration Matrix", () =
 
     expect(pengirimanDb.statusPengiriman).toBe("terkirim");
     expect(pengirimanDb.nomorResi).toBe(noResi);
+  });
+
+  it("petakanKodeLayananBiteship memetakan nama layanan tampilan ke kode resmi Biteship", () => {
+    // SiCepat
+    expect(petakanKodeLayananBiteship("sicepat", "Besok Sampai Tujuan")).toBe("best");
+    expect(petakanKodeLayananBiteship("sicepat", "SiCepat BEST")).toBe("best");
+    expect(petakanKodeLayananBiteship("sicepat", "GOKIL (Kargo)")).toBe("gokil");
+    expect(petakanKodeLayananBiteship("sicepat", "SIUNTUNG (Reguler)")).toBe("reg");
+
+    // JNE
+    expect(petakanKodeLayananBiteship("jne", "Yakin Esok Sampai")).toBe("yes");
+    expect(petakanKodeLayananBiteship("jne", "JNE YES")).toBe("yes");
+    expect(petakanKodeLayananBiteship("jne", "JTR Trucking Kargo")).toBe("jtr");
+    expect(petakanKodeLayananBiteship("jne", "Reguler")).toBe("reg");
+
+    // AnterAja
+    expect(petakanKodeLayananBiteship("anteraja", "Next Day")).toBe("next_day");
+    expect(petakanKodeLayananBiteship("anteraja", "Same Day")).toBe("same_day");
+    expect(petakanKodeLayananBiteship("anteraja", "Reguler")).toBe("reg");
+
+    // GoSend
+    expect(petakanKodeLayananBiteship("gosend", "Instant Delivery")).toBe("instant");
+    expect(petakanKodeLayananBiteship("gosend", "Same Day")).toBe("same_day");
+
+    // Kode eksplisit yang sudah valid
+    expect(petakanKodeLayananBiteship("sicepat", "Besok Sampai Tujuan", "best")).toBe("best");
   });
 });

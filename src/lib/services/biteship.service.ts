@@ -89,6 +89,88 @@ export interface HasilPelacakanBiteship {
 }
 
 /**
+ * Normalisasi dan Pemetaan Kode Layanan Resmi Biteship
+ * Menghubungkan nama layanan tampilan pembeli (misal: "Besok Sampai Tujuan")
+ * ke service code resmi yang diterima oleh Biteship API (misal: "best").
+ */
+export function petakanKodeLayananBiteship(
+  kodeKurir: string,
+  namaLayanan: string,
+  kodeLayanan?: string
+): string {
+  if (kodeLayanan && kodeLayanan.trim().length > 0) {
+    const cleanCode = kodeLayanan.trim().toLowerCase();
+    // Jika sudah berupa kode singkat, langsung gunakan
+    if (!cleanCode.includes(" ") && cleanCode.length <= 15) {
+      return cleanCode;
+    }
+  }
+
+  const kurir = kodeKurir.toLowerCase().trim();
+  const layanan = (kodeLayanan || namaLayanan).toLowerCase().trim();
+
+  // 1. SiCepat
+  if (kurir === "sicepat") {
+    if (layanan.includes("best") || layanan.includes("besok")) return "best";
+    if (layanan.includes("gokil") || layanan.includes("kargo") || layanan.includes("cargo")) return "gokil";
+    if (layanan.includes("sds") || layanan.includes("same")) return "sds";
+    if (layanan.includes("siuntung") || layanan.includes("reg")) return "reg";
+    return "reg";
+  }
+
+  // 2. JNE
+  if (kurir === "jne") {
+    if (layanan.includes("yes") || layanan.includes("yakin")) return "yes";
+    if (layanan.includes("jtr") || layanan.includes("truck") || layanan.includes("kargo")) return "jtr";
+    if (layanan.includes("oke")) return "oke";
+    return "reg";
+  }
+
+  // 3. J&T
+  if (kurir === "jnt") {
+    if (layanan.includes("super")) return "super";
+    if (layanan.includes("doc")) return "doc";
+    return "ez";
+  }
+
+  // 4. AnterAja
+  if (kurir === "anteraja") {
+    if (layanan.includes("same")) return "same_day";
+    if (layanan.includes("next")) return "next_day";
+    if (layanan.includes("cargo") || layanan.includes("kargo")) return "cargo";
+    return "reg";
+  }
+
+  // 5. TIKI
+  if (kurir === "tiki") {
+    if (layanan.includes("ons")) return "ons";
+    if (layanan.includes("eco")) return "eco";
+    return "reg";
+  }
+
+  // 6. Pos Indonesia
+  if (kurir === "pos") {
+    if (layanan.includes("kilat")) return "pos_kilat_khusus";
+    if (layanan.includes("next")) return "pos_next_day";
+    return "pos_reguler";
+  }
+
+  // 7. GoSend
+  if (kurir === "gojek" || kurir === "gosend") {
+    if (layanan.includes("instant")) return "instant";
+    return "same_day";
+  }
+
+  // 8. Grab
+  if (kurir === "grab") {
+    if (layanan.includes("instant")) return "instant";
+    return "same_day";
+  }
+
+  return layanan.replace(/[^a-z0-9_]/g, "");
+}
+
+/**
  * Hitung Estimasi Ongkir Biteship
  * Mendukung Kurir Instant (Gojek, Grab) jika koordinat tersedia, dan Reguler (J&T, JNE, Anteraja, Pos Indonesia, SiCepat, TIKI).
  */
@@ -338,10 +420,12 @@ export async function buatOrderPengirimanBiteship(
       destination_contact_phone: params.teleponPenerima,
       destination_address: params.alamatLengkap,
       destination_postal_code: Number(params.kodePos),
-      courier_company: params.kodeKurir.toLowerCase(),
-      courier_type: (params.kodeLayananKurir || params.layanan)
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, ""),
+      courier_company: params.kodeKurir.toLowerCase().trim(),
+      courier_type: petakanKodeLayananBiteship(
+        params.kodeKurir,
+        params.layanan,
+        params.kodeLayananKurir
+      ),
       delivery_type: "now",
       order_note: `Streetwear Drop: ${params.nomorPesanan}`,
       reference_id: params.nomorPesanan,

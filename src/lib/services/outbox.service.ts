@@ -141,62 +141,69 @@ export async function prosesAntreanOutbox(batchLimit = 10): Promise<HasilProsesO
           .from(itemPesanan)
           .where(eq(itemPesanan.pesananId, payloadOrder.pesananId));
 
-        const resBiteship = await buatOrderPengirimanBiteship({
-          nomorPesanan: payloadOrder.nomorPesanan,
-          namaPenerima: dataPengiriman.namaPenerima,
-          teleponPenerima: dataPengiriman.teleponPenerima,
-          alamatLengkap: dataPengiriman.alamatLengkap,
-          kodePos: dataPengiriman.kodePos,
-          kodeKurir: dataPengiriman.kurir,
-          layanan: dataPengiriman.layanan,
-          totalBeratGram: dataPengiriman.beratTotalGram,
-          items: daftarItem.map((it) => ({
-            name: it.namaProduk,
-            value: it.hargaSatuan,
-            quantity: it.jumlah,
-            weight: it.beratGram,
-          })),
-        });
-
-        if (!resBiteship.sukses) {
-          throw new Error(
-            resBiteship.pesan || "Pemesanan kurir ke Biteship gagal merespons sukses."
+        if (dataPengiriman.biteshipOrderId) {
+          console.info(
+            `[OUTBOX BITESHIP] Order Biteship sudah tercatat (${dataPengiriman.biteshipOrderId}) untuk pesanan ${payloadOrder.nomorPesanan}. Melewati request baru untuk menghemat saldo Biteship.`
           );
-        }
-
-        // Simpan hasil Biteship ke entitas pengiriman:
-        // Simpan ID order eksternal meskipun waybill fisik belum langsung tersedia
-        const updatePengiriman: Record<string, unknown> = {
-          diperbaruiPada: new Date(),
-        };
-
-        if (resBiteship.orderId) {
-          updatePengiriman.biteshipOrderId = resBiteship.orderId;
-        }
-        if (resBiteship.trackingId) {
-          updatePengiriman.biteshipTrackingId = resBiteship.trackingId;
-        }
-        if (resBiteship.waybillId) {
-          updatePengiriman.nomorResi = resBiteship.waybillId;
-          updatePengiriman.statusPengiriman = "dalam_pengiriman";
-        }
-
-        await db
-          .update(pengiriman)
-          .set(updatePengiriman)
-          .where(eq(pengiriman.pesananId, payloadOrder.pesananId));
-
-        // Catat titik pelacakan awal
-        if (resBiteship.waybillId) {
-          await db.insert(pelacakanPengiriman).values({
-            pesananId: payloadOrder.pesananId,
-            nomorResi: resBiteship.waybillId,
-            kurir: dataPengiriman.kurir,
-            statusPelacakan: resBiteship.status || "allocated",
-            keterangan: "Pemesanan kurir berhasil dibuat di Biteship. Menunggu penjemputan.",
-            lokasi: "Warehouse Johar Baru, Jakarta Pusat",
-            waktuPeristiwa: new Date(),
+        } else {
+          const resBiteship = await buatOrderPengirimanBiteship({
+            nomorPesanan: payloadOrder.nomorPesanan,
+            namaPenerima: dataPengiriman.namaPenerima,
+            teleponPenerima: dataPengiriman.teleponPenerima,
+            alamatLengkap: dataPengiriman.alamatLengkap,
+            kodePos: dataPengiriman.kodePos,
+            kodeKurir: dataPengiriman.kurir,
+            layanan: dataPengiriman.layanan,
+            kodeLayananKurir: dataPengiriman.kodeLayananKurir ?? undefined,
+            totalBeratGram: dataPengiriman.beratTotalGram,
+            items: daftarItem.map((it) => ({
+              name: it.namaProduk,
+              value: it.hargaSatuan,
+              quantity: it.jumlah,
+              weight: it.beratGram,
+            })),
           });
+
+          if (!resBiteship.sukses) {
+            throw new Error(
+              resBiteship.pesan || "Pemesanan kurir ke Biteship gagal merespons sukses."
+            );
+          }
+
+          // Simpan hasil Biteship ke entitas pengiriman:
+          // Simpan ID order eksternal meskipun waybill fisik belum langsung tersedia
+          const updatePengiriman: Record<string, unknown> = {
+            diperbaruiPada: new Date(),
+          };
+
+          if (resBiteship.orderId) {
+            updatePengiriman.biteshipOrderId = resBiteship.orderId;
+          }
+          if (resBiteship.trackingId) {
+            updatePengiriman.biteshipTrackingId = resBiteship.trackingId;
+          }
+          if (resBiteship.waybillId) {
+            updatePengiriman.nomorResi = resBiteship.waybillId;
+            updatePengiriman.statusPengiriman = "dalam_pengiriman";
+          }
+
+          await db
+            .update(pengiriman)
+            .set(updatePengiriman)
+            .where(eq(pengiriman.pesananId, payloadOrder.pesananId));
+
+          // Catat titik pelacakan awal
+          if (resBiteship.waybillId) {
+            await db.insert(pelacakanPengiriman).values({
+              pesananId: payloadOrder.pesananId,
+              nomorResi: resBiteship.waybillId,
+              kurir: dataPengiriman.kurir,
+              statusPelacakan: resBiteship.status || "allocated",
+              keterangan: "Pemesanan kurir berhasil dibuat di Biteship. Menunggu penjemputan.",
+              lokasi: "Warehouse Johar Baru, Jakarta Pusat",
+              waktuPeristiwa: new Date(),
+            });
+          }
         }
       } else {
         throw new Error(`Tipe pekerjaan outbox '${tugas.tipePekerjaan}' tidak dikenali.`);

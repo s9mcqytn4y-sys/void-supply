@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
+import { waitUntil } from "@vercel/functions";
 import { eq, and, sql } from "drizzle-orm";
 import { db, pesanan, pembayaran, itemPesanan, varianProduk } from "@/lib/db";
 import { faktur } from "@/lib/db/schema";
 import { verifikasiSignatureMidtrans } from "@/lib/services/midtrans.service";
-import { tambahTugasOutbox, picuProsesOutboxNonBlocking } from "@/lib/services/outbox.service";
+import {
+  tambahTugasOutbox,
+  prosesAntreanOutbox,
+  picuProsesOutboxNonBlocking,
+} from "@/lib/services/outbox.service";
 
 interface PayloadWebhookMidtrans {
   order_id: string;
@@ -276,8 +281,21 @@ export async function POST(req: Request) {
       }
     });
 
-    // 6. Pasca-Commit DB: Picu proses outbox segera secara non-blocking
-    picuProsesOutboxNonBlocking();
+    // 6. Pasca-Commit DB: Eksekusi outbox hibrida (3.5s synchronous race + waitUntil guard)
+    const outboxPromise = prosesAntreanOutbox(5);
+    try {
+      if (typeof waitUntil === "function") {
+        waitUntil(outboxPromise);
+      }
+      // Tunggu hingga 3.5 detik agar order kurir tuntas langsung sebelum respon dikembalikan
+      await Promise.race([
+        outboxPromise,
+        new Promise((resolve) => setTimeout(resolve, 3500)),
+      ]);
+    } catch (e) {
+      console.warn("[MIDTRANS WEBHOOK] Eksekusi outbox segera terlewati / timeout:", e);
+      picuProsesOutboxNonBlocking();
+    }
 
     return NextResponse.json({ status: "ok" });
   } catch (error) {
