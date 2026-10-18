@@ -107,8 +107,31 @@ export default async function HalamanResiThermal({
   const layananNama = pengirimanDb?.layanan || "Reguler";
   const beratGram = pengirimanDb?.beratTotalGram || 500;
 
+  const isLunas = ["dibayar", "diproses", "dikirim", "selesai"].includes(pesananDb.statusPesanan);
+
   return (
     <main className="mx-auto min-h-screen max-w-4xl px-4 py-8 sm:px-6 print:m-0 print:max-w-none print:p-0">
+      {/* CSS Cetak Standar Thermal 100 x 150 mm */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            @page {
+              size: 100mm 150mm;
+              margin: 0;
+            }
+            @media print {
+              html, body {
+                width: 100mm !important;
+                height: 150mm !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background-color: #ffffff !important;
+              }
+            }
+          `,
+        }}
+      />
+
       <div className="mb-6 flex justify-between print:hidden">
         <div>
           <span className="font-mono text-xs text-neutral-400 uppercase">
@@ -151,7 +174,7 @@ export default async function HalamanResiThermal({
             className="mx-auto flex justify-center py-1"
             dangerouslySetInnerHTML={{
               __html: generateCode128Svg(nomorResi, {
-                lebarBar: 2,
+                lebarBar: 1.35,
                 tinggi: 54,
                 tampilkanTeks: true,
               }),
@@ -166,12 +189,12 @@ export default async function HalamanResiThermal({
         <div className="grid grid-cols-2 gap-2 border-b-2 border-black py-2 text-[11px] leading-tight">
           <div className="border-r border-black pr-2">
             <span className="font-bold text-neutral-700 uppercase">DARI (PENGIRIM):</span>
-            <p className="mt-0.5 font-black">Abdul Aziz // VOID Warehouse</p>
-            <p className="text-[10px] text-neutral-800">08567060477</p>
+            <p className="mt-0.5 font-black">VOID Supply // Atelier Studio</p>
+            <p className="text-[10px] text-neutral-800">0812-9000-8080</p>
             <p className="mt-1 text-[10px]">
-              Jl. Johar Baru No. 10, Jakarta Pusat
+              Johar Baru, Jakarta Pusat
             </p>
-            <p className="text-[10px] font-bold">DKI JAKARTA, 10530</p>
+            <p className="text-[10px] font-bold">DKI JAKARTA, 10560</p>
           </div>
 
           <div className="pl-1">
@@ -195,24 +218,24 @@ export default async function HalamanResiThermal({
           </div>
           <div className="border-r border-black px-1">
             <span className="text-neutral-600 uppercase">TIPE TRANSAKSI</span>
-            <p className="font-black text-xs">NON-COD (LUNAS)</p>
+            <p className="font-black text-xs">{isLunas ? "LUNAS (NON-COD)" : "BELUM LUNAS"}</p>
           </div>
           <div className="px-1">
             <span className="text-neutral-600 uppercase">ASURANSI LOGISTIK</span>
-            <p className="font-black text-xs text-emerald-800">TERCOVER</p>
+            <p className="font-black text-xs text-neutral-800">STANDAR EKSPEDISI</p>
           </div>
         </div>
 
         {/* Isi Paket Garmen */}
         <div className="border-b-2 border-black py-2 text-[10px]">
           <span className="font-bold uppercase">ISI KIRIMAN MERCHANDISE:</span>
-          <ul className="mt-1 space-y-0.5">
+          <ul className="mt-1 space-y-1">
             {itemsDb.map((item, idx) => (
-              <li key={idx} className="flex justify-between">
-                <span>
+              <li key={idx} className="flex justify-between gap-2 border-b border-neutral-200 pb-0.5 last:border-b-0">
+                <span className="break-words">
                   {item.jumlah}x {item.namaProduk} ({item.namaVarian})
                 </span>
-                <span className="font-bold">{item.sku}</span>
+                <span className="shrink-0 font-bold break-all">{item.sku}</span>
               </li>
             ))}
           </ul>
@@ -221,10 +244,10 @@ export default async function HalamanResiThermal({
         {/* Footer Biteship Logistics Verification */}
         <div className="pt-2 text-center text-[9px] text-neutral-600">
           <p className="font-bold uppercase">
-            LOGISTICS FULFILLMENT VERIFIED // POWERED BY BITESHIP API
+            VOID SUPPLY FULFILLMENT // PENGIRIMAN EKSPEDISI RESMI
           </p>
           <p>
-            Wajib video unboxing untuk klaim asuransi // support@voidsupply.com
+            Wajib video unboxing untuk klaim penukaran // support@voidsupply.com
           </p>
         </div>
       </div>

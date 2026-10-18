@@ -14,6 +14,7 @@ export function FooterQuickLinks() {
     { href: "/tentang", label: t.nav.about },
     { href: "/kontak", label: t.nav.contact },
     { href: "/lacak", label: "LACAK PENGIRIMAN" },
+    { href: "/demo/inbox", label: "DEV MAILBOX" },
   ];
 
   return (

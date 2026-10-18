@@ -65,6 +65,14 @@ export async function simulasiPergerakanKurirAction(
       };
     }
 
+    // State Machine Guard: Pengiriman hanya diizinkan untuk pesanan yang sudah lunas dan diproses
+    if (pesananDb.statusPesanan !== "diproses" && pesananDb.statusPesanan !== "dikirim") {
+      return {
+        sukses: false,
+        pesan: `Simulasi pengiriman ditolak: Pesanan berstatus '${pesananDb.statusPesanan}'. Pengiriman hanya dapat diproses setelah pembayaran berhasil.`,
+      };
+    }
+
     const [pengirimanDb] = await db
       .select()
       .from(pengiriman)
@@ -111,7 +119,7 @@ export async function simulasiPergerakanKurirAction(
         })
         .where(eq(pengiriman.id, pengirimanDb.id));
 
-      // Perbarui status pesanan secara terisolasi per ID pesanan spesifik
+      // Perbarui status pesanan secara terisolasi per ID pesanan spesifik dengan Compare-and-Set atomik
       if (tahap === "delivered") {
         await tx
           .update(pesanan)
@@ -119,7 +127,12 @@ export async function simulasiPergerakanKurirAction(
             statusPesanan: "selesai",
             diperbaruiPada: new Date(),
           })
-          .where(eq(pesanan.id, pesananDb.id));
+          .where(
+            and(
+              eq(pesanan.id, pesananDb.id),
+              eq(pesanan.statusPesanan, "dikirim")
+            )
+          );
       } else {
         await tx
           .update(pesanan)
@@ -132,7 +145,7 @@ export async function simulasiPergerakanKurirAction(
               eq(pesanan.id, pesananDb.id),
               or(
                 eq(pesanan.statusPesanan, "diproses"),
-                eq(pesanan.statusPesanan, "menunggu_pembayaran")
+                eq(pesanan.statusPesanan, "dikirim")
               )
             )
           );

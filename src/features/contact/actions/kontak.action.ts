@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { db, pesanKontak } from "@/lib/db";
+import { db, pesanKontak, outboxPekerjaan } from "@/lib/db";
 import { headers } from "next/headers";
 
 const skemaPesanKontak = z.object({
@@ -19,9 +19,32 @@ export interface HasilKirimPesanKontak {
   pesanId?: string;
 }
 
+// In-Memory IP Rate Limiter (Maks 3 pengiriman per 10 menit per IP)
+const ipRateLimiter = new Map<string, { hitCount: number; expiresAt: number }>();
+const BATAS_PENGIRIMAN_MAKS = 3;
+const WINDOW_MS = 10 * 60 * 1000; // 10 menit
+
+function cekBatasPengiriman(ip: string): boolean {
+  const sekarang = Date.now();
+  const catatan = ipRateLimiter.get(ip);
+
+  if (!catatan || sekarang > catatan.expiresAt) {
+    ipRateLimiter.set(ip, { hitCount: 1, expiresAt: sekarang + WINDOW_MS });
+    return true;
+  }
+
+  if (catatan.hitCount >= BATAS_PENGIRIMAN_MAKS) {
+    return false;
+  }
+
+  catatan.hitCount += 1;
+  return true;
+}
+
 /**
  * Server Action: Kirim Pesan Kontak Studio
  * Menyimpan pesan komunikasi pelanggan secara nyata ke database PostgreSQL (Anti-Slop R-26 & C-2)
+ * Dilengkapi proteksi rate limit dan transactional outbox notification.
  */
 export async function kirimPesanKontakAction(
   input: InputPesanKontak
@@ -41,6 +64,13 @@ export async function kirimPesanKontakAction(
     const forwardedFor = headersList.get("x-forwarded-for");
     const ipPengirim = forwardedFor ? forwardedFor.split(",")[0].trim() : "127.0.0.1";
 
+    if (!cekBatasPengiriman(ipPengirim)) {
+      return {
+        sukses: false,
+        pesan: "Batas pengiriman formulir tercapai (maksimal 3 kali dalam 10 menit). Silakan tunggu sebentar atau hubungi kami langsung di support@voidsupply.com.",
+      };
+    }
+
     const { nama, email, subjek, pesan } = validasi.data;
 
     const [pesanTersimpan] = await db
@@ -55,6 +85,19 @@ export async function kirimPesanKontakAction(
       })
       .returning({ id: pesanKontak.id });
 
+    // Daftarkan notifikasi transactional outbox untuk pemrosesan asinkron
+    await db.insert(outboxPekerjaan).values({
+      tipePekerjaan: "kirim_email_kontak",
+      payload: {
+        pesanId: pesanTersimpan?.id,
+        nama,
+        email,
+        subjek: subjek || "Pertanyaan Umum Studio",
+        cuplikanPesan: pesan.slice(0, 150),
+      },
+      status: "antre",
+    });
+
     return {
       sukses: true,
       pesan: "Pesan Anda telah diterima oleh tim studio VOID Supply. Kami akan membalas melalui email dalam 1x24 jam kerja.",
@@ -64,7 +107,7 @@ export async function kirimPesanKontakAction(
     console.error("Gagal menyimpan pesan kontak:", error);
     return {
       sukses: false,
-      pesan: "Terjadi kendala pada server saat menyimpan pesan Anda. Silakan hubungi kami langsung via email studio@voidsupply.com.",
+      pesan: "Terjadi kendala pada server saat menyimpan pesan Anda. Silakan hubungi kami langsung via email support@voidsupply.com.",
     };
   }
 }

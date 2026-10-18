@@ -489,6 +489,180 @@ async function seed() {
         { ukuran: "ALL", warna: "Concrete Grey", sku: "VOID-D04-ACC-BAL-GRY", stok: 25, berat: 180 },
       ],
     },
+    {
+      kategoriId: katPants.id,
+      nama: "Tactical Modular Cargo Pants V2",
+      slug: "tactical-modular-cargo-v2",
+      deskripsi:
+        "Celana kargo teknikal generasi kedua dengan material Cordura Ripstop 320 GSM dan sistem gesper magnetik FIDLOCK. Dilengkapi 8 saku kargo asimetris dan tali ankle cinch untuk penyesuaian siluet seketika.",
+      hargaDasar: 789000,
+      gambarUtama: "/images/products/drop-04/cargo-v2-front.webp",
+      galeriGambar: [
+        "/images/products/drop-04/cargo-v2-front.webp",
+      ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Cordura Ripstop Nylon 320 GSM",
+          gramasi: "320 GSM (Ultra-Durable Grid Weave)",
+          pewarnaan: "Deep Jet Black Carbon Dye",
+          finishing: "DWR C6 Durable Water Repellent",
+        },
+        konstruksi: {
+          jahitan: "Triple Chainstitch Inseam & Bartack di 12 Titik Beban",
+          kerahRib: "FIDLOCK Magnetic Buckle System + YKK Vislon Zipper",
+          teknikGrafis: "8 Kantong Kargo Modular dengan Gusset 3D",
+          label: "Woven Monogram Mil-Spec Tactical",
+        },
+        perawatan: {
+          suhuCuci: "Air Dingin Maksimal 30°C Putaran Lembut",
+          bahanKimia: "Tanpa Pemutih / Tanpa Pelembut",
+          pengeringan: "Gantung Teduh Tanpa Mesin Pengering",
+          penyetrikaan: "Suhu Rendah dari Sisi Dalam",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "S", panjangCelana: 103, lingkarPinggang: 78, lebarPaha: 34 },
+        { ukuran: "M", panjangCelana: 105, lingkarPinggang: 82, lebarPaha: 36 },
+        { ukuran: "L", panjangCelana: 107, lingkarPinggang: 86, lebarPaha: 38 },
+        { ukuran: "XL", panjangCelana: 109, lingkarPinggang: 90, lebarPaha: 40 },
+      ],
+      varians: [
+        { ukuran: "S", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-S", stok: 18, berat: 640 },
+        { ukuran: "M", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-M", stok: 25, berat: 670 },
+        { ukuran: "L", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-L", stok: 20, berat: 710 },
+        { ukuran: "XL", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-XL", stok: 12, berat: 750 },
+        { ukuran: "S", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-S", stok: 10, berat: 640 },
+        { ukuran: "M", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-M", stok: 16, berat: 670 },
+        { ukuran: "L", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-L", stok: 14, berat: 710 },
+        { ukuran: "XL", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-XL", stok: 8, berat: 750 },
+      ],
+    },
+    {
+      kategoriId: katOuterwear.id,
+      nama: "Cybernetic Pullover Heavy Hoodie",
+      slug: "cybernetic-pullover-hoodie",
+      deskripsi:
+        "Hoodie pullover berpotongan boxy oversized berbahan katun loopback french terry berkepadatan tinggi 450 GSM. Menampilkan grafis tipografi sirkuit futuristik tonal pada lengan dengan finishing acid mineral wash.",
+      hargaDasar: 749000,
+      gambarUtama: "/images/products/drop-04/cyber-hoodie-front.webp",
+      galeriGambar: [
+        "/images/products/drop-04/cyber-hoodie-front.webp",
+      ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Cotton Heavy French Terry",
+          gramasi: "450 GSM (Extreme Heavyweight Fabric)",
+          pewarnaan: "Mineral Acid Wash Vintage Effect",
+          finishing: "Silicone Bio-Wash Anti-Linting",
+        },
+        konstruksi: {
+          jahitan: "Flatlock Stitching 4-Needle Seam",
+          kerahRib: "Tudung Ganda Berlapis Tanpa Tali Serut Terurai",
+          teknikGrafis: "Screenprint Tonal Circuit Typography",
+          label: "Monogram VOID Industrial Label",
+        },
+        perawatan: {
+          suhuCuci: "Air Dingin 30°C",
+          bahanKimia: "Deterjen Lembut Tanpa Klorin",
+          pengeringan: "Rebahkan di Bidang Datar",
+          penyetrikaan: "Suhu Sedang",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "S", panjangBadan: 69, lebarDada: 61, panjangLengan: 62 },
+        { ukuran: "M", panjangBadan: 72, lebarDada: 64, panjangLengan: 64 },
+        { ukuran: "L", panjangBadan: 75, lebarDada: 67, panjangLengan: 66 },
+        { ukuran: "XL", panjangBadan: 78, lebarDada: 70, panjangLengan: 68 },
+      ],
+      varians: [
+        { ukuran: "S", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-S", stok: 15, berat: 820 },
+        { ukuran: "M", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-M", stok: 22, berat: 860 },
+        { ukuran: "L", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-L", stok: 18, berat: 910 },
+        { ukuran: "XL", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-XL", stok: 10, berat: 960 },
+        { ukuran: "S", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-S", stok: 10, berat: 820 },
+        { ukuran: "M", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-M", stok: 14, berat: 860 },
+        { ukuran: "L", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-L", stok: 12, berat: 910 },
+        { ukuran: "XL", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-XL", stok: 6, berat: 960 },
+      ],
+    },
+    {
+      kategoriId: katAccessories.id,
+      nama: "Modular Crossbody Sling Bag V1",
+      slug: "modular-crossbody-sling-bag",
+      deskripsi:
+        "Tas selempang utilitarian berdaya tahan tinggi bermaterial kain laminasi waterproof X-Pac VX21. Dilengkapi ritsleting kedap air YKK Aquaguard dan tali webbing nilon taktikal dengan buckle quick-release.",
+      hargaDasar: 499000,
+      gambarUtama: "/images/products/drop-04/sling-bag-front.webp",
+      galeriGambar: [
+        "/images/products/drop-04/sling-bag-front.webp",
+      ],
+      spesifikasi: {
+        material: {
+          komposisi: "X-Pac VX21 Laminate (DWR + Poliester + Film Tahan Sobek)",
+          gramasi: "210 GSM Dimension-Polyant",
+          pewarnaan: "Solid Matte Black Stealth",
+          finishing: "100% Tahan Air Cuaca Ekstrem",
+        },
+        konstruksi: {
+          jahitan: "Jahitan Bartack Berlapis Tape Waterproof",
+          kerahRib: "Buckle Quick-Release Paduan Logam Ringan",
+          teknikGrafis: "Saku Ritsleting YKK Aquaguard Anti-Air",
+          label: "Embossed Geometric Symbol Patch",
+        },
+        perawatan: {
+          suhuCuci: "Cukup Usap dengan Lap Basah Bersih",
+          bahanKimia: "Dilarang Deterjen Keras / Mesin Cuci",
+          pengeringan: "Keringkan Udara di Tempat Sejuk",
+          penyetrikaan: "Dilarang Keras Disetrika",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "ALL", panjangBadan: 28, lebarDada: 18, panjangLengan: 8 },
+      ],
+      varians: [
+        { ukuran: "ALL", warna: "Pitch Black", sku: "VOID-D04-SLG-BLK-ALL", stok: 35, berat: 340 },
+        { ukuran: "ALL", warna: "Stealth Slate", sku: "VOID-D04-SLG-SLT-ALL", stok: 20, berat: 340 },
+      ],
+    },
+    {
+      kategoriId: katAccessories.id,
+      nama: "Distressed Industrial Utility Cap",
+      slug: "distressed-utility-cap",
+      deskripsi:
+        "Topi baseball 6-panel berbahan katun twill tebal dengan treatment washed vintage distressed. Dilengkapi gesper pengatur logam ukiran laser dan bordir monogram geometris tonal di bagian dahi.",
+      hargaDasar: 289000,
+      gambarUtama: "/images/products/drop-04/utility-cap-front.webp",
+      galeriGambar: [
+        "/images/products/drop-04/utility-cap-front.webp",
+      ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Cotton Heavyweight Chino Twill",
+          gramasi: "290 GSM",
+          pewarnaan: "Mineral Washed Vintage Charcoal",
+          finishing: "Edge Destructed Distressed Detail",
+        },
+        konstruksi: {
+          jahitan: "Konstruksi 6-Panel Berstruktur Tegak",
+          kerahRib: "Tali Belakang Katun dengan Gesper Logam Laser-Engraved",
+          teknikGrafis: "Bordir Komputer High-Density Monogram Tonal",
+          label: "Woven Inner Sweatband Label",
+        },
+        perawatan: {
+          suhuCuci: "Sikat Lembut Manual dengan Air Sabun Ringan",
+          bahanKimia: "Tanpa Pemutih",
+          pengeringan: "Keringkan dengan Mempertahankan Bentuk Crown",
+          penyetrikaan: "Dilarang Menyetrika Bagian Visor",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "ALL", lingkarKepala: 58, panjangBadan: 12 },
+      ],
+      varians: [
+        { ukuran: "ALL", warna: "Washed Black", sku: "VOID-D04-CAP-BLK-ALL", stok: 40, berat: 135 },
+        { ukuran: "ALL", warna: "Vintage Olive", sku: "VOID-D04-CAP-OLV-ALL", stok: 25, berat: 135 },
+      ],
+    },
   ];
 
   for (const item of dataProduk) {

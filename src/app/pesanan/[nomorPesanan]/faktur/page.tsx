@@ -327,8 +327,16 @@ export default async function HalamanFaktur({
                 </span>
               </div>
               <div className="flex justify-between text-[11px] text-neutral-400 print:text-neutral-700">
-                <span>PPN 11% (TERMASUK):</span>
-                <span>{formatRupiah(pajakTermasukIdr)}</span>
+                <span>
+                  {pajakPersen > 0
+                    ? `PPN ${pajakPersen}% (TERMASUK):`
+                    : "PPN (NON-PKP):"}
+                </span>
+                <span>
+                  {pajakPersen > 0
+                    ? formatRupiah(pajakTermasukIdr)
+                    : "Rp 0"}
+                </span>
               </div>
               <div className="flex justify-between border-t border-neutral-800 pt-2 text-sm font-black text-white print:border-neutral-300 print:text-black">
                 <span>TOTAL PEMBAYARAN:</span>

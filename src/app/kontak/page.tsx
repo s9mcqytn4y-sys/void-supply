@@ -48,7 +48,7 @@ export default function HalamanKontak() {
       setPesan("");
     } catch {
       setStatus("error");
-      setErrorMessage("Gagal mengirim pesan. Silakan hubungi kami langsung via email studio@voidsupply.com.");
+      setErrorMessage("Gagal mengirim pesan. Silakan hubungi kami langsung via email support@voidsupply.com.");
     }
   };
 
@@ -186,7 +186,7 @@ export default function HalamanKontak() {
                 </p>
                 <div className="mt-6 border-t border-neutral-800 pt-4 font-mono text-xs space-y-2 text-neutral-400">
                   <p><strong className="text-neutral-200">Jam Operasional Studio:</strong> Senin - Jumat, 10:00 - 18:00 WIB</p>
-                  <p><strong className="text-neutral-200">Email Korespondensi:</strong> studio@voidsupply.id</p>
+                  <p><strong className="text-neutral-200">Email Korespondensi:</strong> support@voidsupply.com</p>
                 </div>
               </div>
 
