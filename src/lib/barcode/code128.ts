@@ -23,7 +23,7 @@ const START_CODE_B = 104;
 const STOP_CODE = 106;
 
 export interface Code128Options {
-  lebarBar?: number; // Ketebalan satu modul bar dalam pixel (default: 2)
+  lebarBar?: number; // Ketebalan satu modul bar dalam pixel (default: 1.4 untuk standar label thermal 100mm)
   tinggi?: number;   // Tinggi barcode dalam pixel (default: 60)
   tampilkanTeks?: boolean; // Tampilkan teks di bawah barcode (default: true)
 }
@@ -32,7 +32,7 @@ export interface Code128Options {
  * Mengonversi teks string alfanumerik menjadi barcode Code 128 Subset B SVG.
  */
 export function generateCode128Svg(text: string, options: Code128Options = {}): string {
-  const { lebarBar = 2, tinggi = 60, tampilkanTeks = true } = options;
+  const { lebarBar = 1.4, tinggi = 60, tampilkanTeks = true } = options;
 
   if (!text || text.length === 0) {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="${tinggi}"></svg>`;
@@ -60,7 +60,7 @@ export function generateCode128Svg(text: string, options: Code128Options = {}): 
   // 4. Hitung lebar total dalam modul (11 per karakter, +2 untuk stop) + quiet zone (10 modul kiri dan kanan)
   const quietZoneModul = 10;
   const totalModul = quietZoneModul * 2 + (codes.length - 1) * 11 + 13;
-  const totalLebar = totalModul * lebarBar;
+  const totalLebar = Math.round(totalModul * lebarBar * 10) / 10;
   const totalTinggi = tampilkanTeks ? tinggi + 18 : tinggi;
 
   // 5. Bangun path atau rect SVG
@@ -73,9 +73,9 @@ export function generateCode128Svg(text: string, options: Code128Options = {}): 
 
     let isBar = true;
     for (let j = 0; j < pattern.length; j++) {
-      const modulWidth = parseInt(pattern[j], 10) * lebarBar;
+      const modulWidth = Math.round(parseInt(pattern[j], 10) * lebarBar * 10) / 10;
       if (isBar) {
-        rects.push(`<rect x="${currentX}" y="0" width="${modulWidth}" height="${tinggi}" fill="#000000" />`);
+        rects.push(`<rect x="${Math.round(currentX * 10) / 10}" y="0" width="${modulWidth}" height="${tinggi}" fill="#000000" />`);
       }
       currentX += modulWidth;
       isBar = !isBar;
@@ -86,7 +86,7 @@ export function generateCode128Svg(text: string, options: Code128Options = {}): 
     ? `<text x="${totalLebar / 2}" y="${tinggi + 14}" font-family="monospace, monospace" font-size="12" font-weight="600" text-anchor="middle" fill="#000000" letter-spacing="1">${cleanText}</text>`
     : "";
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalLebar} ${totalTinggi}" width="${totalLebar}" height="${totalTinggi}" style="background-color: transparent;">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalLebar} ${totalTinggi}" width="${totalLebar}" height="${totalTinggi}" style="max-width: 100%; height: auto; background-color: transparent;" preserveAspectRatio="xMidYMid meet">
     ${rects.join("")}
     ${teksSvg}
   </svg>`;

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none" width="160" height="160">
+  <!-- VOID Supply Technical Specification Seal -->
+  <circle cx="80" cy="80" r="76" stroke="#52525b" stroke-width="1.5" stroke-dasharray="4 3" />
+  <circle cx="80" cy="80" r="68" stroke="#ffffff" stroke-width="1.2" />
+  <circle cx="80" cy="80" r="48" stroke="#27272a" stroke-width="1" />
+  
+  <!-- Crosshairs -->
+  <line x1="80" y1="6" x2="80" y2="20" stroke="#ffffff" stroke-width="1.5" />
+  <line x1="80" y1="140" x2="80" y2="154" stroke="#ffffff" stroke-width="1.5" />
+  <line x1="6" y1="80" x2="20" y2="80" stroke="#ffffff" stroke-width="1.5" />
+  <line x1="140" y1="80" x2="154" y2="80" stroke="#ffffff" stroke-width="1.5" />
+  
+  <!-- Central Diamond Glyph -->
+  <polygon points="80,52 108,80 80,108 52,80" stroke="#ffffff" stroke-width="1.5" fill="#09090b" />
+  <polygon points="80,62 98,80 80,98 62,80" stroke="#a1a1aa" stroke-width="1" fill="#18181b" />
+  <circle cx="80" cy="80" r="4" fill="#ffffff" />
+  
+  <!-- Curved Text Path -->
+  <path id="curveTop" d="M 28 80 A 52 52 0 0 1 132 80" fill="none" />
+  <text fill="#ffffff" font-family="monospace" font-size="7.5" font-weight="700" letter-spacing="2">
+    <textPath href="#curveTop" startOffset="50%" text-anchor="middle">
+      VOID SUPPLY ARCHIVE // MIL-SPEC
+    </textPath>
+  </text>
+  
+  <path id="curveBottom" d="M 132 80 A 52 52 0 0 1 28 80" fill="none" />
+  <text fill="#a1a1aa" font-family="monospace" font-size="7" font-weight="600" letter-spacing="1.5">
+    <textPath href="#curveBottom" startOffset="50%" text-anchor="middle">
+      ATELIER JOHAR BARU • 10560
+    </textPath>
+  </text>
+</svg>

@@ -94,7 +94,7 @@ function buatHtmlEmail(
       </div>
 
       <p class="text">
-        Pantau status pesanan dan rincian mutasi inventaris secara langsung melalui tautan kanonikal toko kami.
+        Pantau status pesanan dan rincian transaksi Anda secara langsung melalui tautan kanonikal toko kami.
       </p>
     </div>
     <div class="footer">
