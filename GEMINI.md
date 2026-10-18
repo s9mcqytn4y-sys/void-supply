@@ -650,7 +650,7 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
 
 2. **Midtrans Finish Redirect URL Format (`/pesanan`)**:
    - Tantangan: Dashboard Midtrans menolak template URL berbasis kurung kurawal seperti `https://.../pesanan/{order_id}` dengan galat "Failed to save URL due to invalid format. E.g. make sure it starts with http://."
-   - Solusi: URL finish redirect didaftarkan menggunakan endpoint statis: `https://void-supply.vercel.app/pesanan`.
+   - Solusi: URL finish redirect didaftarkan menggunakan endpoint statis: `https://void-supply-lemon.vercel.app/pesanan`.
    - Midtrans secara otomatis menyertakan parameter kueri saat mengalihkan peramban pelanggan: `?order_id=VOID-XXX&status_code=200&transaction_status=settlement`.
    - Halaman `src/app/pesanan/page.tsx` bertindak sebagai smart dispatcher yang membaca parameter `order_id` dan secara instan mengarahkan pelanggan ke rute pesanan terlindungi `/pesanan/[nomorPesanan]`.
 
