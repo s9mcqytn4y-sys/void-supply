@@ -272,10 +272,10 @@ export function KartuStatusPesanan({
         {isSukses && (
           <div className="mt-6 border border-emerald-900/50 bg-emerald-950/20 p-4 font-mono text-xs text-emerald-300">
             {pesanan.statusPesanan === "selesai"
-              ? "Transaksi telah diselesaikan. Seluruh artikel telah diterima secara resmi oleh pemesan."
+              ? "Transaksi selesai. Pesanan telah berhasil diterima oleh pemesan."
               : pesanan.statusPesanan === "dikirim"
               ? "Paket pesanan Anda sedang dalam perjalanan oleh kurir ekspedisi menuju alamat tujuan."
-              : "Pembayaran telah diverifikasi secara resmi. Pesanan Anda saat ini sedang dipersiapkan oleh tim operasional untuk pengiriman."}
+              : "Pembayaran terverifikasi. Pesanan Anda saat ini sedang dipersiapkan untuk pengiriman."}
           </div>
         )}
 
@@ -435,7 +435,7 @@ export function KartuStatusPesanan({
                   href={`/pesanan/${encodeURIComponent(pesanan.nomorPesanan)}/faktur`}
                   className="flex min-h-11 flex-1 items-center justify-center border border-emerald-500/50 bg-emerald-950/20 px-4 font-mono text-xs font-bold text-emerald-300 uppercase transition-colors hover:bg-emerald-900/30"
                 >
-                  FAKTUR RESMI (E-RECEIPT)
+                  FAKTUR ELEKTRONIK (E-RECEIPT)
                 </Link>
                 <Link
                   href={`/lacak?pesanan=${encodeURIComponent(pesanan.nomorPesanan)}`}

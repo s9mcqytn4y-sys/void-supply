@@ -68,7 +68,7 @@ export default async function HalamanResiThermal({
       <main className="mx-auto min-h-[70vh] max-w-xl px-4 py-20 text-center sm:px-6">
         <div className="border border-neutral-800 bg-neutral-950 p-8">
           <span className="font-mono text-xs font-bold text-rose-400 uppercase">
-            AKSES DITOLAK (SEC-02)
+            AKSES DITOLAK
           </span>
           <h1 className="mt-2 font-mono text-xl font-black text-white uppercase">
             OTORISASI TIDAK VALID
@@ -115,7 +115,7 @@ export default async function HalamanResiThermal({
             THERMAL SHIPPING LABEL // 100 x 150 MM
           </span>
           <h1 className="font-mono text-xl font-black text-white uppercase">
-            LABEL RESI PENGIRIMAN RESMI
+            LABEL PENGIRIMAN THERMAL
           </h1>
         </div>
         <TombolCetakResi />

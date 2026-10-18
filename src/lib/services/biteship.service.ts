@@ -170,6 +170,14 @@ export function petakanKodeLayananBiteship(
   return layanan.replace(/[^a-z0-9_]/g, "");
 }
 
+interface CacheOngkirEntry {
+  waktu: number;
+  data: OpsiKurir[];
+}
+
+const cacheOngkir = new Map<string, CacheOngkirEntry>();
+const TTL_CACHE_ONGKIR_MS = 10 * 60 * 1000; // 10 menit
+
 /**
  * Hitung Estimasi Ongkir Biteship
  * Mendukung Kurir Instant (Gojek, Grab) jika koordinat tersedia, dan Reguler (J&T, JNE, Anteraja, Pos Indonesia, SiCepat, TIKI).
@@ -177,6 +185,12 @@ export function petakanKodeLayananBiteship(
 export async function hitungOngkirBiteship(
   params: ParameterCekOngkir
 ): Promise<OpsiKurir[]> {
+  const cacheKey = `${params.kodePosTujuan}_${params.totalBeratGram}_${params.latitudeTujuan || 0}_${params.longitudeTujuan || 0}`;
+  const entriCache = cacheOngkir.get(cacheKey);
+  if (entriCache && Date.now() - entriCache.waktu < TTL_CACHE_ONGKIR_MS) {
+    return entriCache.data;
+  }
+
   const beratKg = Math.max(1, Math.ceil(params.totalBeratGram / 1000));
   const isKeyPlaceholder =
     !BITESHIP_API_KEY ||
@@ -307,7 +321,7 @@ export async function hitungOngkirBiteship(
 
     const data = response.data;
     if (data && Array.isArray(data.pricing) && data.pricing.length > 0) {
-      return data.pricing.map(
+      const hasilPricing = data.pricing.map(
         (p: {
           courier_name: string;
           courier_code: string;
@@ -326,6 +340,14 @@ export async function hitungOngkirBiteship(
           tarifIdr: p.price,
         })
       );
+
+      if (cacheOngkir.size >= 100) {
+        const kunciTertua = cacheOngkir.keys().next().value;
+        if (kunciTertua) cacheOngkir.delete(kunciTertua);
+      }
+      cacheOngkir.set(cacheKey, { waktu: Date.now(), data: hasilPricing });
+
+      return hasilPricing;
     }
 
     throw new Error("Tidak ada opsi logistik yang tersedia untuk rute tujuan ini.");
