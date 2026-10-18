@@ -7,6 +7,7 @@ import { RingkasanKeranjang, CartHydrationProvider } from "@/features/cart";
 import { I18nProvider } from "@/lib/i18n";
 import { SonnerToaster } from "@/components/ui/SonnerToaster";
 import { BannerReminderPembayaran } from "@/features/checkout/components/BannerReminderPembayaran";
+import { BilahPersetujuanCookie } from "@/components/common/BilahPersetujuanCookie";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -71,6 +72,7 @@ export default function RootLayout({
             <div className="flex-1">{children}</div>
             <FooterToko />
             <RingkasanKeranjang />
+            <BilahPersetujuanCookie />
             <SonnerToaster />
           </CartHydrationProvider>
         </I18nProvider>

@@ -57,7 +57,7 @@ async function seed() {
     }
 
     // 1.1 Seeding Akun Demo Utama (Fokus Testing & Staging Vercel)
-    const demoUserEmail = "demo@voidsupply.com";
+    const demoUserEmail = "abdulaziz543333@gmail.com";
     const demoUserId = "usr_demo_void_collector_2026";
     const demoPasswordHash = await hashPassword("Password123!");
 
@@ -65,7 +65,7 @@ async function seed() {
       .insert(authSchema.pengguna)
       .values({
         id: demoUserId,
-        name: "Demo VOID Collector",
+        name: "Abdul Aziz",
         email: demoUserEmail,
         emailVerified: true,
         peran: "pelanggan",
@@ -88,7 +88,7 @@ async function seed() {
       .values({
         penggunaId: demoUserId,
         label: "Apartemen Studio Johar",
-        namaPenerima: "Demo VOID Collector",
+        namaPenerima: "Abdul Aziz",
         teleponPenerima: "081298765432",
         alamatLengkap: "Jl. Kramat Jaya Baru No. 12, RT 05 / RW 01, Johar Baru",
         provinsi: "DKI Jakarta",
@@ -104,7 +104,7 @@ async function seed() {
       .insert(schema.pelanggan)
       .values({
         penggunaId: demoUserId,
-        namaLengkap: "Demo VOID Collector",
+        namaLengkap: "Abdul Aziz",
         email: demoUserEmail,
         telepon: "081298765432",
         alamatDefault: "Jl. Kramat Jaya Baru No. 12, RT 05 / RW 01, Johar Baru",

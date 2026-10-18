@@ -26,13 +26,14 @@ export function KatalogExplorer({ produkAwal }: PropertiKatalogExplorer) {
 
   // Ambil state awal dari URL SearchParams
   const paramKategori = searchParams.get("kategori") || "semua";
-  const paramCari = searchParams.get("q") || "";
+  const paramKoleksi = searchParams.get("koleksi") || "";
+  const initialCari = searchParams.get("q") || (paramKoleksi === "cybernetic" ? "cybernetic" : "");
   const paramUrutan = searchParams.get("sort") || "terbaru";
   const paramHanyaReady = searchParams.get("ready") === "1";
 
   const [kategoriTerpilih, setKategoriTerpilih] = useState(paramKategori);
-  const [kataKunciCari, setKataKunciCari] = useState(paramCari);
-  const [debouncedCari, setDebouncedCari] = useState(paramCari);
+  const [kataKunciCari, setKataKunciCari] = useState(initialCari);
+  const [debouncedCari, setDebouncedCari] = useState(initialCari);
   const [pilihanUrutan, setPilihanUrutan] = useState(paramUrutan);
   const [hanyaReadyStock, setHanyaReadyStock] = useState(paramHanyaReady);
 

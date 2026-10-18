@@ -7,6 +7,7 @@ import {
   FiturUtamaMaterial,
   ManifestoBrand,
   NewsletterVIP,
+  KampanyePreOrderBundling,
 } from "@/features/landing";
 import { safeJsonLdStringify } from "@/lib/utils/jsonld";
 
@@ -61,7 +62,10 @@ export default async function HalamanBeranda() {
         totalKatalog={seluruhProduk.length}
       />
 
-      {/* 4. Drop 04 Editorial Campaign & Garment Craftsmanship */}
+      {/* 4. Kampanye Pre-Order & Bundling Rilisan Cybernetic Division */}
+      <KampanyePreOrderBundling />
+
+      {/* 5. Drop 04 Editorial Campaign & Garment Craftsmanship */}
       <FiturUtamaMaterial />
 
       {/* 5. Brand Manifesto & Transparansi Rekayasa */}
