@@ -639,5 +639,27 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
    - 0 galat tipe TypeScript (`npm run typecheck`).
    - Next.js Turbopack production build (`npm run build`) berhasil sukses dengan 28 halaman statis dan rute dinamis baru `/admin/pesanan/batch-resi`.
 
+---
 
+## 21. Protokol Integrasi Webhook Biteship, Format URL Midtrans Redirect & Snap Theme (Fase 3C)
 
+1. **Biteship Webhook Installation Probe Handshake (`/api/biteship/webhook`)**:
+   - Tantangan: Dashboard Biteship menguji URL webhook saat pertama kali didaftarkan dengan payload JSON kosong (`{}`) atau tanpa header custom. Jika webhook mewajibkan header atau memvalidasi field pesanan secara ketat, probe instalasi gagal dengan galat "Webhook URL doesn't respond with ok response. Please make sure it respond with ok upon installation, by disabling validation, and accepting empty request body for application/json."
+   - Solusi: Route handler `/api/biteship/webhook` dilengkapi metode `GET` dan `HEAD` yang mengembalikan `200 ok` (`text/plain`). Pada metode `POST`, payload kosong (`body === "{}"` atau `Object.keys(body).length === 0`) atau event uji coba (`"test"`, `"ping"`) langsung dijawab dengan status `200 ok` (`text/plain`) sebelum evaluasi header rahasia (`x-void-biteship-secret`).
+   - Opsi Event Resmi Biteship: Dashboard Biteship menyediakan 3 pilihan event pada dropdown: `order.status`, `order.price`, dan `order.waybill_id`. Ketiganya didukung secara kanonikal oleh sistem VOID Supply.
+
+2. **Midtrans Finish Redirect URL Format (`/pesanan`)**:
+   - Tantangan: Dashboard Midtrans menolak template URL berbasis kurung kurawal seperti `https://.../pesanan/{order_id}` dengan galat "Failed to save URL due to invalid format. E.g. make sure it starts with http://."
+   - Solusi: URL finish redirect didaftarkan menggunakan endpoint statis: `https://void-supply.vercel.app/pesanan`.
+   - Midtrans secara otomatis menyertakan parameter kueri saat mengalihkan peramban pelanggan: `?order_id=VOID-XXX&status_code=200&transaction_status=settlement`.
+   - Halaman `src/app/pesanan/page.tsx` bertindak sebagai smart dispatcher yang membaca parameter `order_id` dan secara instan mengarahkan pelanggan ke rute pesanan terlindungi `/pesanan/[nomorPesanan]`.
+
+3. **Spesifikasi Appearance Midtrans Snap (Brutalist Streetwear Theme)**:
+   - Header: Show header (Enabled)
+   - Business branding: Type = "Business name", Value = "VOID Supply"
+   - Font type: Plus Jakarta Sans
+   - Header background: `#0A0A0A` (Dark) atau `#FFFFFF` (Clean High Contrast)
+   - Button color: `#0A0A0A` atau `#383942`
+   - Shape: Input field = `Square`, Button = `Square` (Konsisten dengan identitas brutalist VOID Supply)
+   - Language: Indonesian (atau English)
+   - Order ID: Unchecked (Pastikan Order ID tetap terlihat agar pelanggan dapat mencocokkan referensi pesanan)

@@ -108,6 +108,22 @@ describe("Fase 3: Biteship Webhook Contract & Tracking Integration Matrix", () =
     expect(res.headers.get("content-type")).toContain("text/plain");
   });
 
+  it("menerima handshake instalasi dengan body JSON kosong '{}' dan merespons HTTP 200 'ok'", async () => {
+    const req = new Request("http://localhost:3000/api/biteship/webhook", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: "{}",
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toBe("ok");
+    expect(res.headers.get("content-type")).toContain("text/plain");
+  });
+
   it("menerima request jika menggunakan custom header x-void-biteship-secret yang valid", async () => {
     const req = new Request("http://localhost:3000/api/biteship/webhook", {
       method: "POST",

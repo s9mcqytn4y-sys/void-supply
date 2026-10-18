@@ -136,7 +136,7 @@ export function LabelThermalPengiriman({
               key={idx}
               className="flex justify-between gap-2 border-b border-neutral-200 pb-0.5 last:border-b-0"
             >
-              <span className="break-words">
+              <span className="wrap-break-word">
                 {item.jumlah}x {item.namaProduk} ({item.namaVarian})
               </span>
               <span className="shrink-0 font-bold break-all">{item.sku}</span>

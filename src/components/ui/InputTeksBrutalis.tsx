@@ -28,8 +28,10 @@ export const InputTeksBrutalis = React.forwardRef<HTMLInputElement, InputTeksBru
           ref={ref}
           disabled={disabled}
           className={cn(
-            "w-full min-h-11 border border-zinc-800 bg-zinc-950 px-3 py-2 font-mono text-xs text-white placeholder:text-zinc-600 transition-colors focus-visible:outline-none focus-visible:border-white focus-visible:ring-1 focus-visible:ring-white disabled:opacity-40 disabled:cursor-not-allowed",
-            pesanError && "border-rose-600 focus-visible:border-rose-500 focus-visible:ring-rose-500",
+            "w-full min-h-11 border bg-zinc-950 px-3 py-2 font-mono text-xs text-white placeholder:text-zinc-600 transition-colors focus-visible:outline-none disabled:opacity-40 disabled:cursor-not-allowed",
+            pesanError
+              ? "border-rose-600 focus-visible:border-rose-500 focus-visible:ring-1 focus-visible:ring-rose-500"
+              : "border-zinc-800 focus-visible:border-white focus-visible:ring-1 focus-visible:ring-white",
             className
           )}
           {...props}

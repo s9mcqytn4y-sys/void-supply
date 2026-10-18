@@ -32,14 +32,67 @@ export interface PayloadWebhookBiteship {
  * 5. Pencatatan biaya riil ekspedisi untuk event 'order.price'.
  * 6. Idempotensi pencatatan titik pelacakan resi.
  */
+export async function GET() {
+  return new Response("ok", {
+    status: 200,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+    },
+  });
+}
+
+export async function HEAD() {
+  return new Response("ok", {
+    status: 200,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+    },
+  });
+}
+
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
+    const trimmedBody = rawBody.trim();
 
     // 1. Handshake Instalasi Biteship:
-    // Biteship mengirimkan POST kosong saat registrasi URL webhook di dashboard.
-    // Request kosong harus langsung merespons "ok" (HTTP 200) tanpa memodifikasi database.
-    if (!rawBody.trim()) {
+    // Biteship mengirimkan POST kosong, whitespace, atau JSON '{}' saat registrasi URL webhook di dashboard.
+    // Request probe instalasi harus langsung merespons "ok" (HTTP 200) tanpa memodifikasi database.
+    if (!trimmedBody || trimmedBody === "{}" || trimmedBody === "[]") {
+      return new Response("ok", {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+        },
+      });
+    }
+
+    // 2. Parsing JSON Payload
+    let body: PayloadWebhookBiteship;
+    try {
+      body = JSON.parse(trimmedBody);
+    } catch {
+      return NextResponse.json(
+        { error: "Payload webhook bukan format JSON yang valid." },
+        { status: 400 }
+      );
+    }
+
+    // Jika objek JSON kosong tanpa atribut bisnis, respons 200 ok (handshake instalasi)
+    if (!body || Object.keys(body).length === 0) {
+      return new Response("ok", {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+        },
+      });
+    }
+
+    const event = body.event;
+    const rawStatus = body.status || event;
+
+    // Jika event ping atau test probe dari dashboard Biteship
+    if (event === "ping" || event === "test" || rawStatus === "test" || rawStatus === "ping") {
       return new Response("ok", {
         status: 200,
         headers: {
@@ -50,7 +103,7 @@ export async function POST(req: Request) {
 
     const env = selesaikanKonfigurasiEnvironment();
 
-    // 2. Verifikasi Autentikasi Custom Header jika Secret Dikonfigurasi
+    // 3. Verifikasi Autentikasi Custom Header jika Secret Dikonfigurasi
     const webhookSecret = env.biteship.webhookSecret;
     if (webhookSecret && webhookSecret.trim().length > 0) {
       const headerKey = env.biteship.webhookHeaderKey.toLowerCase();
@@ -72,20 +125,6 @@ export async function POST(req: Request) {
         );
       }
     }
-
-    // 3. Parsing JSON Payload
-    let body: PayloadWebhookBiteship;
-    try {
-      body = JSON.parse(rawBody);
-    } catch {
-      return NextResponse.json(
-        { error: "Payload webhook bukan format JSON yang valid." },
-        { status: 400 }
-      );
-    }
-
-    const event = body.event;
-    const rawStatus = body.status || event;
 
     if (!rawStatus) {
       return NextResponse.json(
