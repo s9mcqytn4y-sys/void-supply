@@ -7,9 +7,9 @@ export function SonnerToaster() {
   return (
     <Toaster
       theme="dark"
-      position="bottom-right"
+      position="bottom-left"
       closeButton={true}
-      offset={{ bottom: "5.5rem", right: "1rem" }}
+      offset={{ bottom: "5.5rem", left: "1rem" }}
       toastOptions={{
         className:
           "!bg-zinc-950 !border !border-zinc-800 !text-zinc-50 !font-sans !shadow-2xl !rounded-none !p-4 !text-xs",

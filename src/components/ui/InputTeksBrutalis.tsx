@@ -11,6 +11,9 @@ export interface InputTeksBrutalisProps
 export const InputTeksBrutalis = React.forwardRef<HTMLInputElement, InputTeksBrutalisProps>(
   ({ className, type = "text", label, pesanError, petunjukBantuan, id, disabled, ...props }, ref) => {
     const inputId = id || React.useId();
+    const statusWarnaClass = pesanError
+      ? "border-rose-600 focus-visible:border-rose-500 focus-visible:ring-rose-500"
+      : "border-zinc-800 focus-visible:border-white focus-visible:ring-white";
 
     return (
       <div className="w-full space-y-1.5">
@@ -28,10 +31,8 @@ export const InputTeksBrutalis = React.forwardRef<HTMLInputElement, InputTeksBru
           ref={ref}
           disabled={disabled}
           className={cn(
-            "w-full min-h-11 border bg-zinc-950 px-3 py-2 font-mono text-xs text-white placeholder:text-zinc-600 transition-colors focus-visible:outline-none disabled:opacity-40 disabled:cursor-not-allowed",
-            pesanError
-              ? "border-rose-600 focus-visible:border-rose-500 focus-visible:ring-1 focus-visible:ring-rose-500"
-              : "border-zinc-800 focus-visible:border-white focus-visible:ring-1 focus-visible:ring-white",
+            "w-full min-h-11 border bg-zinc-950 px-3 py-2 font-mono text-xs text-white placeholder:text-zinc-600 transition-colors focus-visible:outline-none focus-visible:ring-1 disabled:opacity-40 disabled:cursor-not-allowed",
+            statusWarnaClass,
             className
           )}
           {...props}

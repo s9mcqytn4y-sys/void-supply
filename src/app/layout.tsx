@@ -6,6 +6,7 @@ import { FooterToko } from "@/components/layout/FooterToko";
 import { RingkasanKeranjang, CartHydrationProvider } from "@/features/cart";
 import { I18nProvider } from "@/lib/i18n";
 import { SonnerToaster } from "@/components/ui/SonnerToaster";
+import { BannerReminderPembayaran } from "@/features/checkout/components/BannerReminderPembayaran";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -65,6 +66,7 @@ export default function RootLayout({
       <body className="flex min-h-screen flex-col bg-neutral-950 font-sans text-neutral-100 antialiased selection:bg-neutral-800 selection:text-white">
         <I18nProvider>
           <CartHydrationProvider>
+            <BannerReminderPembayaran />
             <HeaderToko />
             <div className="flex-1">{children}</div>
             <FooterToko />

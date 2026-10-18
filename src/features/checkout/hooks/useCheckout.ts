@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import type { OpsiKurir } from "@/lib/services/biteship.service";
 import { authClient } from "@/lib/auth/auth-client";
+import { usePesananAktifStore } from "@/features/checkout/stores/pesanan-aktif.store";
 
 export interface DataFormulirCheckout {
   namaLengkap: string;
@@ -335,6 +336,13 @@ export function useCheckout() {
 
         if (hasil.sukses && hasil.nomorPesanan) {
           kosongkanKeranjang();
+          usePesananAktifStore.getState().setPesananAktif({
+            nomorPesanan: hasil.nomorPesanan,
+            totalAkhir,
+            dibuatPada: Date.now(),
+            kedaluwarsaPada: Date.now() + 15 * 60 * 1000,
+            tokenAkses: hasil.tokenAkses,
+          });
           toast.success("Pesanan berhasil dibuat. Mengalihkan ke pembayaran...");
           // Arahkan ke halaman status pesanan kanonikal (otorisasi dikelola via cookie HttpOnly server-side)
           router.push(`/pesanan/${encodeURIComponent(hasil.nomorPesanan)}`);

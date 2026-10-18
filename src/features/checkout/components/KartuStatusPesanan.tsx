@@ -12,6 +12,7 @@ import { DevToolsSandboxDrawer } from "./DevToolsSandboxDrawer";
 import { InAppPaymentViewer } from "./InAppPaymentViewer";
 import { konfirmasiPesananDiterimaAction } from "../actions/konfirmasi-diterima.action";
 import { toast } from "sonner";
+import { usePesananAktifStore } from "../stores/pesanan-aktif.store";
 
 interface PropsKartuStatusPesanan {
   pesananAwal: DetailStatusPesanan;
@@ -39,6 +40,13 @@ export function KartuStatusPesanan({
     );
     return Math.max(0, sisa);
   });
+
+  // Bersihkan Banner Reminder jika pesanan sudah dibayar / diproses / batal
+  useEffect(() => {
+    if (pesanan.statusPesanan !== "menunggu_pembayaran") {
+      usePesananAktifStore.getState().bersihkanPesananAktif();
+    }
+  }, [pesanan.statusPesanan]);
 
   // Countdown Timer Interval Pembayaran
   useEffect(() => {
