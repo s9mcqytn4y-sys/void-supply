@@ -29,6 +29,14 @@
         "chrome-devtools-mcp@0.10.1",
         "--headless"
       ]
+    },
+    "Neon": {
+      "type": "http",
+      "url": "https://mcp.neon.tech/mcp?projectId=odd-block-93989290"
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com"
     }
   },
   "inputs": []

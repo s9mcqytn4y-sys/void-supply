@@ -115,10 +115,12 @@ export async function simpanSnapshotArsipFaktur(
       .limit(1);
 
     // 3. Susun payload dokumen faktur resmi
-    const pajakPersen = 11; // PPN 11% Included
-    const pajakTermasukIdr = Math.round(
-      (dataPesanan.totalAkhir * pajakPersen) / (100 + pajakPersen)
-    );
+    // Ketentuan Pajak: Non-PKP / PPN 0% (bebas pungutan pajak fiktif sesuai Anti-Slop R-36)
+    const pajakPersen = Number(process.env.MERCHANT_TAX_PERCENT || 0);
+    const pajakTermasukIdr =
+      pajakPersen > 0
+        ? Math.round((dataPesanan.totalAkhir * pajakPersen) / (100 + pajakPersen))
+        : 0;
 
     const payloadSnapshot: SnapshotFakturPayload = {
       nomorFaktur,
@@ -126,10 +128,11 @@ export async function simpanSnapshotArsipFaktur(
       diterbitkanPada: new Date().toISOString(),
       entitasPenerbit: {
         nama: "VOID SUPPLY OFFICIAL MERCHANDISE",
-        perusahaan: "PT VOID SUPLAI INDONESIA",
-        alamat: "Jl. Percetakan Negara No. 18, Johar Baru, Jakarta Pusat 10560",
-        npwp: "01.892.412.3-021.000",
-        email: "legal@voidsupply.com",
+        perusahaan: process.env.MERCHANT_LEGAL_NAME || "VOID SUPPLY STUDIO",
+        alamat:
+          process.env.MERCHANT_ADDRESS || "Johar Baru, Jakarta Pusat 10560, DKI Jakarta, Indonesia",
+        npwp: process.env.MERCHANT_TAX_ID || "-",
+        email: "studio@voidsupply.com",
         website: "https://voidsupply.com",
       },
       pelanggan: {

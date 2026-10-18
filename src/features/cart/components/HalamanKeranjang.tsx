@@ -26,8 +26,11 @@ export function HalamanKeranjang() {
   const totalItem = hitungTotalItem();
   const subtotalIdr = hitungSubtotalIdr();
 
-  // Berat fisik dihitung 300 gram per item (standar t-shirt heavyweight VOID)
-  const totalBeratGram = items.reduce((total, item) => total + (item.jumlah * 300), 0);
+  // Berat fisik dihitung berdasarkan spesifikasi produk riil di database (fallback 300g untuk t-shirt standar)
+  const totalBeratGram = items.reduce(
+    (total, item) => total + item.jumlah * (item.beratGram || 300),
+    0
+  );
   const totalBeratKg = (totalBeratGram / 1000).toFixed(1);
 
   // State Voucher Promo

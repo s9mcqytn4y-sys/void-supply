@@ -14,7 +14,6 @@ import {
 import { arsipFaktur } from "@/lib/db/schema";
 import { formatRupiah } from "@/lib/utils";
 import { generateCode128Svg } from "@/lib/barcode/code128";
-import { simpanSnapshotArsipFaktur } from "@/features/checkout/services/arsip-faktur.service";
 import { TombolCetakFaktur } from "./TombolCetakFaktur";
 
 interface PropsHalamanFaktur {
@@ -122,31 +121,19 @@ export default async function HalamanFaktur({
     fakturDb?.nomorFaktur ||
     `INV/${pesananDb.dibuatPada.toISOString().slice(0, 10).replace(/-/g, "")}/${pesananDb.nomorPesanan.slice(-5)}`;
 
-  // Ambil arsip faktur legal snapshot (atau buat snapshot jika pesanan sudah lunas)
-  let arsipFakturDb = fakturDb
+  // Ambil arsip faktur legal snapshot (Murni read-only, tanpa mutasi efek samping pada request GET)
+  const arsipFakturDb = fakturDb
     ? await db.query.arsipFaktur.findFirst({
         where: eq(arsipFaktur.fakturId, fakturDb.id),
       })
     : null;
 
-  if (!arsipFakturDb && fakturDb && pembayaranDb?.statusPembayaran === "berhasil") {
-    const hasilArsip = await simpanSnapshotArsipFaktur(
-      fakturDb.id,
-      nomorFaktur,
-      pesananDb.id
-    );
-    if (hasilArsip.sukses) {
-      arsipFakturDb = await db.query.arsipFaktur.findFirst({
-        where: eq(arsipFaktur.fakturId, fakturDb.id),
-      });
-    }
-  }
-
-  // Hitung PPN 11% (Included)
-  const pajakPersen = 11;
-  const pajakTermasukIdr = Math.round(
-    (pesananDb.totalAkhir * pajakPersen) / (100 + pajakPersen)
-  );
+  // Ketentuan Pajak: Non-PKP / PPN 0% (tidak memungut PPN fiktif tanpa status PKP resmi)
+  const pajakPersen = Number(process.env.MERCHANT_TAX_PERCENT || 0);
+  const pajakTermasukIdr =
+    pajakPersen > 0
+      ? Math.round((pesananDb.totalAkhir * pajakPersen) / (100 + pajakPersen))
+      : 0;
 
   // Generate SVG Code128 Barcode Vector Resmi
   const barcodeFakturSvg = generateCode128Svg(nomorFaktur, {

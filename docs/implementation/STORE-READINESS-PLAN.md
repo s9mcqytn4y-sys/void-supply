@@ -6,15 +6,20 @@ Dokumen ini adalah rencana kerja teknis resmi untuk mentransformasikan repositor
 
 ## 1. Hasil Audit Arsitektur & Temuan Kritis (Actual State vs Review)
 
-| Komponen | Status Saat Ini | Dampak Risiko | Tindakan Remediasi Resmi |
-| :--- | :--- | :--- | :--- |
-| **Order Access Token** | Client-side `document.cookie` di `useCheckout.ts:233` | Token akses rentan disusupi script pihak ketiga (XSS). | Pindahkan pembuatan cookie ke Server Action dengan `HttpOnly`, `SameSite=Strict`, `Secure`. Simpan hash SHA-256 token di database. |
-| **Environment Resolver** | Fallback cascade tidak terstandar di `midtrans.service.ts` & `biteship.service.ts` | Potensi salah pakai kredensial sandbox di production atau sebaliknya. | Buat modul `src/lib/environment/` yang memvalidasi `APP_ENV`, `MIDTRANS_ENV`, dan `BITESHIP_ENV` secara eksplisit dan deterministik. |
-| **Voucher Quota Guard** | Pengecekan `totalDigunakan >= kuota` terpisah dari perintah `UPDATE` | Race condition pada checkout paralel drop terbatas (kuota bisa tembus batas). | Terapkan conditional atomic update: `UPDATE aturan_diskon SET total_digunakan = total_digunakan + 1 WHERE id = $id AND total_digunakan < kuota_penggunaan RETURNING id`. |
-| **Webhook DB Transaction** | Panggilan `kirimEmailNotifikasi()` berada di dalam `db.transaction()` | Latensi eksternal Resend/network menahan *row lock* pesanan di PostgreSQL. | Pisahkan email dari transaksi DB: commit mutasi status pesanan seketika (<10ms), lalu jalankan pengiriman email dengan try/catch terisolasi. |
-| **Fulfillment & Tracking** | Tabel `pelacakan_pengiriman` ada di skema, tapi belum ada route webhook Biteship | Informasi pergerakan kurir dan nomor resi terhenti tanpa pembaruan otomatis. | Bangun route handler `/api/biteship/webhook` dengan validasi signature + endpoint simulasi kurir sandbox untuk demo Vercel. |
-| **Vercel Hobby Limits** | Dokumentasi menyebut Vercel Cron 5-menit, padahal `vercel.json` kosong | Vercel Hobby membatasi cron maksimal 1x/hari. Build gagal jika dipaksakan 5-menit. | Terapkan Lazy Expiry saat rute pesanan dibuka + GitHub Actions staging cron 15-menit. Hapus klaim cron 5-menit Vercel dari `GEMINI.md`. |
-| **Concurrency Test Flakiness** | `src/features/checkout/__tests__/concurrency.test.ts` gagal di Vitest | Kontensi varian produk yang sama dengan `order-security.test.ts`. | Isolasi pengujian persaingan stok dengan varian SKU uji mandiri. |
+| Komponen | Status Saat Ini | Dampak Risiko | Tindakan Remediasi Resmi | Status Audit |
+| :--- | :--- | :--- | :--- | :--- |
+| **Order Access Token** | Terintegrasi HttpOnly cookie & parameter URL aman | Mencegah pembajakan data sensitif pelanggan (IDOR/XSS). | Otorisasi terpusat via `tokenAkses` di seluruh mutasi, invoice, status, dan label thermal. | **Verified / Fixed** |
+| **Environment Resolver** | Modul `src/lib/environment/` aktif | Mencegah salah sasaran kredensial sandbox dan live. | Validasi skema Zod `APP_ENV`, Midtrans, Biteship, Resend secara deterministik. | **Verified / Fixed** |
+| **Voucher Quota Guard** | Kueri atomik bersyarat di `buat-pesanan.action.ts` | Mencegah overselling kuota voucher saat concurrent flash sale. | Compare-and-Set atomik `WHERE total_digunakan < kuota_penggunaan`. | **Verified / Fixed** |
+| **Webhook DB Transaction** | Transactional Outbox + Non-blocking job processing | Menghilangkan penahanan row lock akibat panggilan jaringan lambat. | Pindahkan pengiriman email dan pembuatan arsip faktur ke outbox idempoten. | **Verified / Fixed** |
+| **Fulfillment & Tracking** | Route handler `/api/biteship/webhook` & Timeline aktif | Pelacakan kurir terupdate secara otomatis tanpa delay. | Parsing status Biteship terhubung ke tabel `pelacakan_pengiriman` atomik. | **Verified / Fixed** |
+| **Vercel Hobby Limits** | Lazy check pada rute pesanan + GitHub Actions staging cron | Menjamin kepatuhan limit kuota cron Vercel Hobby. | Sinkronisasi pasif pesanan saat dibuka + scheduler GitHub Actions 15 menit. | **Verified / Fixed** |
+| **Concurrency Tests** | Suite pengujian Vitest `concurrency.test.ts` terisolasi | Memastikan pencegahan overselling 100% tervalidasi. | SKU uji mandiri tanpa kontensi varian lain di database. | **Verified / Fixed** |
+| **Virtual Account Gateway** | Nomor VA sintetis dihapus dari `InAppPaymentViewer` | Menghilangkan instruksi transfer palsu yang menyesatkan pelanggan. | Hanya menampilkan nomor VA resmi Midtrans atau tombol pembuka Snap dialog. | **Verified / Fixed (Phase 1A)** |
+| **Arsip Faktur & Pajak** | Identitas penerbit VOID SUPPLY STUDIO, PPN 0% (Non-PKP) | Mencegah klaim legal dan perpajakan fiktif tanpa entitas PT/NPWP. | Perhitungan pajak jujur dan pencatatan snapshot faktur via transactional outbox. | **Verified / Fixed (Phase 1A)** |
+| **Form Kontak Toko** | Terhubung ke basis data riil via tabel `pesan_kontak` | Menghilangkan false success 800ms tanpa backend riil. | Server Action `kirimPesanKontakAction` dengan Zod validation & audit timestamp. | **Verified / Fixed (Phase 1A)** |
+| **State Machine Pesanan** | Guard transisi status `dikirim -> selesai` dengan bukti resi | Mencegah penyelesaian pesanan palsu sebelum paket dikirimkan kurir. | Validasi ketat nomor resi dan pelarangan mutasi dari status `diproses` ke `selesai`. | **Verified / Fixed (Phase 1A)** |
+| **Polling Status Pesanan** | Recursive timeout dengan backoff bertahap (3s, 5s, 10s) | Mencegah request overlap, race condition, dan beban server berlebih. | Penguncian in-flight request, AbortController, dan pembatalan segera pasca-bayar. | **Verified / Fixed (Phase 1A)** |
 
 ---
 

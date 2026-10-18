@@ -181,8 +181,14 @@ export interface HasilCekStatusMidtrans {
  * - UNPAID_TERMINAL: Transaksi pasti belum dibayar & final (expire, cancel, deny, failure, atau 404 pada batas waktu)
  * - UNKNOWN: Gateway unreachable / 5xx / timeout (tidak boleh batalkan order / release stok otomatis)
  */
+export interface OpsiCekStatusMidtrans {
+  waktuDibuat?: Date;
+  apakahBatasWaktuHabis?: boolean;
+}
+
 export async function cekStatusTransaksiMidtrans(
-  nomorPesanan: string
+  nomorPesanan: string,
+  opsi?: OpsiCekStatusMidtrans
 ): Promise<HasilCekStatusMidtrans> {
   // Flag simulasi mock lokal
   if (serverKey.includes("xxxxxxxxxxxx") || serverKey.startsWith("SB-Mid-server-demo")) {
@@ -220,12 +226,33 @@ export async function cekStatusTransaksiMidtrans(
     });
 
     if (res.status === 404) {
-      // 404 Not Found di Midtrans berarti transaksi tidak pernah terdaftar atau sudah dibersihkan gateway
+      // 404 Not Found di Midtrans:
+      // Evaluasi apakah pesanan masih berada pada rentang waktu aktif Snap (< 15 menit)
+      const umurMenit = opsi?.waktuDibuat
+        ? (Date.now() - opsi.waktuDibuat.getTime()) / (1000 * 60)
+        : null;
+
+      const masihPeriodeAktif =
+        opsi?.apakahBatasWaktuHabis === false ||
+        (umurMenit !== null && umurMenit < 15);
+
+      if (masihPeriodeAktif) {
+        // Transaksi kemungkinan baru dibuat, sedang timeout jaringan, atau belum terindeks.
+        // DILARANG mengklasifikasikan sebagai terminal agar stok reservasi tidak dilepas prematur.
+        return {
+          ditemukan: false,
+          state: "UNKNOWN",
+          apakahSudahDibayar: false,
+          pesan: "Transaksi belum terdaftar di gateway (404) pada fase aktif. Status pembayaran belum dapat dipastikan.",
+        };
+      }
+
+      // Transaksi sudah melewati batas kedaluwarsa 15 menit dan tetap 404 -> Aman diklasifikasikan sebagai UNPAID_TERMINAL
       return {
         ditemukan: false,
         state: "UNPAID_TERMINAL",
         apakahSudahDibayar: false,
-        pesan: "Transaksi tidak ditemukan di gateway (404).",
+        pesan: "Transaksi tidak ditemukan di gateway setelah batas waktu (404).",
       };
     }
 

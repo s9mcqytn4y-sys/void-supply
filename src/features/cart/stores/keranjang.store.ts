@@ -153,6 +153,7 @@ export const useKeranjangStore = create<KeranjangState>()(
             warna: item.warna,
             hargaTampilanIdr: item.hargaServerIdr, // Selalu gunakan harga resmi dari server
             jumlah: item.jumlahDisetujui,
+            beratGram: item.beratGram,
             statusKetersediaan: item.status,
             stokTersediaServer: item.stokAktual,
           }));

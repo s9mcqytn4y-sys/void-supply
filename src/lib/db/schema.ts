@@ -437,6 +437,19 @@ export const outboxPekerjaan = pgTable("outbox_pekerjaan", {
   diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
 });
 
+// 17. Tabel Pesan Kontak Studio (Komunikasi Pelanggan & Anti-Slop R-26)
+export const pesanKontak = pgTable("pesan_kontak", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  nama: varchar("nama", { length: 150 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  subjek: varchar("subjek", { length: 255 }),
+  pesan: text("pesan").notNull(),
+  status: varchar("status", { length: 50 }).default("baru").notNull(),
+  ipPengirim: varchar("ip_pengirim", { length: 100 }),
+  dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
+  diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
+});
+
 // Konfigurasi Relasi Drizzle ORM
 export const pelangganRelasi = relations(pelanggan, ({ many, one }) => ({
   pesanan: many(pesanan),
