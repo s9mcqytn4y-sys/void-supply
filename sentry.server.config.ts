@@ -1,7 +1,3 @@
-// This file configures the initialization of Sentry on the server.
-// The config you add here will be used whenever the server handles a request.
-// https://docs.sentry.io/platforms/javascript/guides/nextjs/
-
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
@@ -11,12 +7,30 @@ Sentry.init({
 
   environment: process.env.APP_ENV || process.env.NODE_ENV || "development",
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.2 : 1.0,
+  // Free Tier Budget Guard: 5% sampling in production
+  tracesSampleRate: process.env.NODE_ENV === "production" ? 0.05 : 1.0,
+
+  // Sanitasi data sensitif sebelum dikirim ke server Sentry
+  beforeSend(event) {
+    if (event.request?.headers) {
+      delete event.request.headers["cookie"];
+      delete event.request.headers["authorization"];
+    }
+
+    if (event.request?.data && typeof event.request.data === "object") {
+      const payload = { ...event.request.data } as Record<string, unknown>;
+      for (const key of Object.keys(payload)) {
+        if (/password|kataSandi|token|secret|kunci|cvv/i.test(key)) {
+          payload[key] = "[TERLINDUNGI]";
+        }
+      }
+      event.request.data = payload;
+    }
+
+    return event;
+  },
 
   dataCollection: {
-    // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
-    // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#dataCollection
     // userInfo: false,
     // httpBodies: [],
   },

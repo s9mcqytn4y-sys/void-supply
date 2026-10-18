@@ -28,21 +28,32 @@ async function seed() {
   console.log("--- Memulai Seeding Database VOID Supply (Atomic Transaction Mode) ---");
 
   await db.transaction(async (tx) => {
-    // 1. Bersihkan Data Lama
-    await tx.delete(schema.produkKeKoleksi);
-    await tx.delete(schema.itemPesanan);
-    await tx.delete(schema.pembayaran);
-    await tx.delete(schema.pengiriman);
-    await tx.delete(schema.pesanan);
-    await tx.delete(schema.pelanggan);
-    await tx.delete(schema.varianProduk);
-    await tx.delete(schema.produk);
-    await tx.delete(schema.koleksi);
-    await tx.delete(schema.kategori);
+    const isForceReset = process.env.SEED_FORCE_RESET === "true";
 
-    console.log("✓ Data lama berhasil dibersihkan dalam transaksi atomik");
+    if (isForceReset) {
+      console.log("⚠️ Mode SEED_FORCE_RESET aktif: Membersihkan tabel transaksi dan data pelanggan...");
+      await tx.delete(schema.produkKeKoleksi);
+      await tx.delete(schema.itemPesanan);
+      await tx.delete(schema.pembayaran);
+      await tx.delete(schema.pengiriman);
+      await tx.delete(schema.pesanan);
+      await tx.delete(schema.pelanggan);
+      await tx.delete(schema.varianProduk);
+      await tx.delete(schema.produk);
+      await tx.delete(schema.koleksi);
+      await tx.delete(schema.kategori);
+      console.log("✓ Seluruh data lama berhasil dibersihkan dalam transaksi atomik");
+    } else {
+      console.log("🛡️ Mode Safe Seeding: Memperbarui katalog referensi tanpa menghapus data transaksi/pelanggan.");
+      await tx.delete(schema.produkKeKoleksi);
+      await tx.delete(schema.varianProduk);
+      await tx.delete(schema.produk);
+      await tx.delete(schema.koleksi);
+      await tx.delete(schema.kategori);
+      console.log("✓ Data katalog referensi disiapkan untuk pembaruan");
+    }
 
-    // 1.1 Seeding Profil Pelanggan (Persona Rian The Trendsetter)
+    // 1.1 Seeding Profil Pelanggan Demo (Persona Rian The Trendsetter)
     const [pelangganRian] = await tx
       .insert(schema.pelanggan)
       .values({
@@ -54,9 +65,14 @@ async function seed() {
         provinsiDefault: "DKI Jakarta",
         kodePosDefault: "12730",
       })
+      .onConflictDoNothing({ target: schema.pelanggan.email })
       .returning();
 
-    console.log(`✓ Profil pelanggan seed (${pelangganRian.namaLengkap}) berhasil dibuat`);
+    if (pelangganRian) {
+      console.log(`✓ Profil pelanggan seed (${pelangganRian.namaLengkap}) berhasil didaftarkan`);
+    } else {
+      console.log("✓ Profil pelanggan seed sudah ada, melewati pembuatan duplikat");
+    }
 
     // 2. Seeding Kategori
     const [katOuterwear, katTshirt, katPants, katAccessories] = await tx

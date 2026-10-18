@@ -472,14 +472,14 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
    - Akses tanpa token valid menampilkan halaman penolakan resmi tanpa mengekspos PII nama, nomor telepon, dan alamat pembeli.
 
 2. **SEC-SIM-02 (Isolasi Terbatas Simulasi Kurir)**:
-   - Perbaikan bug kritis mass-update pada `simulasi-resi.action.ts`: klausul update kini menyertakan `and(eq(pesanan.id, pesananDb.id), or(...))` untuk menjamin hanya pesanan terkait yang terpengaruh.
+   - Perbaikan bug kritis mass-update pada `simulasi-resi.action.ts`: klausul update kini menyertakan `and(eq(pesanan.id, pesananDb.id), or(statusTerkait))` untuk menjamin hanya pesanan terkait yang terpengaruh.
    - Ditambahkan proteksi `tokenAkses` dan guardrail produksi fail-closed (`ALLOW_PAYMENT_MOCK !== "true"`).
 
 3. **SEC-DEMO-03 (Isolasi Lingkungan Demo vs Produksi)**:
    - `demo-simulator.action.ts` menerapkan guard fail-closed di lingkungan produksi untuk simulator pembayaran dan simulasi mutasi status logistik.
 
 4. **OPS-OUTBOX-04 (Transactional Outbox Lease Reaper & Email Check)**:
-   - `outbox.service.ts` dilengkapi mekanisme *Lease Reaper* otomatis yang memulihkan tugas berstatus 'diproses' yang tertahan lebih dari 5 menit akibat crash worker atau timeout serverless.
+   - `outbox.service.ts` dilengkapi mekanisme _Lease Reaper_ otomatis yang memulihkan tugas berstatus 'diproses' yang tertahan lebih dari 5 menit akibat crash worker atau timeout serverless.
    - Pengecekan hasil bisnis `hasilEmail.sukses` dipastikan agar kegagalan SMTP/Resend tercatat sebagai error untuk retry outbox.
 
 5. **ROUTE-KANONIKAL-05 (Konsolidasi Rute Pelacakan)**:
@@ -495,7 +495,149 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
 8. **TAILWIND-V4-08 (Zero IDE Warnings)**:
    - Seluruh arbitrary values kelas CSS diselaraskan dengan standar utilitas Tailwind v4 (`max-w-105` dan `max-w-70`).
 
+---
 
+## 16. Blueprint Arsitektur Fase 2: Autentikasi & Akun Pelanggan (Module 02.20)
+
+1. **Gate 0 Remediasi Keamanan Lingkungan Demo**:
+   - Rute `/demo/inbox` dikunci menggunakan otorisasi query key `?key=<kunci>` yang diverifikasi terhadap `DEMO_INBOX_KEY` atau `CRON_SECRET`. PII email disamarkan (`samarkanEmail`) dan kunci/token pada payload dibersihkan (`bersihkanPayloadAman`). Anonymous user tanpa kunci ditolak dengan HTTP 403.
+   - Skrip seeder `src/lib/db/seed.ts` dikonfigurasi non-destruktif secara default: penghapusan tabel transaksi dan pelanggan hanya dieksekusi jika `SEED_FORCE_RESET === "true"`. Pembaruan katalog rutin beroperasi dalam mode aman (safe upsert).
+
+2. **Skema Relasional Non-Destruktif & Adapter Better Auth (`auth.schema.ts`)**:
+   - Menambahkan kolom `penggunaId` (nullable, unik) pada tabel `pelanggan` untuk memetakan akun login ke profil transaksi secara 1:1 tanpa merusak integritas pesanan historis.
+   - Tabel inti Better Auth: `pengguna`, `sesiPengguna`, `akunAutentikasi`, `verifikasiAutentikasi`, dan `batasPermintaanAuth` (distributed rate limit di Neon PostgreSQL tanpa dependensi Redis eksternal).
+   - Tabel Customer Account & CRM: `alamatPelanggan` (buku alamat terstruktur Biteship), `preferensiPengguna` (preferensi ukuran, consent marketing/transaksional terpisah), `wishlist` (unik per pengguna + produk), `keranjangAkun` & `itemKeranjangAkun` (persistensi keranjang lintas perangkat), `aktivitasAkun` (audit trail login/keamanan), dan `klaimPesanan` (penautan order guest lama).
+
+3. **Alur Checkout Wajib Login & Email Terverifikasi**:
+   - Pengunjung bebas menjelajahi katalog dan mengisi keranjang melalui Zustand client store yang tersimpan di browser.
+   - Ketika pembeli memutuskan untuk menyelesaikan transaksi pada checkout, aplikasi mewajibkan proses masuk dan verifikasi alamat email.
+   - Server Action checkout membaca identitas pemesan langsung dari sesi server (`pengguna_id`), sehingga memitigasi potensi manipulasi data atau celah IDOR.
+
+4. **Hybrid Fail-Safe Provider**:
+   - Pengiriman email aktivasi akun dan reset kata sandi menggunakan Resend API ketika kredensial resmi aktif, dengan pengalihan otomatis ke Transactional Outbox dan In-App Dev Mailbox terproteksi saat mode demo dijalankan.
+
+---
+
+## 17. Migrasi Mesin Email Nodemailer, Outbox Delivery & Phase 2D Customer Account Center
+
+1. **Mesin Email Nodemailer & Kredensial Gmail SMTP**:
+   - Berkas `src/lib/services/email.service.ts` dimigrasikan untuk menggunakan transport SMTP `nodemailer` berotentikasi Google App Password (`GMAIL_USER` dan `GMAIL_APP_PASSWORD`), dengan pembersihan spasi otomatis pada App Password dan fallback aman ke transactional outbox.
+   - Peta email transaksional diperluas: `verifikasi_email`, `atur_ulang_password` (reset kata sandi), `notifikasi_keamanan` (perubahan kata sandi / pencabutan sesi), dan notifikasi pesanan (`konfirmasi_pesanan`, `pembayaran_berhasil`, `pesanan_dikirim`, `pesanan_dibatalkan`).
+   - Desain email HTML mengadopsi standar **Brutalist Dark Utilitarian** (`#09090b` canvas, `#141417` card, `#ffffff` high-contrast CTA button, monospace technical details, zero em dash).
+
+2. **Immediate Non-Blocking Outbox Delivery (`waitUntil`)**:
+   - Fungsi `tambahTugasOutboxLangsung` di `outbox.service.ts` memicu `waitUntil(prosesAntreanOutbox())` saat serverless request berakhir, memastikan pengiriman email instan ke SMTP Gmail tanpa menahan response HTTP pengguna ataupun memblokir thread.
+
+3. **Phase 2D: Customer Account Center (`/akun`)**:
+   - Layout & Proteksi Sesi: `src/app/(account)/akun/layout.tsx` mengamankan seluruh rute akun via `ambilSesiPengguna()`, mengalihkan tamu tak terotentikasi ke `/masuk?next=/akun`.
+   - Navigasi Akun (`NavigasiAkun.tsx`): Menampilkan sidebar desktop responsif dan horizontal scrollable tabs pada mobile dengan tap target `>= 44px` (`min-h-11`).
+   - Dasbor Ringkasan (`/akun`): Ringkasan metrik pesanan (menunggu pembayaran, diproses, dikirim, selesai), status verifikasi email, buku alamat utama, dan tautan langsung ke katalog.
+   - Riwayat Pesanan (`/akun/pesanan` & `DaftarPesananAkun.tsx`): Menampilkan seluruh pesanan terikat akun, status pengiriman, nomor resi kurir, dan pelacak status pembayaran.
+   - Klaim Pesanan Manual (`ModalKlaimPesanan.tsx` & `pesanan-akun.action.ts`): Memungkinkan pengguna mengklaim pesanan guest checkout lawas dengan memasukkan Nomor Pesanan dan Token Akses Faktur 122-bit.
+   - Buku Alamat Pengiriman (`/akun/alamat` & `BukuAlamatAkun.tsx`): CRUD alamat pengiriman dengan penanda status alamat utama, validasi Zod (`skemaAlamatPelanggan`), serta sinkronisasi Biteship.
+   - Pengaturan Profil (`/akun/profil` & `FormProfilAkun.tsx`): Manajemen nama akun dan preferensi ukuran favorit busana (S, M, L, XL, XXL).
+   - Pusat Keamanan Akun (`/akun/keamanan` & `PusatKeamananAkun.tsx`): Pembaruan kata sandi akun via Better Auth, inspeksi sesi perangkat aktif dengan indikator sesi saat ini, pencabutan sesi individual atau seluruh sesi perangkat lain, dan log audit keamanan.
+
+4. **Address Quick Switcher di Checkout (`FormulirPengiriman.tsx`)**:
+   - Bagi pengguna yang telah masuk dan memiliki buku alamat tersimpan, formulir checkout menyediakan quick switcher kartu alamat brutalist dengan lencana `[UTAMA]`. Mengklik kartu alamat secara otomatis mengisi nama, nomor telepon, alamat lengkap, kota, provinsi, dan kode pos ke dalam formulir pengiriman, menghemat waktu checkout secara signifikan.
+
+---
+
+## 18. Modularisasi Landing Page (`/`) & Standar Antarmuka Brutalist
+
+1. **Dekomposisi Slices Arsitektur (`src/features/landing/components/`)**:
+   - Halaman `src/app/page.tsx` didekomposisi dari berkas monolitik menjadi orchestrator ramping (<60 baris) dengan komponen modular:
+     - `HeroEditorial.tsx`: Split editorial streetwear, live status badge Drop 04, tipografi brutalist kontras tinggi, dan dual CTA button (`min-h-11`).
+     - `MarqueeTicker.tsx`: Pengumuman berjalan kontinu spesifikasi teknis garmen dengan pausing saat hover dan dukungan aksesibilitas `prefers-reduced-motion`.
+     - `SorotanKoleksiDrop.tsx`: Grid 4 artikel unggulan etalase dengan integrasi `KartuProduk` dan link dinamis ke katalog.
+     - `FiturUtamaMaterial.tsx`: Kampanye visual beton brutalis, kartu segel otentikasi VOID Archive Edition, dan inspeksi makro kerapatan kain 420 GSM loopback.
+     - `ManifestoBrand.tsx`: 3 pilar filosofi operasional (01 // GSM Nyata, 02 // Edisi Terbatas, 03 // Transparansi Ukuran Presisi).
+     - `NewsletterVIP.tsx`: Formulir langganan akses awal Drop 05 dengan validasi ramah pengguna, umpan balik sonner toast, dan nol teks em dash.
+
+2. **Kepatuhan Aksesibilitas WCAG AA & Anti-Slop Mode 1 (DURING)**:
+   - Seluruh elemen interaktif memiliki tap target minimal 44px (`min-h-11`).
+   - Kontras warna teks memenuhi rasio 4.5:1 untuk teks normal dan 3:1 untuk teks besar.
+   - Zero em dash (`—`) pada seluruh copywriting antarmuka, komentar kode, dan skema validasi.
+
+---
+
+## 19. Fase 3A: Admin & Operations Portal (Internal Control Center & Inventory Ledger)
+
+1. **Klarifikasi & Pemisahan Lingkungan (Environment Separation)**:
+   - **Local Development**: PostgreSQL 18 kluster lokal via `pg_ctl` (`localhost:5432/void_supply`), email mode outbox/console log, server lokal `localhost:3000`.
+   - **Staging Demo (Fokus Aktif)**: Database Neon Serverless PostgreSQL (`neon.tech`), email transaksional via Nodemailer & Google App Password Gmail SMTP (`abdulmusic543@gmail.com`), deployment di Vercel Free Plan + Sentry Free Plan observabilitas.
+   - **Production (Di Luar Scope Saat Ini)**: Standar web hosting Hostinger MySQL, email kustom domain, CI/CD pipeline langsung.
+
+2. **Server-Authoritative RBAC Guard (`auth-guard.ts`)**:
+   - Fungsi pengaman `verifikasiStafAdmin()` memvalidasi sesi terotentikasi server-side dan memeriksa kolom `peran` pada tabel `pengguna`.
+   - Hanya peran `"admin"` dan `"operator"` yang diizinkan mengakses rute `/admin/*` dan mengeksekusi Server Action administratif. Akun biasa (`peran: "pelanggan"`) ditolak secara fail-closed dengan respons `403 // AKSES DITOLAK`.
+
+3. **Buku Besar Inventaris Imutabel & Skema Audit (`admin.schema.ts`)**:
+   - `riwayat_mutasi_stok`: Buku besar mutasi stok imutabel (`restock`, `koreksi_fisik`, `retur`, `rusak`, `pesanan`). Mencatat kuantitas sebelum, perubahan kuantitas, kuantitas sesudah, nomor referensi PO/Order, dan identitas staf operator.
+   - `catatan_operasional_pesanan`: Catatan internal tim gudang/operasional per pesanan dengan klasifikasi urgensi (`normal`, `penting`, `kritis`).
+   - `audit_aktivitas_admin`: Log jejak audit kepatuhan setiap tindakan staf admin (mutasi manual, inquire gateway, pembatalan pesanan) beserta payload aman dan timestamp server.
+
+4. **Kompak 5 Primitif UI Brutalist (`src/features/admin/components/primitives/`)**:
+   - `BadgeStatusOperasional`: Lencana status kontras tinggi (emerald, amber, sky, violet, rose) dengan pulsating dot.
+   - `KartuMetrikBrutalis`: Kartu ringkasan metrik bernuansa monospace, tipografi tebal, dan label teknis.
+   - `FilterStatusTabs`: Komponen tab filter horizontal mobile-first dengan badge jumlah rekaman.
+   - `TabelDataAdmin`: Komponen tabel data monospace terstruktur dengan penanganan loading state dan empty state.
+   - `ModalAksiAdmin`: Modal dialog brutalist untuk konfirmasi tindakan berisiko (penyesuaian stok, pembatalan pesanan).
+
+5. **Fitur & Rute Operasional Admin**:
+   - `/admin`: Dasbor ringkasan metrik omzet, total pesanan, pesanan butuh aksi, dan deteksi SKU stok menipis.
+   - `/admin/pesanan`: Manajemen daftar pesanan dengan filter status, pencarian nomor pesanan, dan ringkasan pemenuhan.
+   - `/admin/pesanan/[nomorPesanan]`: Panel detail pesanan lengkap, sinkronisasi gateway Midtrans via Server Action `inquireMidtransStatusAction()`, pembatalan pesanan dengan pengembalian stok atomik Compare-and-Set, dan formulir penambahan catatan internal operasional.
+   - `/admin/inventaris`: Monitoring stok seluruh varian SKU, indikator peringatan stok kritis (`stok <= 5`), dan modal penyesuaian stok manual dengan penguncian atomik CAS.
+   - `/admin/inventaris/mutasi`: Rekam jejak audit buku besar mutasi stok imutabel.
+   - `/admin/aktivitas`: Jejak audit aktivitas staf dan gateway logging.
+
+6. **Kualitas & Verifikasi Rilis**:
+   - 104 pengujian unit Vitest lulus 100% (termasuk suite `admin-flow.test.ts`).
+   - 0 kesalahan linter ESLint (`npm run lint`).
+   - 0 galat tipe TypeScript (`npm run typecheck`).
+   - Kompilasi dan optimasi bundle produksi Next.js Turbopack (`npm run build`) berhasil sukses dengan seluruh rute admin bertipe dynamic on-demand (`ƒ`).
+
+---
+
+## 20. Fase 3B: Batch Fulfillment & Bulk Thermal Airwaybill (Resi & Invoice Modularization)
+
+1. **Modularisasi UI Primitif Pelanggan (`src/components/ui/`)**:
+   - `TombolBrutalis`: Tombol aksi berspesifikasi streetwear brutalis dengan 5 varian (`primer`, `sekunder`, `outline`, `bahaya`, `ghost`), status loading terintegrasi, dan tap target aman `min-h-11` (44px).
+   - `InputTeksBrutalis`: Formulir masukan teks dengan penanganan pesan galat Zod dan label kontras tinggi.
+   - `BadgeStatusStorefront`: Lencana semantik status transaksi pelanggan (`lunas`, `menunggu`, `diproses`, `dikirim`, `batal`).
+   - `ModalDialogBrutalis`: Dialog modal aksesibel dengan pendengar tombol ESC, backdrop blur, dan keyboard trap.
+
+2. **Modularisasi Dokumen Cetak Resi & Faktur**:
+   - `LabelThermalPengiriman` (`src/features/shipping/`): Label thermal standar logistik 100mm x 150mm dengan barcode Code128 SVG native, tipografi monospace kontras tinggi, dan aturan CSS `print:break-after-page` tanpa margin berlebih.
+   - `FakturTransaksi` (`src/features/checkout/`): Faktur elektronik resmi format A4 potret dengan stempel verifikasi elektronik, rincian biaya, dan integritas hash transaksi.
+   - Rute pelanggan `/pesanan/[nomorPesanan]/resi` dan `/pesanan/[nomorPesanan]/faktur` direfaktor menjadi komponen pembungkus ramping yang memanfaatkan komponen modular tersebut.
+
+3. **Mekanisme Batch Fulfillment & Penghematan Biaya Biteship**:
+   - Server Action `batchRequestPickupBiteshipAction`: Menerima daftar nomor pesanan dan mengeksekusi request pickup kurir secara sekuensial mandiri (*isolated per-order loop*).
+   - **Cost Guardrail (P0)**: Pesanan yang telah mengantongi `nomorResi` atau `biteshipOrderId` di database dilewati dari pemanggilan API Biteship ulang guna menghemat kuota biaya saldo API, namun tetap disertakan ke daftar sukses cetak resi.
+   - Pembaruan status pesanan atomik Compare-and-Set (`diproses` -> `dikirim`), pencatatan audit log `auditAktivitasAdmin`, pencatatan catatan operasional internal, serta penjadwalan email notifikasi resi otomatis ke `tugasOutbox`.
+
+4. **Client Island Tabel Pesanan Interaktif (`TabelPesananAdminClient.tsx`)**:
+   - Seleksi baris fleksibel berbasis `Set<string>` dengan kotak centang (checkbox) individual dan header "Pilih Semua".
+   - Bilah kendali mengambang brutalis (*Floating Bottom Action Bar*) yang aktif saat minimal 1 pesanan dipilih:
+     - Indikator jumlah pesanan terpilih.
+     - Tombol "REQUEST PICKUP BITESHIP (X)" (hanya aktif untuk pesanan berstatus `diproses`).
+     - Tombol "CETAK BULK RESI (Y)" (hanya aktif untuk pesanan yang telah memiliki nomor resi).
+     - Tombol batalkan seleksi.
+   - Modal Rekapitulasi Hasil Batch: Menampilkan metrik total sukses vs gagal, rincian resi baru yang terbit, rincian pesan kesalahan pesanan gagal, dan tombol langsung "CETAK RESI SUKSES" yang membuka tab cetak bulk resi.
+
+5. **Rute Cetak Bulk Resi Thermal Kontinu (`/admin/pesanan/batch-resi`)**:
+   - Rute Server Component dinamis yang memverifikasi autentikasi staf via `verifikasiStafAdmin()`.
+   - Mengambil data seluruh pesanan terkait dalam satu batch query relasional.
+   - Menampilkan bilah kendali atas (`BilahKendaliCetakBulk`) dengan tombol "CETAK SEMUA" (`window.print()`) yang otomatis disembunyikan saat dialog cetak peramban aktif via `@media print`.
+   - Menghasilkan rangkaian stiker label thermal 100x150mm kontinu menggunakan komponen `LabelThermalPengiriman` dengan jeda halaman fisik otomatis (`print:break-after-page`).
+
+6. **Kualitas & Verifikasi Rilis**:
+   - 107 pengujian unit Vitest lulus 100% (termasuk 3 pengujian baru pada `batch-fulfillment.test.ts`).
+   - 0 kesalahan linter ESLint (`npm run lint`).
+   - 0 galat tipe TypeScript (`npm run typecheck`).
+   - Next.js Turbopack production build (`npm run build`) berhasil sukses dengan 28 halaman statis dan rute dinamis baru `/admin/pesanan/batch-resi`.
 
 
 

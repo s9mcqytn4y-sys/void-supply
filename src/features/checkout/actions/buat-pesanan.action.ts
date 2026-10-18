@@ -18,6 +18,7 @@ import { buatTransaksiMidtrans } from "@/lib/services/midtrans.service";
 import { hitungOngkirBiteship } from "@/lib/services/biteship.service";
 import { kirimEmailNotifikasi } from "@/lib/services/email.service";
 import { gabungkanNiatItem } from "@/features/cart";
+import { ambilSesiPengguna } from "@/lib/auth/session";
 
 function hitungHashPayload(data: FormulirCheckout): string {
   const sortedItems = [...data.items]
@@ -273,6 +274,10 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
     const acak = crypto.randomBytes(4).toString("hex").toUpperCase();
     const nomorPesanan = `VOID-${tanggalFormat}-${acak}`;
 
+    // Ambil identitas sesi server-authoritative jika ada pengguna yang masuk
+    const sesiPengguna = await ambilSesiPengguna();
+    const penggunaId = sesiPengguna?.pengguna?.id || null;
+
     // 7. FASE 1: Mutasi Basis Data Atomik Cepat
     let pesananId = "";
     let tokenAksesPesanan = "";
@@ -299,20 +304,39 @@ export async function buatPesanan(input: FormulirCheckout): Promise<HasilBuatPes
         }
       }
 
-      // 7b. Simpan atau perbarui profil pelanggan
+      // 7b. Simpan atau perbarui profil pelanggan (Server-authoritative binding penggunaId)
       let pelangganId: string | undefined;
       const [pelangganEksis] = await tx
-        .select({ id: pelanggan.id })
+        .select({ id: pelanggan.id, penggunaId: pelanggan.penggunaId })
         .from(pelanggan)
         .where(eq(pelanggan.email, data.email))
         .limit(1);
 
       if (pelangganEksis) {
         pelangganId = pelangganEksis.id;
+        const updatePayload: Record<string, unknown> = {
+          diperbaruiPada: new Date(),
+        };
+        if (penggunaId && !pelangganEksis.penggunaId) {
+          updatePayload.penggunaId = penggunaId;
+        }
+        if (data.simpanAlamatSebagaiDefault) {
+          updatePayload.namaLengkap = data.namaLengkap;
+          updatePayload.telepon = data.telepon;
+          updatePayload.alamatDefault = data.alamatLengkap;
+          updatePayload.kotaDefault = data.kota;
+          updatePayload.provinsiDefault = data.provinsi;
+          updatePayload.kodePosDefault = data.kodePos;
+        }
+        await tx
+          .update(pelanggan)
+          .set(updatePayload)
+          .where(eq(pelanggan.id, pelangganEksis.id));
       } else {
         const [pelangganBaru] = await tx
           .insert(pelanggan)
           .values({
+            penggunaId,
             namaLengkap: data.namaLengkap,
             email: data.email,
             telepon: data.telepon,

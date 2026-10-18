@@ -50,6 +50,10 @@ export const tipeEmailEnum = pgEnum("tipe_email", [
   "pembayaran_berhasil",
   "resi_pengiriman",
   "pesanan_batal",
+  "verifikasi_email",
+  "lupa_password",
+  "perubahan_keamanan",
+  "notifikasi_akun",
 ]);
 
 export const statusLogEmailEnum = pgEnum("status_log_email", [
@@ -69,6 +73,7 @@ export const statusOutboxEnum = pgEnum("status_outbox", [
 // 1. Tabel Pelanggan (Customer Profile & Buyer Entity)
 export const pelanggan = pgTable("pelanggan", {
   id: uuid("id").defaultRandom().primaryKey(),
+  penggunaId: text("pengguna_id").unique(),
   namaLengkap: varchar("nama_lengkap", { length: 150 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   telepon: varchar("telepon", { length: 30 }),
@@ -552,3 +557,5 @@ export const outboxPekerjaanRelasi = relations(outboxPekerjaan, ({ one }) => ({
     references: [pesanan.id],
   }),
 }));
+
+export * from "./auth.schema";

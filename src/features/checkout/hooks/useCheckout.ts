@@ -12,6 +12,7 @@ import {
 } from "@/features/checkout/actions/voucher.action";
 import { toast } from "sonner";
 import type { OpsiKurir } from "@/lib/services/biteship.service";
+import { authClient } from "@/lib/auth/auth-client";
 
 export interface DataFormulirCheckout {
   namaLengkap: string;
@@ -31,6 +32,8 @@ export function useCheckout() {
   const terapkanHasilRekonsiliasi = useKeranjangStore(
     (state) => state.terapkanHasilRekonsiliasi
   );
+
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
 
   const [isPending, startTransition] = useTransition();
   const [sedangMemuat, setSedangMemuat] = useState(true);
@@ -63,6 +66,14 @@ export function useCheckout() {
     }
   }, []);
 
+  // Alur Autentikasi Checkout: Redirect ke /masuk?next=/checkout jika belum masuk
+  useEffect(() => {
+    if (!sessionLoading && !session && items.length > 0) {
+      toast.info("Silakan masuk atau daftarkan akun untuk menyelesaikan checkout.");
+      router.replace("/masuk?next=/checkout");
+    }
+  }, [sessionLoading, session, items.length, router]);
+
   const [formData, setFormData] = useState<DataFormulirCheckout>({
     namaLengkap: "",
     email: "",
@@ -73,6 +84,17 @@ export function useCheckout() {
     kodePos: "",
     catatan: "",
   });
+
+  // Pre-fill identitas pembeli dari sesi akun yang terotentikasi
+  useEffect(() => {
+    if (session?.user) {
+      setFormData((prev) => ({
+        ...prev,
+        namaLengkap: prev.namaLengkap || session.user.name || "",
+        email: prev.email || session.user.email || "",
+      }));
+    }
+  }, [session]);
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
@@ -368,6 +390,8 @@ export function useCheckout() {
   }
 
   return {
+    session,
+    sessionLoading,
     items,
     isPending,
     sedangMemuat,

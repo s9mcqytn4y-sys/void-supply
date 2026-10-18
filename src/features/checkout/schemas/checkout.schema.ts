@@ -21,6 +21,7 @@ export const formulirCheckoutSkema = z.object({
     .length(5, "Kode pos harus terdiri dari 5 digit angka")
     .regex(/^[0-9]+$/, "Kode pos harus berupa angka"),
   catatan: z.string().max(250, "Catatan maksimal 250 karakter").optional(),
+  simpanAlamatSebagaiDefault: z.boolean().optional(),
   idempotensiKey: z.string().max(64, "Kunci idempotensi maksimal 64 karakter").optional(),
   kodeKurir: z.string().min(2, "Pilihan kurir wajib dipilih"),
   layananKurir: z.string().min(2, "Layanan kurir wajib dipilih"),
@@ -32,3 +33,27 @@ export const formulirCheckoutSkema = z.object({
 });
 
 export type FormulirCheckout = z.infer<typeof formulirCheckoutSkema>;
+
+/**
+ * Sub-skema Form Pengiriman untuk validasi input alamat React Hook Form
+ */
+export const skemaDataPengiriman = z.object({
+  namaLengkap: z.string().min(3, "Nama lengkap minimal 3 karakter"),
+  email: z.string().email("Format email tidak valid"),
+  telepon: z
+    .string()
+    .min(10, "Nomor telepon minimal 10 digit")
+    .max(15, "Nomor telepon maksimal 15 digit")
+    .regex(/^[0-9+]+$/, "Nomor telepon hanya boleh memuat angka dan tanda +"),
+  alamatLengkap: z.string().min(10, "Alamat pengiriman minimal 10 karakter"),
+  kota: z.string().min(2, "Nama kota/kabupaten wajib diisi"),
+  provinsi: z.string().min(2, "Nama provinsi wajib diisi"),
+  kodePos: z
+    .string()
+    .length(5, "Kode pos harus terdiri dari 5 digit angka")
+    .regex(/^[0-9]+$/, "Kode pos harus berupa angka"),
+  catatan: z.string().max(250, "Catatan maksimal 250 karakter").optional(),
+  simpanAlamatSebagaiDefault: z.boolean().optional(),
+});
+
+export type DataPengirimanForm = z.infer<typeof skemaDataPengiriman>;

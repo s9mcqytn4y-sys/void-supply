@@ -53,6 +53,30 @@ export async function tambahTugasOutbox(
 }
 
 /**
+ * Sisipkan Tugas Outbox secara Mandiri (Non-Transaksi) dan Langsung Picu Eksekusi Background
+ */
+export async function tambahTugasOutboxLangsung(
+  params: ParameterTambahOutbox
+) {
+  const [tugas] = await db
+    .insert(outboxPekerjaan)
+    .values({
+      tipePekerjaan: params.tipePekerjaan,
+      pesananId: params.pesananId || null,
+      payload: params.payload,
+      status: "antre",
+      percobaan: 0,
+      maksimalPercobaan: params.maksimalPercobaan || 5,
+    })
+    .returning({ id: outboxPekerjaan.id });
+
+  // Segera picu pemrosesan outbox di latar belakang (non-blocking)
+  picuProsesOutboxNonBlocking();
+
+  return tugas;
+}
+
+/**
  * Eksekutor Antrean Transactional Outbox (P0 Resiliensi Serverless)
  * Mengambil tugas berstatus 'antre' atau 'gagal' (yang masih memiliki kuota percobaan),
  * memproses secara idempoten, dan mencatat status penyelesaian.

@@ -14,7 +14,64 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function HalamanDemoInbox() {
+interface PropsHalamanDemoInbox {
+  searchParams: Promise<{ key?: string }>;
+}
+
+function samarkanEmail(email: string): string {
+  if (!email || !email.includes("@")) return "***";
+  const [local, domain] = email.split("@");
+  if (local.length <= 2) return `${local[0]}***@${domain}`;
+  return `${local.slice(0, 2)}***${local.slice(-1)}@${domain}`;
+}
+
+function bersihkanPayloadAman(payload: unknown): unknown {
+  if (!payload || typeof payload !== "object") return payload;
+  try {
+    const jsonStr = JSON.stringify(payload);
+    const sanitized = jsonStr.replace(
+      /"(token|password|kataSandi|secret|kunci|authorization)":\s*"[^"]+"/gi,
+      '"$1": "[TERLINDUNGI/REDACTED]"'
+    );
+    return JSON.parse(sanitized);
+  } catch {
+    return { status: "Payload terproteksi" };
+  }
+}
+
+export default async function HalamanDemoInbox({ searchParams }: PropsHalamanDemoInbox) {
+  const { key } = await searchParams;
+  const isProduction = process.env.NODE_ENV === "production" && process.env.APP_ENV === "production";
+  const expectedKey = process.env.DEMO_INBOX_KEY || process.env.CRON_SECRET || "void-operator-key";
+  const isAuthorized = Boolean(key && key === expectedKey);
+
+  // Hard Gate (SEC-GATE-0): Di lingkungan produksi publik, wajib menyertakan kunci otorisasi operator
+  if (isProduction && !isAuthorized) {
+    return (
+      <main className="mx-auto min-h-[70vh] max-w-xl px-4 py-20 text-center font-mono sm:px-6">
+        <div className="border border-neutral-800 bg-neutral-950 p-8">
+          <span className="text-xs font-bold text-rose-400 uppercase">
+            AKSES TERBATAS // OPERATOR SAJA
+          </span>
+          <h1 className="mt-2 text-xl font-black text-white uppercase">
+            OTORISASI OPERATOR DIPERLUKAN
+          </h1>
+          <p className="mt-4 text-xs text-neutral-400 leading-relaxed">
+            Halaman inspeksi antrean outbox dan log email transaksi diproteksi di lingkungan produksi.
+            Silakan akses dengan menyertakan parameter token operator yang sah.
+          </p>
+          <div className="mt-6">
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center justify-center border border-white bg-white px-6 text-xs font-bold text-black uppercase hover:bg-neutral-200"
+            >
+              KEMBALI KE BERANDA
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
   const daftarLogEmail = await db
     .select()
     .from(logEmail)
