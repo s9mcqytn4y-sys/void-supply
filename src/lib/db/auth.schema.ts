@@ -4,6 +4,7 @@ import {
   varchar,
   text,
   integer,
+  bigint,
   timestamp,
   boolean,
   jsonb,
@@ -98,7 +99,7 @@ export const batasPermintaanAuth = pgTable(
     id: text("id").primaryKey(),
     key: text("key").notNull().unique(),
     count: integer("count").default(0).notNull(),
-    lastRequest: timestamp("last_request", { withTimezone: true }).defaultNow().notNull(),
+    lastRequest: bigint("last_request", { mode: "number" }).notNull(),
   },
   (tabel) => [
     uniqueIndex("uq_rate_limit_key").on(tabel.key),
