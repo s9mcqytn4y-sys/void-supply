@@ -268,7 +268,7 @@ export async function ambilRiwayatMutasiStokAction(filter?: {
       kuantitasSesudah: r.kuantitasSesudah,
       nomorReferensi: r.nomorReferensi,
       catatan: r.catatan,
-      dibuatPada: r.dibuatPada.toISOString(),
+      dibuatPada: new Date(r.dibuatPada).toISOString(),
     }));
 
     return { sukses: true, mutasi: hasil };

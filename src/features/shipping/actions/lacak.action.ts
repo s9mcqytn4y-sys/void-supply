@@ -122,7 +122,7 @@ export async function lacakPengirimanPublikAction(
       statusPelacakan: r.statusPelacakan,
       keterangan: r.keterangan || "Pembaruan logistik pesanan.",
       lokasi: r.lokasi || null,
-      waktuPeristiwa: r.waktuPeristiwa ? r.waktuPeristiwa.toISOString() : new Date().toISOString(),
+      waktuPeristiwa: r.waktuPeristiwa ? new Date(r.waktuPeristiwa).toISOString() : new Date().toISOString(),
     }));
 
     // 3. Jika nomor resi valid dan bukan simulasi, coba ambil update live dari Biteship API
@@ -215,7 +215,7 @@ export async function lacakPengirimanPublikAction(
           | "dibatalkan",
         namaPenerimaMasked: sensorNama(dataPengirimanTarget?.namaPenerima || pesananTarget.namaPelanggan),
         kotaTujuan: dataPengirimanTarget?.kota || "DKI Jakarta",
-        dibuatPada: pesananTarget.dibuatPada.toISOString(),
+        dibuatPada: new Date(pesananTarget.dibuatPada).toISOString(),
         totalItem,
         linkTrackingResmi,
         pelacakan: detailPelacakan,

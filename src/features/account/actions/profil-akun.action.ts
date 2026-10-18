@@ -66,7 +66,7 @@ export async function ambilProfilAkunAction(): Promise<{
       emailVerified: dataUser.emailVerified,
       peran: dataUser.peran,
       gambar: dataUser.image,
-      dibuatPada: dataUser.createdAt.toISOString(),
+      dibuatPada: new Date(dataUser.createdAt).toISOString(),
       preferensi: pref
         ? {
             ukuranFavorit: pref.ukuranFavorit,

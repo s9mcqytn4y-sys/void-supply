@@ -139,8 +139,8 @@ export async function ambilDaftarSesiAction(): Promise<{
       id: r.id,
       ipAddress: r.ipAddress,
       userAgent: r.userAgent,
-      dibuatPada: r.createdAt.toISOString(),
-      kedaluwarsaPada: r.expiresAt.toISOString(),
+      dibuatPada: new Date(r.createdAt).toISOString(),
+      kedaluwarsaPada: new Date(r.expiresAt).toISOString(),
       apakahSesiIni: r.token === sesiAktif.sesi.token,
     }));
 
@@ -253,7 +253,7 @@ export async function ambilLogKeamananAction(): Promise<{
     const hasil: LogKeamananItem[] = rows.map((r) => ({
       id: r.id,
       jenis: r.jenis,
-      waktu: r.waktu.toISOString(),
+      waktu: new Date(r.waktu).toISOString(),
       ipAddress: r.ipAddress,
       userAgent: r.userAgent,
       metadataAman: r.metadataAman as Record<string, unknown> | null,

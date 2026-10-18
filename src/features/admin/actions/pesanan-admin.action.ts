@@ -165,7 +165,7 @@ export async function ambilDaftarPesananAdminAction(filter?: {
       kurir: r.kurir,
       layanan: r.layanan,
       nomorResi: r.nomorResi,
-      dibuatPada: r.dibuatPada.toISOString(),
+      dibuatPada: new Date(r.dibuatPada).toISOString(),
       jumlahItem: Number(r.jumlahItem || 0),
     }));
 
@@ -245,7 +245,7 @@ export async function ambilDetailPesananAdminAction(
           totalDiskon: dataPesanan.totalDiskon,
           totalAkhir: dataPesanan.totalAkhir,
           catatan: dataPesanan.catatan,
-          dibuatPada: dataPesanan.dibuatPada.toISOString(),
+          dibuatPada: new Date(dataPesanan.dibuatPada).toISOString(),
         },
         pembayaran: dataPembayaran
           ? {
@@ -254,7 +254,7 @@ export async function ambilDetailPesananAdminAction(
               metodePembayaran: dataPembayaran.metodePembayaran,
               jumlahBayar: dataPembayaran.jumlahBayar,
               dibayarPada: dataPembayaran.dibayarPada
-                ? dataPembayaran.dibayarPada.toISOString()
+                ? new Date(dataPembayaran.dibayarPada).toISOString()
                 : null,
               snapToken: dataPembayaran.snapToken,
             }
@@ -287,7 +287,7 @@ export async function ambilDetailPesananAdminAction(
           adminNama: "Staf Operasional",
           isiCatatan: c.isiCatatan,
           tingkatUrgensi: c.tingkatUrgensi,
-          dibuatPada: c.dibuatPada.toISOString(),
+          dibuatPada: new Date(c.dibuatPada).toISOString(),
         })),
       },
     };

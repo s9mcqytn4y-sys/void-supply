@@ -97,7 +97,7 @@ export async function ambilStatistikDasborAction(): Promise<{
           totalAkhir: p.totalAkhir,
           statusPesanan: p.statusPesanan,
           kurir: p.kurir,
-          dibuatPada: p.dibuatPada.toISOString(),
+          dibuatPada: new Date(p.dibuatPada).toISOString(),
         })),
         stokKritis: varianMenipis,
       },

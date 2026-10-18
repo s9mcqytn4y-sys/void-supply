@@ -69,8 +69,8 @@ export async function konfirmasiPesananDiterimaAction(
       return {
         sukses: true,
         pesan: "Pesanan telah dikonfirmasi diterima sebelumnya.",
-        diterimaPada: pesananEksis.diterimaPada?.toISOString(),
-        garansiBerakhirPada: pesananEksis.garansiBerakhirPada?.toISOString(),
+        diterimaPada: pesananEksis.diterimaPada ? new Date(pesananEksis.diterimaPada).toISOString() : undefined,
+        garansiBerakhirPada: pesananEksis.garansiBerakhirPada ? new Date(pesananEksis.garansiBerakhirPada).toISOString() : undefined,
       };
     }
 
@@ -136,8 +136,8 @@ export async function konfirmasiPesananDiterimaAction(
     return {
       sukses: true,
       pesan: "Terima kasih! Pesanan telah selesai. Masa garansi produk aktif selama 2x24 jam.",
-      diterimaPada: pesananDiperbarui.diterimaPada?.toISOString(),
-      garansiBerakhirPada: pesananDiperbarui.garansiBerakhirPada?.toISOString(),
+      diterimaPada: pesananDiperbarui.diterimaPada ? new Date(pesananDiperbarui.diterimaPada).toISOString() : undefined,
+      garansiBerakhirPada: pesananDiperbarui.garansiBerakhirPada ? new Date(pesananDiperbarui.garansiBerakhirPada).toISOString() : undefined,
     };
   } catch (error) {
     console.error("Gagal mengeksekusi konfirmasi penerimaan pesanan:", error);

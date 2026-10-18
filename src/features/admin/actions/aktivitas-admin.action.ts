@@ -55,7 +55,7 @@ export async function ambilDaftarAktivitasAdminAction(): Promise<{
       targetId: r.targetId,
       ipAddress: r.ipAddress,
       payloadAman: (r.payloadAman as Record<string, unknown>) || null,
-      dibuatPada: r.dibuatPada.toISOString(),
+      dibuatPada: new Date(r.dibuatPada).toISOString(),
     }));
 
     return { sukses: true, log: hasil };

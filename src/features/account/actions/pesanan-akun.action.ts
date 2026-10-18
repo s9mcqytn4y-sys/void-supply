@@ -146,7 +146,7 @@ export async function ambilDaftarPesananAkunAction(): Promise<{
       statusPesanan: r.statusPesanan,
       statusPembayaran: r.statusPembayaran ?? "menunggu_pembayaran",
       tokenAkses: r.tokenAkses,
-      dibuatPada: r.dibuatPada.toISOString(),
+      dibuatPada: new Date(r.dibuatPada).toISOString(),
       kurir: r.kurir,
       layanan: r.layanan,
       nomorResi: r.nomorResi,

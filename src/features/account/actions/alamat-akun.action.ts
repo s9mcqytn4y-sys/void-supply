@@ -57,7 +57,7 @@ export async function ambilBukuAlamatAction(): Promise<{
       kodePos: r.kodePos,
       apakahUtama: r.apakahUtama,
       catatanKurir: r.catatanKurir,
-      dibuatPada: r.dibuatPada.toISOString(),
+      dibuatPada: new Date(r.dibuatPada).toISOString(),
     }));
 
     return { sukses: true, alamat: hasil };

@@ -118,7 +118,7 @@ export default async function HalamanFaktur({
 
   const nomorFaktur =
     fakturDb?.nomorFaktur ||
-    `INV/${pesananDb.dibuatPada.toISOString().slice(0, 10).replace(/-/g, "")}/${pesananDb.nomorPesanan.slice(-5)}`;
+    `INV/${new Date(pesananDb.dibuatPada).toISOString().slice(0, 10).replace(/-/g, "")}/${pesananDb.nomorPesanan.slice(-5)}`;
 
   // Ambil arsip faktur legal snapshot (Murni read-only, tanpa mutasi efek samping pada request GET)
   const arsipFakturDb = fakturDb
