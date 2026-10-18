@@ -31,6 +31,7 @@ export const catalogService = {
           stok: v.stok,
           beratGram: v.beratGram,
           harga: v.harga,
+          gambar: v.gambar,
         })),
       };
     });
@@ -62,6 +63,7 @@ export const catalogService = {
         stok: v.stok,
         beratGram: v.beratGram,
         harga: v.harga,
+        gambar: v.gambar,
       })),
     };
   },

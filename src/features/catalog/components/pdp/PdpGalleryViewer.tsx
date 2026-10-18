@@ -7,18 +7,27 @@ export interface PdpGalleryViewerProps {
   namaProduk: string;
   gambarUtama: string;
   galeriGambar: readonly string[];
+  gambarVarianKustom?: string | null;
 }
 
 export function PdpGalleryViewer({
   namaProduk,
   gambarUtama,
   galeriGambar,
+  gambarVarianKustom,
 }: PdpGalleryViewerProps) {
-  const daftarGambar = Array.from(new Set([gambarUtama, ...galeriGambar])).filter(Boolean);
+  const gambarBasis = gambarVarianKustom || gambarUtama;
+  const daftarGambar = Array.from(new Set([gambarBasis, gambarUtama, ...galeriGambar])).filter(Boolean);
   const [indeksAktif, setIndeksAktif] = useState(0);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
 
-  const gambarTerpilih = daftarGambar[indeksAktif] || gambarUtama;
+  useEffect(() => {
+    if (gambarVarianKustom) {
+      setIndeksAktif(0);
+    }
+  }, [gambarVarianKustom]);
+
+  const gambarTerpilih = daftarGambar[indeksAktif] || gambarBasis;
 
   // Handle ESC key for modal zoom
   useEffect(() => {

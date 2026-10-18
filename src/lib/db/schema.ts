@@ -203,6 +203,7 @@ export const varianProduk = pgTable(
     stok: integer("stok").default(0).notNull(),
     beratGram: integer("berat_gram").default(500).notNull(),
     harga: integer("harga").notNull(),
+    gambar: text("gambar"),
     dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
     diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
   },

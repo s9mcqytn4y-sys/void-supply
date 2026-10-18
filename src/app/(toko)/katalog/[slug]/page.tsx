@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ambilDetailProduk } from "@/features/catalog/server";
 import {
-  PdpGalleryViewer,
-  PdpHeaderInfo,
-  PemilihVarian,
-  TransparansiMaterial,
+  PdpInteractiveSection,
 } from "@/features/catalog";
 import { safeJsonLdStringify } from "@/lib/utils/jsonld";
 
@@ -118,46 +115,7 @@ export default async function HalamanDetailProduk({
         dangerouslySetInnerHTML={{ __html: safeJsonLdStringify(jsonLd) }}
       />
 
-      <article className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
-        {/* Kolom Kiri: Galeri Foto Multi-Angle dengan Fullscreen Zoom */}
-        <section aria-label={`Galeri foto ${produk.nama}`}>
-          <PdpGalleryViewer
-            namaProduk={produk.nama}
-            gambarUtama={produk.gambarUtama}
-            galeriGambar={produk.galeriGambar}
-          />
-        </section>
-
-        {/* Kolom Kanan: Informasi, Pemilihan Ukuran & Transparansi Material */}
-        <section aria-label="Informasi dan Pembelian Produk" className="flex flex-col gap-8">
-          <PdpHeaderInfo
-            nama={produk.nama}
-            kategori={produk.kategori}
-            hargaDasar={produk.hargaDasar}
-            deskripsi={produk.deskripsi}
-            totalStok={totalStok}
-            apakahHabis={apakahHabis}
-            apakahStokMenipis={apakahStokMenipis}
-          />
-
-          <PemilihVarian
-            kategori={produk.kategori}
-            produkId={produk.id}
-            slug={produk.slug}
-            gambarUtama={produk.gambarUtama}
-            hargaDasar={produk.hargaDasar}
-            namaProduk={produk.nama}
-            panduanUkuran={produk.panduanUkuran}
-            varian={produk.varian}
-            apakahHabisTotal={apakahHabis}
-          />
-
-          <TransparansiMaterial
-            kategori={produk.kategori}
-            spesifikasi={produk.spesifikasi}
-          />
-        </section>
-      </article>
+      <PdpInteractiveSection produk={produk} />
     </main>
   );
 }

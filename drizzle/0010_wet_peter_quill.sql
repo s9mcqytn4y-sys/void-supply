@@ -1,0 +1,1 @@
+ALTER TABLE "varian_produk" ADD COLUMN "gambar" text;

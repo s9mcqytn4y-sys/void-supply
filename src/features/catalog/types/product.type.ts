@@ -41,6 +41,7 @@ export interface VarianProdukItem {
   readonly stok: number;
   readonly beratGram: number;
   readonly harga: number;
+  readonly gambar?: string | null;
 }
 
 export interface ProdukRingkasan {

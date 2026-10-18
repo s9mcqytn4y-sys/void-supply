@@ -18,6 +18,8 @@ export interface PropertiPemilihVarian {
   panduanUkuran?: readonly DimensiUkuranGarmen[] | null;
   varian: readonly VarianProdukItem[];
   apakahHabisTotal: boolean;
+  onPilihWarna?: (warna: string, gambarVarian?: string | null) => void;
+  onPilihVarian?: (varian: VarianProdukItem) => void;
 }
 
 const PALET_WARNA: Record<string, { label: string; hex: string; border?: string }> = {
@@ -70,6 +72,8 @@ export function PemilihVarian({
   panduanUkuran,
   varian,
   apakahHabisTotal,
+  onPilihWarna,
+  onPilihVarian,
 }: PropertiPemilihVarian) {
   const tambahItem = useKeranjangStore((state) => state.tambahItem);
   const setBukaKeranjang = useKeranjangStore((state) => state.setBuka);
@@ -111,6 +115,8 @@ export function PemilihVarian({
     if (varianTersedia) {
       setVarianTerpilihId(varianTersedia.id);
       setKuantitas(varianTersedia.stok > 0 ? 1 : 0);
+      onPilihWarna?.(warnaBaru, varianTersedia.gambar);
+      onPilihVarian?.(varianTersedia);
     }
   };
 
@@ -121,6 +127,7 @@ export function PemilihVarian({
     const targetVarian = varian.find((v) => v.id === idVarian);
     if (targetVarian && targetVarian.stok > 0) {
       setKuantitas(1);
+      onPilihVarian?.(targetVarian);
     } else {
       setKuantitas(0);
     }
@@ -168,7 +175,7 @@ export function PemilihVarian({
       produkId: produkId ?? "",
       nama: namaProduk ?? "Artikel VOID",
       slug,
-      gambar: gambarUtama,
+      gambar: varianAktif.gambar || gambarUtama,
       sku: varianAktif.sku,
       ukuran: varianAktif.ukuran,
       warna: varianAktif.warna,

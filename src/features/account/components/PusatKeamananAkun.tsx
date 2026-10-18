@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -13,13 +14,16 @@ import {
   Check,
   LogOut,
   Clock,
+  Trash2,
 } from "lucide-react";
 import type { SesiAktifItem, LogKeamananItem } from "../actions/keamanan-akun.action";
 import {
   ubahKataSandiAction,
   cabutSesiAction,
   cabutSemuaSesiLainAction,
+  hapusAkunAction,
 } from "../actions/keamanan-akun.action";
+import { signOut } from "@/lib/auth/auth-client";
 import {
   skemaUbahKataSandi,
   type InputUbahKataSandi,
@@ -34,9 +38,11 @@ export function PusatKeamananAkun({
   daftarSesiAwal,
   daftarLogAwal,
 }: PusatKeamananAkunProps) {
+  const router = useRouter();
   const [daftarSesi, setDaftarSesi] = useState<SesiAktifItem[]>(daftarSesiAwal);
   const [sedangMemprosesSandi, setSedangMemprosesSandi] = useState(false);
   const [sedangCabutSesi, setSedangCabutSesi] = useState(false);
+  const [sedangHapusAkun, setSedangHapusAkun] = useState(false);
 
   const {
     register,
@@ -103,6 +109,35 @@ export function PusatKeamananAkun({
       toast.error("Gagal mencabut sesi lain.");
     } finally {
       setSedangCabutSesi(false);
+    }
+  };
+
+  const handleHapusAkun = async () => {
+    const konfirmasi = window.prompt(
+      'Ketik "HAPUS" untuk mengonfirmasi penghapusan permanen akun Anda. Seluruh kredensial dan sesi akan dihapus:'
+    );
+    if (konfirmasi !== "HAPUS") {
+      if (konfirmasi !== null) {
+        toast.error('Konfirmasi dibatalkan: Teks verifikasi tidak sesuai ("HAPUS").');
+      }
+      return;
+    }
+
+    setSedangHapusAkun(true);
+    try {
+      const res = await hapusAkunAction();
+      if (res.sukses) {
+        toast.success(res.pesan);
+        await signOut();
+        router.push("/masuk");
+        router.refresh();
+      } else {
+        toast.error(res.pesan);
+      }
+    } catch {
+      toast.error("Gagal menghapus akun. Silakan coba beberapa saat lagi.");
+    } finally {
+      setSedangHapusAkun(false);
     }
   };
 
@@ -324,6 +359,46 @@ export function PusatKeamananAkun({
             Belum ada catatan aktivitas keamanan kritis pada akun ini.
           </p>
         )}
+      </section>
+
+      {/* 4. Zona Bahaya: Penghapusan Akun Permanen */}
+      <section className="border border-rose-900/60 bg-rose-950/20 p-6 space-y-4">
+        <div className="flex items-center gap-2 border-b border-rose-900/50 pb-3">
+          <Trash2 className="h-4 w-4 text-rose-400" />
+          <h2 className="font-mono text-xs font-bold text-rose-300 uppercase tracking-wider">
+            ZONA BAHAYA: HAPUS AKUN PERMANEN
+          </h2>
+        </div>
+
+        <div className="space-y-3 font-mono text-xs text-zinc-300">
+          <p className="leading-relaxed">
+            Menghapus akun akan mencabut seluruh akses masuk, menghapus profil, buku alamat, daftar preferensi, serta membatalkan seluruh sesi aktif di semua perangkat.
+          </p>
+          <p className="text-[11px] text-zinc-400 leading-relaxed">
+            Sesuai kepatuhan regulasi perpajakan dan transparansi transaksi, pesanan historis akan dianonimkan (pengguna_id dikosongkan) dan faktur tetap diarsipkan secara aman.
+          </p>
+        </div>
+
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={handleHapusAkun}
+            disabled={sedangHapusAkun}
+            className="inline-flex min-h-11 items-center justify-center gap-2 border border-rose-600 bg-rose-600/10 px-5 py-2 font-mono text-xs font-bold text-rose-300 uppercase tracking-wider hover:bg-rose-600 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 disabled:opacity-50"
+          >
+            {sedangHapusAkun ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>MEMPROSES PENGHAPUSAN...</span>
+              </>
+            ) : (
+              <>
+                <Trash2 className="h-4 w-4" />
+                <span>HAPUS AKUN PERMANEN</span>
+              </>
+            )}
+          </button>
+        </div>
       </section>
     </div>
   );

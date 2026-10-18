@@ -3,7 +3,18 @@
 import { desc, eq, and, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
-import { sesiPengguna, aktivitasAkun } from "@/lib/db/auth.schema";
+import {
+  sesiPengguna,
+  aktivitasAkun,
+  pengguna,
+  alamatPelanggan,
+  preferensiPengguna,
+  wishlist,
+  keranjangAkun,
+  klaimPesanan,
+  akunAutentikasi,
+} from "@/lib/db/auth.schema";
+import { pelanggan } from "@/lib/db/schema";
 import { auth } from "@/lib/auth/auth";
 import { ambilSesiPengguna } from "@/lib/auth/session";
 import { skemaUbahKataSandi, type InputUbahKataSandi } from "../schemas/account.schema";
@@ -265,3 +276,64 @@ export async function ambilLogKeamananAction(): Promise<{
     return { sukses: true, log: [] };
   }
 }
+
+/**
+ * Server Action: Hapus Akun Pelanggan (GDPR & Regulasi Keuangan)
+ * Mengosongkan kaitan pesanan historis (pengguna_id = null) demi integritas faktur perpajakan,
+ * lalu menghapus kredensial, sesi, buku alamat, preferensi, dan akun pengguna.
+ */
+export async function hapusAkunAction(): Promise<{ sukses: boolean; pesan: string }> {
+  try {
+    const sesi = await ambilSesiPengguna();
+    if (!sesi?.pengguna?.id) {
+      return {
+        sukses: false,
+        pesan: "Sesi tidak sah. Silakan masuk terlebih dahulu.",
+      };
+    }
+
+    const userId = sesi.pengguna.id;
+
+    await db.transaction(async (tx) => {
+      // 1. Lepaskan kaitan pesanan historis non-destruktif
+      const pelangganList = await tx
+        .select({ id: pelanggan.id })
+        .from(pelanggan)
+        .where(eq(pelanggan.penggunaId, userId));
+
+      for (const p of pelangganList) {
+        await tx
+          .update(pelanggan)
+          .set({ penggunaId: null })
+          .where(eq(pelanggan.id, p.id));
+      }
+
+      // 2. Hapus data relasi pelanggan
+      await tx.delete(alamatPelanggan).where(eq(alamatPelanggan.penggunaId, userId));
+      await tx.delete(preferensiPengguna).where(eq(preferensiPengguna.penggunaId, userId));
+      await tx.delete(wishlist).where(eq(wishlist.penggunaId, userId));
+      await tx.delete(keranjangAkun).where(eq(keranjangAkun.penggunaId, userId));
+      await tx.delete(aktivitasAkun).where(eq(aktivitasAkun.penggunaId, userId));
+      await tx.delete(klaimPesanan).where(eq(klaimPesanan.penggunaId, userId));
+
+      // 3. Hapus sesi dan kredensial autentikasi
+      await tx.delete(sesiPengguna).where(eq(sesiPengguna.userId, userId));
+      await tx.delete(akunAutentikasi).where(eq(akunAutentikasi.userId, userId));
+
+      // 4. Hapus entitas pengguna
+      await tx.delete(pengguna).where(eq(pengguna.id, userId));
+    });
+
+    return {
+      sukses: true,
+      pesan: "Akun Anda telah berhasil dihapus secara permanen.",
+    };
+  } catch (error) {
+    console.error("[KEAMANAN AKUN] Gagal menghapus akun pengguna:", error);
+    return {
+      sukses: false,
+      pesan: "Gagal menghapus akun. Silakan coba beberapa saat lagi.",
+    };
+  }
+}
+

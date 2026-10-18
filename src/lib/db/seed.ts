@@ -1,5 +1,7 @@
 import { db } from "./index";
 import * as schema from "./schema";
+import * as authSchema from "./auth.schema";
+import { hashPassword } from "better-auth/crypto";
 
 const connectionString =
   process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/void_supply";
@@ -53,7 +55,67 @@ async function seed() {
       console.log("✓ Data katalog referensi disiapkan untuk pembaruan");
     }
 
-    // 1.1 Seeding Profil Pelanggan Demo (Persona Rian The Trendsetter)
+    // 1.1 Seeding Akun Demo Utama (Fokus Testing & Staging Vercel)
+    const demoUserEmail = "demo@voidsupply.com";
+    const demoUserId = "usr_demo_void_collector_2026";
+    const demoPasswordHash = await hashPassword("Password123!");
+
+    await tx
+      .insert(authSchema.pengguna)
+      .values({
+        id: demoUserId,
+        name: "Demo VOID Collector",
+        email: demoUserEmail,
+        emailVerified: true,
+        peran: "pelanggan",
+      })
+      .onConflictDoNothing({ target: authSchema.pengguna.email });
+
+    await tx
+      .insert(authSchema.akunAutentikasi)
+      .values({
+        id: "acc_demo_void_collector_2026",
+        userId: demoUserId,
+        accountId: demoUserEmail,
+        providerId: "credential",
+        password: demoPasswordHash,
+      })
+      .onConflictDoNothing();
+
+    await tx
+      .insert(authSchema.alamatPelanggan)
+      .values({
+        penggunaId: demoUserId,
+        label: "Apartemen Studio Johar",
+        namaPenerima: "Demo VOID Collector",
+        teleponPenerima: "081298765432",
+        alamatLengkap: "Jl. Kramat Jaya Baru No. 12, RT 05 / RW 01, Johar Baru",
+        provinsi: "DKI Jakarta",
+        kota: "Jakarta Pusat",
+        kecamatan: "Johar Baru",
+        kodePos: "10560",
+        apakahUtama: true,
+        catatanKurir: "Titipkan di security lobby jika tidak ada di tempat.",
+      })
+      .onConflictDoNothing();
+
+    await tx
+      .insert(schema.pelanggan)
+      .values({
+        penggunaId: demoUserId,
+        namaLengkap: "Demo VOID Collector",
+        email: demoUserEmail,
+        telepon: "081298765432",
+        alamatDefault: "Jl. Kramat Jaya Baru No. 12, RT 05 / RW 01, Johar Baru",
+        kotaDefault: "Jakarta Pusat",
+        provinsiDefault: "DKI Jakarta",
+        kodePosDefault: "10560",
+      })
+      .onConflictDoNothing({ target: schema.pelanggan.email });
+
+    console.log(`✓ Akun Demo Utama (${demoUserEmail} / Password123!) siap digunakan`);
+
+    // 1.2 Profil Pelanggan Sekunder (Persona Rian The Trendsetter)
     const [pelangganRian] = await tx
       .insert(schema.pelanggan)
       .values({
@@ -166,15 +228,15 @@ async function seed() {
         { ukuran: "XXL", panjangBadan: 79, lebarDada: 64, panjangLengan: 27 },
       ],
       varians: [
-        { ukuran: "S", warna: "Hitam", sku: "VOID-D04-TEE-BLK-S", stok: 25, berat: 420 },
-        { ukuran: "M", warna: "Hitam", sku: "VOID-D04-TEE-BLK-M", stok: 35, berat: 450 },
-        { ukuran: "L", warna: "Hitam", sku: "VOID-D04-TEE-BLK-L", stok: 30, berat: 480 },
-        { ukuran: "XL", warna: "Hitam", sku: "VOID-D04-TEE-BLK-XL", stok: 15, berat: 510 },
-        { ukuran: "XXL", warna: "Hitam", sku: "VOID-D04-TEE-BLK-XXL", stok: 0, berat: 540 },
-        { ukuran: "S", warna: "Bone White", sku: "VOID-D04-TEE-WHT-S", stok: 15, berat: 420 },
-        { ukuran: "M", warna: "Bone White", sku: "VOID-D04-TEE-WHT-M", stok: 22, berat: 450 },
-        { ukuran: "L", warna: "Bone White", sku: "VOID-D04-TEE-WHT-L", stok: 18, berat: 480 },
-        { ukuran: "XL", warna: "Bone White", sku: "VOID-D04-TEE-WHT-XL", stok: 10, berat: 510 },
+        { ukuran: "S", warna: "Hitam", sku: "VOID-D04-TEE-BLK-S", stok: 25, berat: 420, gambar: "/images/products/drop-04/void-tee-01-front.webp" },
+        { ukuran: "M", warna: "Hitam", sku: "VOID-D04-TEE-BLK-M", stok: 35, berat: 450, gambar: "/images/products/drop-04/void-tee-01-front.webp" },
+        { ukuran: "L", warna: "Hitam", sku: "VOID-D04-TEE-BLK-L", stok: 30, berat: 480, gambar: "/images/products/drop-04/void-tee-01-front.webp" },
+        { ukuran: "XL", warna: "Hitam", sku: "VOID-D04-TEE-BLK-XL", stok: 15, berat: 510, gambar: "/images/products/drop-04/void-tee-01-front.webp" },
+        { ukuran: "XXL", warna: "Hitam", sku: "VOID-D04-TEE-BLK-XXL", stok: 0, berat: 540, gambar: "/images/products/drop-04/void-tee-01-front.webp" },
+        { ukuran: "S", warna: "Bone White", sku: "VOID-D04-TEE-WHT-S", stok: 15, berat: 420, gambar: "/images/products/drop-04/void-tee-01-back.webp" },
+        { ukuran: "M", warna: "Bone White", sku: "VOID-D04-TEE-WHT-M", stok: 22, berat: 450, gambar: "/images/products/drop-04/void-tee-01-back.webp" },
+        { ukuran: "L", warna: "Bone White", sku: "VOID-D04-TEE-WHT-L", stok: 18, berat: 480, gambar: "/images/products/drop-04/void-tee-01-back.webp" },
+        { ukuran: "XL", warna: "Bone White", sku: "VOID-D04-TEE-WHT-XL", stok: 10, berat: 510, gambar: "/images/products/drop-04/void-tee-01-back.webp" },
       ],
     },
     {
@@ -216,14 +278,14 @@ async function seed() {
         { ukuran: "XL", panjangBadan: 76, lebarDada: 62, panjangLengan: 26 },
       ],
       varians: [
-        { ukuran: "S", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-S", stok: 18, berat: 430 },
-        { ukuran: "M", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-M", stok: 24, berat: 460 },
-        { ukuran: "L", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-L", stok: 20, berat: 490 },
-        { ukuran: "XL", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-XL", stok: 12, berat: 520 },
-        { ukuran: "S", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-S", stok: 12, berat: 430 },
-        { ukuran: "M", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-M", stok: 16, berat: 460 },
-        { ukuran: "L", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-L", stok: 14, berat: 490 },
-        { ukuran: "XL", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-XL", stok: 8, berat: 520 },
+        { ukuran: "S", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-S", stok: 18, berat: 430, gambar: "/images/products/drop-04/void-tee-02-front.webp" },
+        { ukuran: "M", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-M", stok: 24, berat: 460, gambar: "/images/products/drop-04/void-tee-02-front.webp" },
+        { ukuran: "L", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-L", stok: 20, berat: 490, gambar: "/images/products/drop-04/void-tee-02-front.webp" },
+        { ukuran: "XL", warna: "Charcoal", sku: "VOID-D04-ACID-CHR-XL", stok: 12, berat: 520, gambar: "/images/products/drop-04/void-tee-02-front.webp" },
+        { ukuran: "S", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-S", stok: 12, berat: 430, gambar: "/images/products/drop-04/void-tee-02-detail.webp" },
+        { ukuran: "M", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-M", stok: 16, berat: 460, gambar: "/images/products/drop-04/void-tee-02-detail.webp" },
+        { ukuran: "L", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-L", stok: 14, berat: 490, gambar: "/images/products/drop-04/void-tee-02-detail.webp" },
+        { ukuran: "XL", warna: "Vintage Wash Moss", sku: "VOID-D04-ACID-MOS-XL", stok: 8, berat: 520, gambar: "/images/products/drop-04/void-tee-02-detail.webp" },
       ],
     },
     {
@@ -543,14 +605,14 @@ async function seed() {
         { ukuran: "XL", panjangCelana: 109, lingkarPinggang: 90, lebarPaha: 40 },
       ],
       varians: [
-        { ukuran: "S", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-S", stok: 18, berat: 640 },
-        { ukuran: "M", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-M", stok: 25, berat: 670 },
-        { ukuran: "L", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-L", stok: 20, berat: 710 },
-        { ukuran: "XL", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-XL", stok: 12, berat: 750 },
-        { ukuran: "S", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-S", stok: 10, berat: 640 },
-        { ukuran: "M", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-M", stok: 16, berat: 670 },
-        { ukuran: "L", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-L", stok: 14, berat: 710 },
-        { ukuran: "XL", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-XL", stok: 8, berat: 750 },
+        { ukuran: "S", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-S", stok: 18, berat: 640, gambar: "/images/products/drop-04/cargo-v2-front.webp" },
+        { ukuran: "M", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-M", stok: 25, berat: 670, gambar: "/images/products/drop-04/cargo-v2-front.webp" },
+        { ukuran: "L", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-L", stok: 20, berat: 710, gambar: "/images/products/drop-04/cargo-v2-front.webp" },
+        { ukuran: "XL", warna: "Pitch Black", sku: "VOID-D04-CRGV2-BLK-XL", stok: 12, berat: 750, gambar: "/images/products/drop-04/cargo-v2-front.webp" },
+        { ukuran: "S", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-S", stok: 10, berat: 640, gambar: "/images/products/drop-04/cargo-pants-detail.webp" },
+        { ukuran: "M", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-M", stok: 16, berat: 670, gambar: "/images/products/drop-04/cargo-pants-detail.webp" },
+        { ukuran: "L", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-L", stok: 14, berat: 710, gambar: "/images/products/drop-04/cargo-pants-detail.webp" },
+        { ukuran: "XL", warna: "Ashen Grey", sku: "VOID-D04-CRGV2-ASH-XL", stok: 8, berat: 750, gambar: "/images/products/drop-04/cargo-pants-detail.webp" },
       ],
     },
     {
@@ -591,14 +653,14 @@ async function seed() {
         { ukuran: "XL", panjangBadan: 78, lebarDada: 70, panjangLengan: 68 },
       ],
       varians: [
-        { ukuran: "S", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-S", stok: 15, berat: 820 },
-        { ukuran: "M", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-M", stok: 22, berat: 860 },
-        { ukuran: "L", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-L", stok: 18, berat: 910 },
-        { ukuran: "XL", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-XL", stok: 10, berat: 960 },
-        { ukuran: "S", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-S", stok: 10, berat: 820 },
-        { ukuran: "M", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-M", stok: 14, berat: 860 },
-        { ukuran: "L", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-L", stok: 12, berat: 910 },
-        { ukuran: "XL", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-XL", stok: 6, berat: 960 },
+        { ukuran: "S", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-S", stok: 15, berat: 820, gambar: "/images/products/drop-04/cyber-hoodie-front.webp" },
+        { ukuran: "M", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-M", stok: 22, berat: 860, gambar: "/images/products/drop-04/cyber-hoodie-front.webp" },
+        { ukuran: "L", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-L", stok: 18, berat: 910, gambar: "/images/products/drop-04/cyber-hoodie-front.webp" },
+        { ukuran: "XL", warna: "Acid Black", sku: "VOID-D04-PLV-BLK-XL", stok: 10, berat: 960, gambar: "/images/products/drop-04/cyber-hoodie-front.webp" },
+        { ukuran: "S", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-S", stok: 10, berat: 820, gambar: "/images/products/drop-04/cyber-hoodie-front.webp" },
+        { ukuran: "M", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-M", stok: 14, berat: 860, gambar: "/images/products/drop-04/cyber-hoodie-front.webp" },
+        { ukuran: "L", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-L", stok: 12, berat: 910, gambar: "/images/products/drop-04/cyber-hoodie-front.webp" },
+        { ukuran: "XL", warna: "Raw Cement", sku: "VOID-D04-PLV-CMT-XL", stok: 6, berat: 960, gambar: "/images/products/drop-04/cyber-hoodie-front.webp" },
       ],
     },
     {
@@ -636,8 +698,8 @@ async function seed() {
         { ukuran: "ALL", panjangBadan: 28, lebarDada: 18, panjangLengan: 8 },
       ],
       varians: [
-        { ukuran: "ALL", warna: "Pitch Black", sku: "VOID-D04-SLG-BLK-ALL", stok: 35, berat: 340 },
-        { ukuran: "ALL", warna: "Stealth Slate", sku: "VOID-D04-SLG-SLT-ALL", stok: 20, berat: 340 },
+        { ukuran: "ALL", warna: "Pitch Black", sku: "VOID-D04-SLG-BLK-ALL", stok: 35, berat: 340, gambar: "/images/products/drop-04/sling-bag-front.webp" },
+        { ukuran: "ALL", warna: "Stealth Slate", sku: "VOID-D04-SLG-SLT-ALL", stok: 20, berat: 340, gambar: "/images/products/drop-04/sling-bag-front.webp" },
       ],
     },
     {
@@ -675,8 +737,8 @@ async function seed() {
         { ukuran: "ALL", lingkarKepala: 58, panjangBadan: 12 },
       ],
       varians: [
-        { ukuran: "ALL", warna: "Washed Black", sku: "VOID-D04-CAP-BLK-ALL", stok: 40, berat: 135 },
-        { ukuran: "ALL", warna: "Vintage Olive", sku: "VOID-D04-CAP-OLV-ALL", stok: 25, berat: 135 },
+        { ukuran: "ALL", warna: "Washed Black", sku: "VOID-D04-CAP-BLK-ALL", stok: 40, berat: 135, gambar: "/images/products/drop-04/utility-cap-front.webp" },
+        { ukuran: "ALL", warna: "Vintage Olive", sku: "VOID-D04-CAP-OLV-ALL", stok: 25, berat: 135, gambar: "/images/products/drop-04/balaclava-detail.webp" },
       ],
     },
   ];
@@ -714,6 +776,7 @@ async function seed() {
         stok: v.stok,
         beratGram: v.berat,
         harga: item.hargaDasar,
+        gambar: (v as { gambar?: string }).gambar || item.gambarUtama,
       });
     }
   }
