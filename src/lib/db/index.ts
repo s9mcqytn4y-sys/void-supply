@@ -5,6 +5,17 @@ import type { PgDatabase } from "drizzle-orm/pg-core";
 import postgres from "postgres";
 import ws from "ws";
 import * as schema from "./schema";
+import * as authSchema from "./auth.schema";
+
+export const combinedSchema = {
+  ...schema,
+  ...authSchema,
+  user: authSchema.pengguna,
+  session: authSchema.sesiPengguna,
+  account: authSchema.akunAutentikasi,
+  verification: authSchema.verifikasiAutentikasi,
+  rateLimit: authSchema.batasPermintaanAuth,
+};
 
 // Konfigurasi WebSocket constructor untuk runtime Node.js jika belum tersedia secara native
 if (typeof WebSocket === "undefined") {
@@ -38,7 +49,7 @@ const isNeon =
 
 const isVercelServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
-type AppDatabase = PgDatabase<any, typeof schema>;
+type AppDatabase = PgDatabase<any, typeof combinedSchema>;
 
 const globalForDb = globalThis as unknown as {
   db: AppDatabase | undefined;
@@ -61,7 +72,7 @@ function createDatabaseClient(): AppDatabase {
       globalForDb.neonPool = pool;
     }
 
-    return drizzleNeon(pool, { schema }) as unknown as AppDatabase;
+    return drizzleNeon(pool, { schema: combinedSchema }) as unknown as AppDatabase;
   }
 
   // Fallback ke postgres.js untuk environment local / CI tanpa WebSocket proxy
@@ -78,7 +89,7 @@ function createDatabaseClient(): AppDatabase {
     globalForDb.pgConn = conn;
   }
 
-  return drizzlePostgres(conn, { schema }) as unknown as AppDatabase;
+  return drizzlePostgres(conn, { schema: combinedSchema }) as unknown as AppDatabase;
 }
 
 export const db: AppDatabase = globalForDb.db ?? createDatabaseClient();

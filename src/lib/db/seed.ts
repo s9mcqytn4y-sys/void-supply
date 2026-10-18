@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { db } from "./index";
 import * as schema from "./schema";
 import * as authSchema from "./auth.schema";
@@ -76,7 +77,7 @@ async function seed() {
       .values({
         id: "acc_demo_void_collector_2026",
         userId: demoUserId,
-        accountId: demoUserEmail,
+        accountId: demoUserId,
         providerId: "credential",
         password: demoPasswordHash,
       })
