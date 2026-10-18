@@ -1,6 +1,6 @@
 "use server";
 
-import { desc, eq, and, ne } from "drizzle-orm";
+import { desc, eq, and, ne, inArray } from "drizzle-orm";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import {
@@ -14,7 +14,7 @@ import {
   klaimPesanan,
   akunAutentikasi,
 } from "@/lib/db/auth.schema";
-import { pelanggan } from "@/lib/db/schema";
+import { pelanggan, pesanan } from "@/lib/db/schema";
 import { auth } from "@/lib/auth/auth";
 import { ambilSesiPengguna } from "@/lib/auth/session";
 import { skemaUbahKataSandi, type InputUbahKataSandi } from "../schemas/account.schema";
@@ -293,6 +293,27 @@ export async function hapusAkunAction(): Promise<{ sukses: boolean; pesan: strin
     }
 
     const userId = sesi.pengguna.id;
+
+    // 0. Cegah penghapusan jika masih ada transaksi aktif yang sedang berjalan
+    const pesananAktif = await db
+      .select({ id: pesanan.id, statusPesanan: pesanan.statusPesanan })
+      .from(pesanan)
+      .innerJoin(pelanggan, eq(pesanan.pelangganId, pelanggan.id))
+      .where(
+        and(
+          eq(pelanggan.penggunaId, userId),
+          inArray(pesanan.statusPesanan, ["menunggu_pembayaran", "diproses", "dikirim"])
+        )
+      )
+      .limit(1);
+
+    if (pesananAktif.length > 0) {
+      return {
+        sukses: false,
+        pesan:
+          "Akun tidak dapat dihapus karena masih memiliki pesanan aktif yang sedang diproses atau dalam pengiriman. Selesaikan transaksi Anda terlebih dahulu.",
+      };
+    }
 
     await db.transaction(async (tx) => {
       // 1. Lepaskan kaitan pesanan historis non-destruktif
