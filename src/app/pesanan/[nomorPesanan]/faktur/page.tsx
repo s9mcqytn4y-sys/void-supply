@@ -71,7 +71,7 @@ export default async function HalamanFaktur({
       <main className="mx-auto min-h-[70vh] max-w-xl px-4 py-20 text-center sm:px-6">
         <div className="border border-neutral-800 bg-neutral-950 p-8">
           <span className="font-mono text-xs font-bold text-rose-400 uppercase">
-            AKSES DITOLAK (SEC-02)
+            AKSES DITOLAK
           </span>
           <h1 className="mt-2 font-mono text-xl font-black text-white uppercase">
             OTORISASI TIDAK VALID
@@ -359,7 +359,7 @@ export default async function HalamanFaktur({
                   <span className="text-neutral-400">IMMUTABLE ARCHIVE VERIFIED</span>
                 </>
               ) : (
-                <>HASH ID: {pesananDb.id.slice(0, 12).toUpperCase()} // SEC-02 VALIDATED</>
+                <>KODE VERIFIKASI: {pesananDb.id.slice(0, 12).toUpperCase()}</>
               )}
             </div>
           </div>

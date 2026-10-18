@@ -56,7 +56,7 @@ export function HalamanLacakClient({
           // PELACAKAN PENGIRIMAN LOGISTIK
         </span>
         <h1 className="mt-2 font-mono text-2xl font-black text-white uppercase sm:text-3xl">
-          LACAK STATUS PESANAN RESMI
+          LACAK PENGIRIMAN PESANAN
         </h1>
         <p className="mt-2 font-mono text-xs text-neutral-400 max-w-xl">
           Pantau status penjemputan, pergerakan kurir, nomor resi, dan estimasi tiba pesanan merchandise VOID Supply Anda secara real-time.

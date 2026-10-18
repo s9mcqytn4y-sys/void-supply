@@ -133,7 +133,7 @@ export function PilihanKurir({
         </h2>
         {sedangHitungOngkir && (
           <span className="font-mono text-[10px] text-neutral-400 animate-pulse">
-            MENGHITUNG TARIF RESMI...
+            MENGHITUNG ONGKOS KIRIM...
           </span>
         )}
       </div>
@@ -142,8 +142,8 @@ export function PilihanKurir({
         {opsiKurir.length === 0 ? (
           <p className="font-mono text-xs text-neutral-400">
             {sedangHitungOngkir
-              ? "Memverifikasi tarif kurir resmi ke Biteship..."
-              : "Masukkan kode pos 5 digit untuk memuat opsi kurir resmi."}
+              ? "Memeriksa tarif pengiriman ekspedisi..."
+              : "Masukkan kode pos 5 digit untuk memuat opsi pengiriman."}
           </p>
         ) : (
           <>

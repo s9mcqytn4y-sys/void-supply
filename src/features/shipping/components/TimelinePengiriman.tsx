@@ -50,7 +50,7 @@ const DAFTAR_TAHAP: TahapVisual[] = [
   {
     id: "delivered",
     label: "PAKET DITERIMA",
-    deskripsi: "Paket telah berhasil diserahkan kepada penerima resmi.",
+    deskripsi: "Paket telah berhasil diserahkan kepada penerima.",
   },
 ];
 
@@ -65,7 +65,7 @@ export function TimelinePengiriman({
   const [sedangSimulasi, setSedangSimulasi] = useState(false);
   const [pesanSimulasi, setPesanSimulasi] = useState<string | null>(null);
 
-  const kurirNama = (pelacakan?.kurir || "Kurir Resmi").toUpperCase();
+  const kurirNama = (pelacakan?.kurir || "Ekspedisi").toUpperCase();
   const kurirLayanan = (pelacakan?.layanan || "Standar").toUpperCase();
   const nomorResi = pelacakan?.nomorResi || null;
   const statusPengiriman = pelacakan?.statusPengiriman || "menunggu_resi";

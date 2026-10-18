@@ -1,4 +1,4 @@
-# VOID Supply — Master Advance Roadmap & Technical Strategy 2026
+# VOID Supply: Master Advance Roadmap & Technical Strategy 2026
 
 Dokumen ini merupakan cetak biru rekayasa perangkat lunak, mitigasi risiko keamanan transaksi, audit arsitektur, dan tahapan peluncuran bertahap (*phase-gated roadmap*) untuk **VOID Supply** menuju standar enterprise dan demonstrasi Vercel Hobby yang bersih dan aman.
 

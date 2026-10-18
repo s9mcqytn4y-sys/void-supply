@@ -34,10 +34,10 @@ export default function HalamanKebijakanPrivasi() {
 
           <section className="space-y-3">
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              2. PROTEKSI DOKUMEN & ISOLASI IDOR (SEC-02)
+              2. PERLINDUNGAN DOKUMEN & PRIVASI AKSES DATA
             </h2>
             <p className="leading-relaxed text-neutral-400">
-              Dokumen faktur, riwayat pesanan, dan label resi thermal dilindungi dengan token akses berentropi tinggi (UUID v4 122-bit). Permintaan akses publik tanpa token otorisasi yang sah ditolak langsung oleh server (fail-closed) guna melindungi data pribadi pelanggan dari pemindaian URL acak.
+              Dokumen faktur, riwayat pesanan, dan label resi dilindungi dengan kode akses keamanan berenkripsi tinggi. Tautan tanpa izin akses resmi akan ditolak otomatis oleh sistem guna melindungi privasi dan data pribadi pembeli dari pemindaian pihak ketiga yang tidak berwenang.
             </p>
           </section>
 
