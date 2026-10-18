@@ -1,7 +1,7 @@
 "use server";
 
-import { eq, and, sql } from "drizzle-orm";
-import { db, pesanan } from "@/lib/db";
+import { eq, and } from "drizzle-orm";
+import { db, pesanan, pengiriman } from "@/lib/db";
 import { z } from "zod";
 
 const konfirmasiDiterimaSkema = z.object({
@@ -20,8 +20,9 @@ export interface HasilKonfirmasiDiterima {
 }
 
 /**
- * Server Action: Konfirmasi Pesanan Diterima oleh Konsumen (Dual-Trigger Progressive)
+ * Server Action: Konfirmasi Pesanan Diterima oleh Konsumen
  * Mengubah status pesanan menjadi 'selesai' dan mengaktifkan masa garansi unboxing 2x24 jam.
+ * Syarat P0/P1: Pesanan wajib sudah berstatus 'dikirim' dan memiliki bukti nomor resi pengiriman resmi.
  */
 export async function konfirmasiPesananDiterimaAction(
   input: InputKonfirmasiDiterima
@@ -40,7 +41,68 @@ export async function konfirmasiPesananDiterimaAction(
     const sekarang = new Date();
     const batasGaransi = new Date(sekarang.getTime() + 48 * 60 * 60 * 1000); // 2x24 jam (48 jam)
 
-    // Compare-and-Set atomik: Lindungi dari race condition & status final
+    // 1. Ambil status pesanan saat ini untuk validasi alur transisi
+    const [pesananEksis] = await db
+      .select({
+        id: pesanan.id,
+        statusPesanan: pesanan.statusPesanan,
+        diterimaPada: pesanan.diterimaPada,
+        garansiBerakhirPada: pesanan.garansiBerakhirPada,
+      })
+      .from(pesanan)
+      .where(
+        and(
+          eq(pesanan.nomorPesanan, nomorPesanan),
+          eq(pesanan.tokenAkses, tokenAkses)
+        )
+      )
+      .limit(1);
+
+    if (!pesananEksis) {
+      return {
+        sukses: false,
+        pesan: "Pesanan tidak ditemukan atau otentikasi token tidak cocok.",
+      };
+    }
+
+    if (pesananEksis.statusPesanan === "selesai") {
+      return {
+        sukses: true,
+        pesan: "Pesanan telah dikonfirmasi diterima sebelumnya.",
+        diterimaPada: pesananEksis.diterimaPada?.toISOString(),
+        garansiBerakhirPada: pesananEksis.garansiBerakhirPada?.toISOString(),
+      };
+    }
+
+    if (pesananEksis.statusPesanan === "diproses") {
+      return {
+        sukses: false,
+        pesan: "Pesanan masih dalam tahap penyiapan di studio dan belum diserahkan ke kurir pengiriman.",
+      };
+    }
+
+    if (pesananEksis.statusPesanan !== "dikirim") {
+      return {
+        sukses: false,
+        pesan: `Pesanan dengan status '${pesananEksis.statusPesanan}' belum dapat dikonfirmasi diterima.`,
+      };
+    }
+
+    // 2. Pastikan nomor resi pengiriman resmi terdaftar
+    const [dataKirim] = await db
+      .select({ nomorResi: pengiriman.nomorResi })
+      .from(pengiriman)
+      .where(eq(pengiriman.pesananId, pesananEksis.id))
+      .limit(1);
+
+    if (!dataKirim?.nomorResi) {
+      return {
+        sukses: false,
+        pesan: "Pesanan belum memiliki nomor resi bukti pengiriman resmi dari kurir.",
+      };
+    }
+
+    // 3. Compare-and-Set atomik: Ubah status ke selesai hanya jika status saat ini masih 'dikirim'
     const [pesananDiperbarui] = await db
       .update(pesanan)
       .set({
@@ -52,9 +114,8 @@ export async function konfirmasiPesananDiterimaAction(
       })
       .where(
         and(
-          eq(pesanan.nomorPesanan, nomorPesanan),
-          eq(pesanan.tokenAkses, tokenAkses),
-          sql`${pesanan.statusPesanan} IN ('dikirim', 'diproses')`
+          eq(pesanan.id, pesananEksis.id),
+          eq(pesanan.statusPesanan, "dikirim")
         )
       )
       .returning({
@@ -66,34 +127,9 @@ export async function konfirmasiPesananDiterimaAction(
       });
 
     if (!pesananDiperbarui) {
-      // Periksa apakah sudah selesai sebelumnya
-      const [pesananEksis] = await db
-        .select({
-          statusPesanan: pesanan.statusPesanan,
-          diterimaPada: pesanan.diterimaPada,
-          garansiBerakhirPada: pesanan.garansiBerakhirPada,
-        })
-        .from(pesanan)
-        .where(
-          and(
-            eq(pesanan.nomorPesanan, nomorPesanan),
-            eq(pesanan.tokenAkses, tokenAkses)
-          )
-        )
-        .limit(1);
-
-      if (pesananEksis?.statusPesanan === "selesai") {
-        return {
-          sukses: true,
-          pesan: "Pesanan telah dikonfirmasi diterima sebelumnya.",
-          diterimaPada: pesananEksis.diterimaPada?.toISOString(),
-          garansiBerakhirPada: pesananEksis.garansiBerakhirPada?.toISOString(),
-        };
-      }
-
       return {
         sukses: false,
-        pesan: "Pesanan belum dapat dikonfirmasi atau otentikasi token tidak cocok.",
+        pesan: "Gagal memperbarui status pesanan. Kemungkinan status telah diperbarui oleh proses lain.",
       };
     }
 

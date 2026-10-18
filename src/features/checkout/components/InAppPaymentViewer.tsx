@@ -151,12 +151,8 @@ export function InAppPaymentViewer({
       ? PANDUAN_TRANSFER.bri
       : PANDUAN_TRANSFER.bca);
 
-  // Nomor Rekening Virtual Account Terpilih
-  const nomorRekeningTampil =
-    nomorVa ||
-    (bankKunci.includes("mandiri")
-      ? "70012" + Math.abs(nomorPesanan.split("").reduce((a, b) => a + b.charCodeAt(0), 1000000000))
-      : "80777" + Math.abs(nomorPesanan.split("").reduce((a, b) => a + b.charCodeAt(0), 1000000000)));
+  // Nomor Rekening Virtual Account Terpilih (Murni bersumber dari Midtrans Gateway, tanpa angka sintetis)
+  const nomorRekeningTampil = nomorVa ? nomorVa.trim() : null;
 
   const salinKeClipboard = async (teks: string, tipe: "va" | "nominal") => {
     try {
@@ -175,10 +171,10 @@ export function InAppPaymentViewer({
     }
   };
 
-  // Tautan Deep-link ke Midtrans Sandbox Simulator
-  const midtransSimulatorUrl = `https://simulator.sandbox.midtrans.com/openapi/va/index?va=${encodeURIComponent(
-    nomorRekeningTampil
-  )}`;
+  // Tautan Deep-link ke Midtrans Sandbox Simulator hanya jika nomor VA resmi ada
+  const midtransSimulatorUrl = nomorRekeningTampil
+    ? `https://simulator.sandbox.midtrans.com/openapi/va/index?va=${encodeURIComponent(nomorRekeningTampil)}`
+    : null;
 
   return (
     <div className="border border-neutral-800 bg-neutral-950 p-6 sm:p-8">
@@ -211,154 +207,204 @@ export function InAppPaymentViewer({
           </div>
         </div>
       </div>
+      {/* Jika Nomor Virtual Account Resmi Tersedia */}
+      {nomorRekeningTampil ? (
+        <>
+          {/* Kartu Utama Virtual Account */}
+          <div className="mt-6 border border-neutral-700 bg-neutral-900/60 p-5 sm:p-6">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-16 items-center justify-center rounded-xs border border-neutral-200 bg-white p-1.5 shadow-xs">
+                  <div className="relative h-6 w-12">
+                    <Image
+                      src={bankTerpilih.logo}
+                      alt={bankTerpilih.namaBank}
+                      fill
+                      className="object-contain"
+                      sizes="48px"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <p className="font-mono text-xs font-bold text-white uppercase">
+                    {bankTerpilih.namaBank}
+                  </p>
+                  <p className="text-[11px] text-neutral-400">
+                    Verifikasi otomatis tanpa perlu upload struk
+                  </p>
+                </div>
+              </div>
 
-      {/* Kartu Utama Virtual Account */}
-      <div className="mt-6 border border-neutral-700 bg-neutral-900/60 p-5 sm:p-6">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-16 items-center justify-center rounded-xs border border-neutral-200 bg-white p-1.5 shadow-xs">
-              <div className="relative h-6 w-12">
-                <Image
-                  src={bankTerpilih.logo}
-                  alt={bankTerpilih.namaBank}
-                  fill
-                  className="object-contain"
-                  sizes="48px"
-                />
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-2.5 py-0.5 font-mono text-[10px] font-bold text-emerald-400 uppercase">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  SISTEM ONLINE
+                </span>
               </div>
             </div>
-            <div>
-              <p className="font-mono text-xs font-bold text-white uppercase">
-                {bankTerpilih.namaBank}
-              </p>
-              <p className="text-[11px] text-neutral-400">
-                Verifikasi otomatis tanpa perlu upload struk
-              </p>
+
+            {/* Kotak Nomor Virtual Account */}
+            <div className="mt-5 border border-neutral-800 bg-neutral-950 p-4">
+              <span className="font-mono text-[10px] text-neutral-400 uppercase">
+                NOMOR VIRTUAL ACCOUNT:
+              </span>
+              <div className="mt-1 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                <span className="font-mono text-xl font-black tracking-widest text-white sm:text-2xl">
+                  {nomorRekeningTampil}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => salinKeClipboard(nomorRekeningTampil, "va")}
+                  className="inline-flex min-h-11 items-center justify-center border border-white bg-white px-5 font-mono text-xs font-bold text-black uppercase transition-colors hover:bg-neutral-200 active:scale-98"
+                >
+                  {sudahDisalinVa ? "BERHASIL DISALIN!" : "SALIN NOMOR VA"}
+                </button>
+              </div>
+            </div>
+
+            {/* Kotak Total Tagihan */}
+            <div className="mt-3 flex flex-col justify-between gap-2 border border-neutral-800 bg-neutral-950 p-4 sm:flex-row sm:items-center">
+              <div>
+                <span className="font-mono text-[10px] text-neutral-400 uppercase">
+                  TOTAL TAGIHAN TEPAT:
+                </span>
+                <p className="font-mono text-lg font-black text-emerald-400 sm:text-xl">
+                  {formatRupiah(nominal)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => salinKeClipboard(nominal.toString(), "nominal")}
+                className="inline-flex min-h-9 items-center justify-center border border-neutral-700 bg-neutral-900 px-3 font-mono text-[11px] font-semibold text-neutral-300 uppercase transition-colors hover:border-neutral-500 hover:text-white"
+              >
+                {sudahDisalinNominal ? "NOMINAL TERSALIN" : "SALIN NOMINAL"}
+              </button>
+            </div>
+
+            {/* Tautan Deep-link ke Midtrans Simulator (Sandbox Portofolio) */}
+            {midtransSimulatorUrl && (
+              <div className="mt-4 flex flex-col items-start justify-between gap-3 border border-amber-900/40 bg-amber-950/20 p-3 sm:flex-row sm:items-center">
+                <div className="text-[11px] text-amber-200">
+                  <span className="font-mono font-bold uppercase">UJI COBA REVIEWER:</span> Anda dapat
+                  melunasi pesanan ini secara instan melalui portal resmi simulator Midtrans.
+                </div>
+                <a
+                  href={midtransSimulatorUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => salinKeClipboard(nomorRekeningTampil, "va")}
+                  className="inline-flex min-h-9 shrink-0 items-center justify-center border border-amber-500 bg-amber-400 px-3 font-mono text-[11px] font-black text-black uppercase transition-colors hover:bg-amber-300"
+                >
+                  BUKA SIMULATOR VA
+                </a>
+              </div>
+            )}
+          </div>
+
+          {/* Accordion Panduan Transfer Step-by-Step */}
+          <div className="mt-6">
+            <h3 className="border-b border-neutral-800 pb-2 font-mono text-xs font-bold text-white uppercase">
+              PETUNJUK PEMBAYARAN {bankTerpilih.namaBank.toUpperCase()}
+            </h3>
+
+            {/* Tab Navigasi Instruksi */}
+            <div className="mt-4 flex border-b border-neutral-800">
+              <button
+                type="button"
+                onClick={() => setTabAktif("mbanking")}
+                className={`min-h-11 border-b-2 px-4 font-mono text-xs font-bold uppercase transition-colors ${
+                  tabAktif === "mbanking"
+                    ? "border-white text-white"
+                    : "border-transparent text-neutral-400 hover:text-neutral-200"
+                }`}
+              >
+                MOBILE BANKING
+              </button>
+              <button
+                type="button"
+                onClick={() => setTabAktif("atm")}
+                className={`min-h-11 border-b-2 px-4 font-mono text-xs font-bold uppercase transition-colors ${
+                  tabAktif === "atm"
+                    ? "border-white text-white"
+                    : "border-transparent text-neutral-400 hover:text-neutral-200"
+                }`}
+              >
+                ATM
+              </button>
+              <button
+                type="button"
+                onClick={() => setTabAktif("ibanking")}
+                className={`min-h-11 border-b-2 px-4 font-mono text-xs font-bold uppercase transition-colors ${
+                  tabAktif === "ibanking"
+                    ? "border-white text-white"
+                    : "border-transparent text-neutral-400 hover:text-neutral-200"
+                }`}
+              >
+                INTERNET BANKING
+              </button>
+            </div>
+
+            {/* Daftar Langkah Transfer */}
+            <div className="mt-4 border border-neutral-800 bg-neutral-950 p-4">
+              <ol className="list-decimal space-y-2.5 pl-4 font-mono text-xs text-neutral-300">
+                {tabAktif === "mbanking" &&
+                  bankTerpilih.mbanking.map((langkah, idx) => <li key={idx}>{langkah}</li>)}
+                {tabAktif === "atm" &&
+                  bankTerpilih.atm.map((langkah, idx) => <li key={idx}>{langkah}</li>)}
+                {tabAktif === "ibanking" &&
+                  bankTerpilih.ibanking.map((langkah, idx) => <li key={idx}>{langkah}</li>)}
+              </ol>
             </div>
           </div>
+        </>
+      ) : (
+        /* Jika Nomor VA Belum Terbit / Menggunakan Midtrans Snap Langsung */
+        <div className="mt-6 border border-neutral-700 bg-neutral-900/60 p-5 sm:p-6">
+          <div className="flex flex-col gap-4">
+            <div>
+              <p className="font-mono text-xs font-bold text-white uppercase">
+                INSTRUKSI PEMBAYARAN GATEWAY MIDTRANS
+              </p>
+              <p className="mt-1 text-xs text-neutral-400">
+                Selesaikan transaksi melalui portal pembayaran resmi Midtrans Snap. Anda dapat memilih metode pembayaran Virtual Account, QRIS, GoPay, atau Kartu Kredit.
+              </p>
+            </div>
 
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/40 px-2.5 py-0.5 font-mono text-[10px] font-bold text-emerald-400 uppercase">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              SISTEM ONLINE
-            </span>
+            {/* Kotak Total Tagihan */}
+            <div className="flex flex-col justify-between gap-2 border border-neutral-800 bg-neutral-950 p-4 sm:flex-row sm:items-center">
+              <div>
+                <span className="font-mono text-[10px] text-neutral-400 uppercase">
+                  TOTAL TAGIHAN TEPAT:
+                </span>
+                <p className="font-mono text-lg font-black text-emerald-400 sm:text-xl">
+                  {formatRupiah(nominal)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => salinKeClipboard(nominal.toString(), "nominal")}
+                className="inline-flex min-h-9 items-center justify-center border border-neutral-700 bg-neutral-900 px-3 font-mono text-[11px] font-semibold text-neutral-300 uppercase transition-colors hover:border-neutral-500 hover:text-white"
+              >
+                {sudahDisalinNominal ? "NOMINAL TERSALIN" : "SALIN NOMINAL"}
+              </button>
+            </div>
+
+            {snapRedirectUrl && (
+              <a
+                href={snapRedirectUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 w-full items-center justify-center border border-white bg-white px-6 font-mono text-xs font-bold text-black uppercase transition-colors hover:bg-neutral-200"
+              >
+                BUKA PORTAL PEMBAYARAN MIDTRANS
+              </a>
+            )}
           </div>
         </div>
+      )}
 
-        {/* Kotak Nomor Virtual Account */}
-        <div className="mt-5 border border-neutral-800 bg-neutral-950 p-4">
-          <span className="font-mono text-[10px] text-neutral-400 uppercase">
-            NOMOR VIRTUAL ACCOUNT:
-          </span>
-          <div className="mt-1 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <span className="font-mono text-xl font-black tracking-widest text-white sm:text-2xl">
-              {nomorRekeningTampil}
-            </span>
-            <button
-              type="button"
-              onClick={() => salinKeClipboard(nomorRekeningTampil, "va")}
-              className="inline-flex min-h-11 items-center justify-center border border-white bg-white px-5 font-mono text-xs font-bold text-black uppercase transition-colors hover:bg-neutral-200 active:scale-98"
-            >
-              {sudahDisalinVa ? "BERHASIL DISALIN!" : "SALIN NOMOR VA"}
-            </button>
-          </div>
-        </div>
-
-        {/* Kotak Total Tagihan */}
-        <div className="mt-3 flex flex-col justify-between gap-2 border border-neutral-800 bg-neutral-950 p-4 sm:flex-row sm:items-center">
-          <div>
-            <span className="font-mono text-[10px] text-neutral-400 uppercase">
-              TOTAL TAGIHAN TEPAT:
-            </span>
-            <p className="font-mono text-lg font-black text-emerald-400 sm:text-xl">
-              {formatRupiah(nominal)}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => salinKeClipboard(nominal.toString(), "nominal")}
-            className="inline-flex min-h-9 items-center justify-center border border-neutral-700 bg-neutral-900 px-3 font-mono text-[11px] font-semibold text-neutral-300 uppercase transition-colors hover:border-neutral-500 hover:text-white"
-          >
-            {sudahDisalinNominal ? "NOMINAL TERSALIN" : "SALIN NOMINAL"}
-          </button>
-        </div>
-
-        {/* Tautan Deep-link ke Midtrans Simulator (Sandbox Portofolio) */}
-        <div className="mt-4 flex flex-col items-start justify-between gap-3 border border-amber-900/40 bg-amber-950/20 p-3 sm:flex-row sm:items-center">
-          <div className="text-[11px] text-amber-200">
-            <span className="font-mono font-bold uppercase">UJI COBA REVIEWER:</span> Anda dapat
-            melunasi pesanan ini secara instan melalui portal resmi simulator Midtrans.
-          </div>
-          <a
-            href={midtransSimulatorUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => salinKeClipboard(nomorRekeningTampil, "va")}
-            className="inline-flex min-h-9 shrink-0 items-center justify-center border border-amber-500 bg-amber-400 px-3 font-mono text-[11px] font-black text-black uppercase transition-colors hover:bg-amber-300"
-          >
-            BUKA SIMULATOR VA
-          </a>
-        </div>
-      </div>
-
-      {/* Accordion Panduan Transfer Step-by-Step */}
-      <div className="mt-6">
-        <h3 className="border-b border-neutral-800 pb-2 font-mono text-xs font-bold text-white uppercase">
-          PETUNJUK PEMBAYARAN {bankTerpilih.namaBank.toUpperCase()}
-        </h3>
-
-        {/* Tab Navigasi Instruksi */}
-        <div className="mt-4 flex border-b border-neutral-800">
-          <button
-            type="button"
-            onClick={() => setTabAktif("mbanking")}
-            className={`min-h-11 border-b-2 px-4 font-mono text-xs font-bold uppercase transition-colors ${
-              tabAktif === "mbanking"
-                ? "border-white text-white"
-                : "border-transparent text-neutral-400 hover:text-neutral-200"
-            }`}
-          >
-            MOBILE BANKING
-          </button>
-          <button
-            type="button"
-            onClick={() => setTabAktif("atm")}
-            className={`min-h-11 border-b-2 px-4 font-mono text-xs font-bold uppercase transition-colors ${
-              tabAktif === "atm"
-                ? "border-white text-white"
-                : "border-transparent text-neutral-400 hover:text-neutral-200"
-            }`}
-          >
-            ATM
-          </button>
-          <button
-            type="button"
-            onClick={() => setTabAktif("ibanking")}
-            className={`min-h-11 border-b-2 px-4 font-mono text-xs font-bold uppercase transition-colors ${
-              tabAktif === "ibanking"
-                ? "border-white text-white"
-                : "border-transparent text-neutral-400 hover:text-neutral-200"
-            }`}
-          >
-            INTERNET BANKING
-          </button>
-        </div>
-
-        {/* Daftar Langkah Transfer */}
-        <div className="mt-4 border border-neutral-800 bg-neutral-950 p-4">
-          <ol className="list-decimal space-y-2.5 pl-4 font-mono text-xs text-neutral-300">
-            {tabAktif === "mbanking" &&
-              bankTerpilih.mbanking.map((langkah, idx) => <li key={idx}>{langkah}</li>)}
-            {tabAktif === "atm" &&
-              bankTerpilih.atm.map((langkah, idx) => <li key={idx}>{langkah}</li>)}
-            {tabAktif === "ibanking" &&
-              bankTerpilih.ibanking.map((langkah, idx) => <li key={idx}>{langkah}</li>)}
-          </ol>
-        </div>
-      </div>
-
-      {/* Opsi Cadangan Sekunder: Midtrans Snap Popup */}
-      {snapRedirectUrl && (
+      {/* Opsi Cadangan Sekunder: Midtrans Snap Popup jika nomor VA ada tapi ingin metode lain */}
+      {nomorRekeningTampil && snapRedirectUrl && (
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-neutral-800 pt-4">
           <span className="font-mono text-[11px] text-neutral-400">
             Ingin bayar menggunakan kartu kredit atau channel lain?
@@ -369,7 +415,7 @@ export function InAppPaymentViewer({
             rel="noopener noreferrer"
             className="inline-flex min-h-11 items-center justify-center border border-neutral-700 bg-neutral-900 px-4 font-mono text-xs font-semibold text-neutral-200 transition-colors hover:border-white hover:text-white"
           >
-            BUKA MIDTRANS SNAP POPUP &rarr;
+            BUKA MIDTRANS SNAP
           </a>
         </div>
       )}

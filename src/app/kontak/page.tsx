@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import { kirimPesanKontakAction } from "@/features/contact/actions/kontak.action";
 
 export default function HalamanKontak() {
   const { t } = useI18n();
@@ -11,6 +12,7 @@ export default function HalamanKontak() {
   const [pesan, setPesan] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [pesanSukses, setPesanSukses] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,16 +25,30 @@ export default function HalamanKontak() {
     try {
       setStatus("loading");
       setErrorMessage("");
-      // Simulasi pengiriman pesan ke studio internal
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      setPesanSukses("");
+
+      const hasil = await kirimPesanKontakAction({
+        nama,
+        email,
+        subjek: subjek.trim() ? subjek : undefined,
+        pesan,
+      });
+
+      if (!hasil.sukses) {
+        setStatus("error");
+        setErrorMessage(hasil.pesan);
+        return;
+      }
+
       setStatus("success");
+      setPesanSukses(hasil.pesan);
       setNama("");
       setEmail("");
       setSubjek("");
       setPesan("");
     } catch {
       setStatus("error");
-      setErrorMessage("Gagal mengirim pesan. Silakan hubungi kami langsung via email.");
+      setErrorMessage("Gagal mengirim pesan. Silakan hubungi kami langsung via email studio@voidsupply.com.");
     }
   };
 
@@ -71,7 +87,7 @@ export default function HalamanKontak() {
                   aria-live="polite"
                   className="mb-6 border border-emerald-500/50 bg-emerald-950/40 p-4 font-mono text-xs text-emerald-300"
                 >
-                  {t.contact.success}
+                  {pesanSukses || t.contact.success}
                 </div>
               )}
 

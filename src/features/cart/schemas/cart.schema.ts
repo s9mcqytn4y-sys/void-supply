@@ -20,6 +20,7 @@ export const itemKeranjangTersimpanSkema = z.object({
     .int()
     .min(1, "Jumlah minimal 1 unit")
     .max(BATAS_MAKSIMAL_PER_SKU, `Jumlah maksimal ${BATAS_MAKSIMAL_PER_SKU} unit`),
+  beratGram: z.number().int().nonnegative().optional(),
 });
 
 export const stateKeranjangTersimpanSkema = z.object({

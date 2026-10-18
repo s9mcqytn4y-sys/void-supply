@@ -57,11 +57,11 @@ export async function simulasiPergerakanKurirAction(
       };
     }
 
-    // IDOR Protection: Verifikasi token akses
-    if (pesananDb.tokenAkses && pesananDb.tokenAkses !== tokenAkses) {
+    // IDOR Protection: Verifikasi token akses secara ketat
+    if (!tokenAkses || pesananDb.tokenAkses !== tokenAkses) {
       return {
         sukses: false,
-        pesan: "Akses ditolak: Token otentikasi pesanan tidak cocok.",
+        pesan: "Akses ditolak: Token otentikasi pesanan diperlukan dan harus cocok.",
       };
     }
 

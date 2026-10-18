@@ -8,6 +8,7 @@ import {
 } from "@/lib/db";
 import { kirimEmailNotifikasi, type ParameterKirimEmail } from "./email.service";
 import { buatOrderPengirimanBiteship } from "./biteship.service";
+import { simpanSnapshotArsipFaktur } from "@/features/checkout/services/arsip-faktur.service";
 
 export interface ParameterTambahOutbox {
   tipePekerjaan: "kirim_email" | "buat_order_biteship" | string;
@@ -231,6 +232,22 @@ export async function prosesAntreanOutbox(batchLimit = 10): Promise<HasilProsesO
               waktuPeristiwa: new Date(),
             });
           }
+        }
+      } else if (tugas.tipePekerjaan === "buat_arsip_faktur") {
+        const payloadArsip = tugas.payload as {
+          fakturId: string;
+          nomorFaktur: string;
+          pesananId: string;
+        };
+        const hasilArsip = await simpanSnapshotArsipFaktur(
+          payloadArsip.fakturId,
+          payloadArsip.nomorFaktur,
+          payloadArsip.pesananId
+        );
+        if (!hasilArsip.sukses) {
+          throw new Error(
+            hasilArsip.pesan || "Perekaman snapshot arsip faktur outbox gagal."
+          );
         }
       } else {
         throw new Error(`Tipe pekerjaan outbox '${tugas.tipePekerjaan}' tidak dikenali.`);

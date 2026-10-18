@@ -37,9 +37,9 @@ export async function simulasikanPembayaranBerhasilAction(
       return { sukses: false, pesan: "Pesanan tidak ditemukan di database." };
     }
 
-    // IDOR Protection: Verifikasi token akses jika token_akses ada pada pesanan
-    if (dataPesanan.tokenAkses && dataPesanan.tokenAkses !== tokenAkses) {
-      return { sukses: false, pesan: "Akses ditolak: Token otentikasi pesanan tidak cocok." };
+    // IDOR Protection: Verifikasi token akses secara ketat
+    if (!tokenAkses || dataPesanan.tokenAkses !== tokenAkses) {
+      return { sukses: false, pesan: "Akses ditolak: Token otentikasi pesanan diperlukan dan harus cocok." };
     }
 
     if (dataPesanan.statusPesanan !== "menunggu_pembayaran") {
@@ -127,8 +127,9 @@ export async function simulasikanStatusLogistikBiteshipAction(
       return { sukses: false, pesan: "Pesanan tidak ditemukan." };
     }
 
-    if (dataPesanan.tokenAkses && dataPesanan.tokenAkses !== tokenAkses) {
-      return { sukses: false, pesan: "Akses ditolak: Token pesanan tidak valid." };
+    // IDOR Protection: Verifikasi token akses secara ketat
+    if (!tokenAkses || dataPesanan.tokenAkses !== tokenAkses) {
+      return { sukses: false, pesan: "Akses ditolak: Token otentikasi pesanan diperlukan dan harus cocok." };
     }
 
     const dataKirim = await db.query.pengiriman.findFirst({
@@ -223,8 +224,9 @@ export async function simulasikanPembatalanPesananAction(
       return { sukses: false, pesan: "Pesanan tidak ditemukan di database." };
     }
 
-    if (dataPesanan.tokenAkses && dataPesanan.tokenAkses !== tokenAkses) {
-      return { sukses: false, pesan: "Akses ditolak: Token otentikasi pesanan tidak cocok." };
+    // IDOR Protection: Verifikasi token akses secara ketat
+    if (!tokenAkses || dataPesanan.tokenAkses !== tokenAkses) {
+      return { sukses: false, pesan: "Akses ditolak: Token otentikasi pesanan diperlukan dan harus cocok." };
     }
 
     if (dataPesanan.statusPesanan !== "menunggu_pembayaran") {

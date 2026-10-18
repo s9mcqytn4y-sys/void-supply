@@ -122,30 +122,56 @@ export function KartuStatusPesanan({
     }
   };
 
-  // Polling Status Otomatis setiap 5 detik (maksimal 2 menit = 24 polling)
+  // Polling Status Otomatis dengan Recursive Timeout, In-flight Lock, dan Dynamic Backoff
   useEffect(() => {
     if (pesanan.statusPesanan !== "menunggu_pembayaran") {
       return;
     }
 
+    let terpasang = true;
+    let timerId: NodeJS.Timeout | null = null;
+    let sedangMemproses = false;
     let hitungan = 0;
-    const intervalPolling = setInterval(async () => {
-      hitungan += 1;
-      if (hitungan > 24) {
-        clearInterval(intervalPolling);
-        return;
-      }
+    const batasMaksimal = 20;
 
-      const hasil = await ambilStatusPesanan(pesanan.nomorPesanan, tokenAkses);
-      if (hasil.sukses && hasil.data) {
-        setPesanan(hasil.data);
-        if (hasil.data.statusPesanan !== "menunggu_pembayaran") {
-          clearInterval(intervalPolling);
+    const jadwalkanPollingBerikutnya = (jedaMs: number) => {
+      if (!terpasang) return;
+      timerId = setTimeout(eksekusiPolling, jedaMs);
+    };
+
+    const eksekusiPolling = async () => {
+      if (!terpasang || sedangMemproses) return;
+      sedangMemproses = true;
+      hitungan += 1;
+
+      try {
+        const hasil = await ambilStatusPesanan(pesanan.nomorPesanan, tokenAkses);
+        if (terpasang && hasil.sukses && hasil.data) {
+          setPesanan(hasil.data);
+          // Berhenti polling jika status sudah berubah dari menunggu_pembayaran
+          if (hasil.data.statusPesanan !== "menunggu_pembayaran") {
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Kesalahan saat polling status pesanan:", err);
+      } finally {
+        sedangMemproses = false;
+        if (terpasang && hitungan < batasMaksimal) {
+          // Dynamic Backoff: 3s awal (1-3), 5s tengah (4-10), 10s akhir (>10)
+          const jedaMs = hitungan <= 3 ? 3000 : hitungan <= 10 ? 5000 : 10000;
+          jadwalkanPollingBerikutnya(jedaMs);
         }
       }
-    }, 5000);
+    };
 
-    return () => clearInterval(intervalPolling);
+    // Mulai siklus pertama setelah 3 detik
+    jadwalkanPollingBerikutnya(3000);
+
+    return () => {
+      terpasang = false;
+      if (timerId) clearTimeout(timerId);
+    };
   }, [pesanan.nomorPesanan, pesanan.statusPesanan, tokenAkses]);
 
   const menit = Math.floor(sisaWaktuDetik / 60);

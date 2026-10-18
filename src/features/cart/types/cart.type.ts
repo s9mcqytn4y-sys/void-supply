@@ -18,6 +18,7 @@ export interface ItemKeranjang {
   readonly warna: string;
   readonly hargaTampilanIdr: number;
   readonly jumlah: number;
+  readonly beratGram?: number;
   readonly statusKetersediaan?: StatusKetersediaanItem;
   readonly stokTersediaServer?: number;
 }

@@ -58,7 +58,10 @@ export async function batalkanPesananKedaluwarsa(
     // 2. Eksekusi compare-and-set dan pemulihan stok per pesanan
     for (const order of pesananKedaluwarsa) {
       // Rekonsiliasi Gateway Midtrans Tri-State (OPS-02 & PAY-04):
-      const statusGateway = await cekStatusTransaksiMidtrans(order.nomorPesanan);
+      const statusGateway = await cekStatusTransaksiMidtrans(order.nomorPesanan, {
+        waktuDibuat: order.dibuatPada,
+        apakahBatasWaktuHabis: true,
+      });
 
       // KASUS 1: PAID (Transaksi sukses di gateway) -> Ubah pesanan ke diproses, pembayaran ke berhasil secara atomik
       if (statusGateway.state === "PAID" || statusGateway.apakahSudahDibayar) {
