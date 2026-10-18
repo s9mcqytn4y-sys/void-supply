@@ -64,9 +64,9 @@ test.describe("Fase 3 Master Regression: Alur UI Transaksi & Simulasi DevTools E
       timeout: 15000,
     });
 
-    // Verifikasi komponen In-App Native Payment Viewer
+    // Verifikasi komponen In-App Native Payment Viewer (Virtual Account resmi atau Gateway Snap)
     await expect(
-      page.getByText("PEMBAYARAN VIRTUAL ACCOUNT RESMI")
+      page.getByText(/PEMBAYARAN VIRTUAL ACCOUNT RESMI|INSTRUKSI PEMBAYARAN GATEWAY/)
     ).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("TOTAL TAGIHAN TEPAT:")).toBeVisible({
       timeout: 15000,

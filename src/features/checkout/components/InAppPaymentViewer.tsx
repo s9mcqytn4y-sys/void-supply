@@ -374,7 +374,7 @@ export function InAppPaymentViewer({
             <div className="flex flex-col justify-between gap-2 border border-neutral-800 bg-neutral-950 p-4 sm:flex-row sm:items-center">
               <div>
                 <span className="font-mono text-[10px] text-neutral-400 uppercase">
-                  TOTAL TAGIHAN:
+                  TOTAL TAGIHAN TEPAT:
                 </span>
                 <p className="font-mono text-lg font-black text-emerald-400 sm:text-xl">
                   {formatRupiah(nominal)}
