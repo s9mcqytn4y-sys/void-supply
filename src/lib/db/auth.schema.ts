@@ -10,6 +10,7 @@ import {
   jsonb,
   index,
   uniqueIndex,
+  customType,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { produk, varianProduk, pesanan } from "./schema";
@@ -93,13 +94,25 @@ export const verifikasiAutentikasi = pgTable(
   ]
 );
 
+const bigintTimestamp = customType<{ data: number; driverData: string }>({
+  dataType() {
+    return "bigint";
+  },
+  toDriver(value: number): string {
+    return value.toString();
+  },
+  fromDriver(value: string | number | bigint): number {
+    return Number(value);
+  },
+});
+
 export const batasPermintaanAuth = pgTable(
   "batas_permintaan_auth",
   {
     id: text("id").primaryKey(),
     key: text("key").notNull().unique(),
     count: integer("count").default(0).notNull(),
-    lastRequest: bigint("last_request", { mode: "number" }).notNull(),
+    lastRequest: bigintTimestamp("last_request").notNull(),
   },
   (tabel) => [
     uniqueIndex("uq_rate_limit_key").on(tabel.key),

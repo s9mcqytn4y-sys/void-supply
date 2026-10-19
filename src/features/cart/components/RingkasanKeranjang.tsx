@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { formatRupiah } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -118,8 +119,13 @@ export function RingkasanKeranjang() {
         {/* Isi Keranjang atau Empty State */}
         {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center text-center">
-            <div className="h-12 w-12 border border-dashed border-neutral-700 flex items-center justify-center font-mono text-xs text-neutral-400 mb-4">
-              [Ø]
+            <div className="relative mb-4 h-28 w-28 select-none opacity-85">
+              <Image
+                src="/assets/brand/empty-state-brutalist.webp"
+                alt="Ilustrasi Keranjang Kosong"
+                fill
+                className="object-contain"
+              />
             </div>
             <p className="font-mono text-xs font-semibold text-neutral-300 uppercase">
               KERANJANG BELANJA KOSONG

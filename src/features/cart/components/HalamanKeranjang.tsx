@@ -81,8 +81,14 @@ export function HalamanKeranjang() {
     return (
       <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-center border border-neutral-800 bg-neutral-900/40 p-12 text-center">
-          <div className="mb-6 flex h-16 w-16 items-center justify-center border border-neutral-700 font-mono text-lg text-neutral-400">
-            [Ø]
+          <div className="relative mb-6 h-36 w-36 select-none opacity-85 transition-opacity hover:opacity-100">
+            <Image
+              src="/assets/brand/empty-state-brutalist.webp"
+              alt="Ilustrasi Brutalist Keranjang Kosong VOID Supply"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
           <h1 className="font-mono text-xl font-bold tracking-tight text-white uppercase sm:text-2xl">
             KERANJANG BELANJA KOSONG

@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { formatRupiah } from "@/lib/utils";
 import { generateCode128Svg } from "@/lib/barcode/code128";
 
@@ -99,8 +100,16 @@ export function FakturTransaksi({ data, className = "" }: FakturTransaksiProps) 
           </p>
         </div>
 
-        <div className="text-left font-mono text-xs sm:text-right">
-          <span className="inline-block border border-emerald-500/50 bg-emerald-950/40 px-3 py-1 font-bold text-emerald-400 uppercase print:border-emerald-700 print:bg-emerald-50 print:text-emerald-800">
+        <div className="relative text-left font-mono text-xs sm:text-right">
+          <div className="pointer-events-none absolute -top-4 -right-2 hidden h-24 w-24 opacity-35 select-none sm:block print:block print:opacity-60">
+            <Image
+              src="/assets/brand/void-archive-stamp-white.webp"
+              alt="Segel Arsip VOID Supply"
+              fill
+              className="object-contain print:invert"
+            />
+          </div>
+          <span className="relative z-10 inline-block border border-emerald-500/50 bg-emerald-950/40 px-3 py-1 font-bold text-emerald-400 uppercase print:border-emerald-700 print:bg-emerald-50 print:text-emerald-800">
             STATUS: {statusPembayaran === "berhasil" ? "LUNAS (PAID)" : "TERCATAT"}
           </span>
           <p className="mt-2 font-bold text-white print:text-black">

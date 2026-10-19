@@ -12,8 +12,8 @@ export function FooterBrand() {
       <div className="flex items-center gap-3">
         <div className="relative h-7 w-7 overflow-hidden rounded bg-zinc-900 border border-zinc-800">
           <Image
-            src="/assets/brand/logo-mark.webp"
-            alt="VOID Emblem"
+            src="/icon.svg"
+            alt="VOID Supply Icon"
             fill
             className="object-cover"
           />

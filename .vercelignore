@@ -1,0 +1,24 @@
+# Vercel Deployment Screening Ignore (.vercelignore)
+# Mencegah artefak internal, dokumentasi, skrip, dan pengujian masuk ke bundling serverless / public output
+
+# 1. Dokumentasi Internal & Riset
+docs/
+*.md
+!README.md
+
+# 2. Skrip Pemeliharaan & Pipeline
+scripts/
+
+# 3. Rangkaian Pengujian Lokal & E2E
+tests/
+playwright-report/
+test-results/
+
+# 4. Konfigurasi CI/CD & Agent Lokal
+.github/
+.agents/
+.vscode/
+
+# 5. Berkas Log & Basis Data Cadangan
+*.log
+*.sql
