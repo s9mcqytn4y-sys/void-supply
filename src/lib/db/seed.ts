@@ -250,6 +250,7 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/void-tee-02-front.webp",
       galeriGambar: [
         "/images/products/drop-04/void-tee-02-front.webp",
+        "/images/products/drop-04/void-tee-02-back.webp",
         "/images/products/drop-04/void-tee-02-detail.webp",
       ],
       spesifikasi: {
@@ -299,6 +300,7 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/cybernetic-ls-01-front.webp",
       galeriGambar: [
         "/images/products/drop-04/cybernetic-ls-01-front.webp",
+        "/images/products/drop-04/cybernetic-ls-01-back.webp",
         "/images/products/drop-04/cybernetic-ls-01-detail.webp",
       ],
       spesifikasi: {
@@ -348,6 +350,7 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/hoodie-zip-front.webp",
       galeriGambar: [
         "/images/products/drop-04/hoodie-zip-front.webp",
+        "/images/products/drop-04/hoodie-zip-back.webp",
         "/images/products/drop-04/hoodie-zip-detail.webp",
       ],
       spesifikasi: {
@@ -441,6 +444,7 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/cargo-pants-front.webp",
       galeriGambar: [
         "/images/products/drop-04/cargo-pants-front.webp",
+        "/images/products/drop-04/cargo-pants-back.webp",
         "/images/products/drop-04/cargo-pants-detail.webp",
       ],
       spesifikasi: {
@@ -490,6 +494,7 @@ async function seed() {
       gambarUtama: "/images/products/drop-04/pleated-pants-front.webp",
       galeriGambar: [
         "/images/products/drop-04/pleated-pants-front.webp",
+        "/images/products/drop-04/pleated-pants-back.webp",
         "/images/products/drop-04/pleated-pants-detail.webp",
       ],
       spesifikasi: {

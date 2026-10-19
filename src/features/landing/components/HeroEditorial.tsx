@@ -28,13 +28,13 @@ export function HeroEditorial() {
           <div className="mt-6 flex flex-wrap items-center gap-3 sm:mt-8 sm:gap-4">
             <Link
               href="/katalog"
-              className="inline-flex min-h-11 items-center justify-center border border-white bg-white px-6 py-2.5 font-mono text-xs font-semibold tracking-wider text-black uppercase transition-colors hover:bg-zinc-200 active:bg-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="inline-flex min-h-11 items-center justify-center border border-white bg-white px-6 py-2.5 font-mono text-xs font-semibold tracking-wider text-black uppercase transition-all hover:bg-zinc-200 active:scale-[0.98] active:bg-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               JELAJAHI KATALOG
             </Link>
             <Link
               href="#manifesto"
-              className="inline-flex min-h-11 items-center justify-center border border-zinc-800 bg-zinc-900 px-6 py-2.5 font-mono text-xs font-semibold tracking-wider text-zinc-300 uppercase transition-colors hover:border-zinc-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              className="inline-flex min-h-11 items-center justify-center border border-zinc-800 bg-zinc-900 px-6 py-2.5 font-mono text-xs font-semibold tracking-wider text-zinc-300 uppercase transition-all hover:border-zinc-500 hover:text-white active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
               BACA MANIFESTO
             </Link>
@@ -60,20 +60,32 @@ export function HeroEditorial() {
         {/* Kolom Frame Editorial Visual (7 Kolom Desktop) */}
         <div className="order-1 lg:order-2 lg:col-span-7">
           <div className="group relative overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl">
-            <div className="relative aspect-4/3 w-full sm:aspect-16/10 lg:aspect-4/3">
-              <Image
-                src="/images/lookbook/drop-04-editorial-hero.webp"
-                alt="Lookbook Editorial Model VOID Supply Drop 04 Night Transmission"
-                fill
-                priority
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 55vw"
-                className="object-cover object-center transition-transform duration-500 group-hover:scale-102"
-              />
+            <div className="relative aspect-4/3 w-full sm:aspect-16/10 lg:aspect-4/3 overflow-hidden">
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                poster="/images/lookbook/drop-04-editorial-hero.webp"
+                className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-102"
+                aria-label="Editorial video loop kampanye Drop 04 VOID Supply"
+              >
+                <source src="/assets/video/ambient-lookbook-loop.webm" type="video/webm" />
+                <source src="/assets/video/ambient-lookbook-loop.mp4" type="video/mp4" />
+                <Image
+                  src="/images/lookbook/drop-04-editorial-hero.webp"
+                  alt="Lookbook Editorial Model VOID Supply Drop 04 Night Transmission"
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 55vw"
+                  className="object-cover object-center"
+                />
+              </video>
             </div>
 
             {/* Tag Caption Editorial Brutalist */}
             <div className="absolute right-3 bottom-3 border border-zinc-800/90 bg-zinc-950/85 px-2.5 py-1 font-mono text-[10px] tracking-wider text-zinc-300 uppercase backdrop-blur-xs">
-              LOOK 01 // NIGHT TRANSMISSION
+              LOOK 01 // NIGHT TRANSMISSION [LOOP]
             </div>
           </div>
         </div>

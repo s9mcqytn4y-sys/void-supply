@@ -68,7 +68,7 @@ export function KampanyePreOrderBundling() {
           {/* Sisi Kiri: Visual Editorial Kampanye */}
           <div className="lg:col-span-7">
             <div className="group relative overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl">
-              <div className="relative aspect-16/9 w-full">
+              <div className="relative aspect-video w-full">
                 <Image
                   src="/images/lookbook/cybernetic-division-campaign.jpg"
                   alt="Kampanye Streetwear Cybernetic Division Drop 04 VOID Supply"
@@ -182,14 +182,14 @@ export function KampanyePreOrderBundling() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/katalog?koleksi=cybernetic"
-                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 border border-white bg-white px-5 py-2.5 font-mono text-xs font-semibold tracking-wider text-black uppercase transition-colors hover:bg-zinc-200 active:bg-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 border border-white bg-white px-5 py-2.5 font-mono text-xs font-semibold tracking-wider text-black uppercase transition-all hover:bg-zinc-200 active:scale-[0.98] active:bg-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 KLAIM PAKET BUNDLING
                 <ArrowRight className="h-3.5 w-3.5" />
               </Link>
               <Link
                 href="/katalog"
-                className="inline-flex min-h-11 items-center justify-center border border-zinc-800 bg-zinc-900 px-5 py-2.5 font-mono text-xs font-semibold tracking-wider text-zinc-300 uppercase transition-colors hover:border-zinc-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="inline-flex min-h-11 items-center justify-center border border-zinc-800 bg-zinc-900 px-5 py-2.5 font-mono text-xs font-semibold tracking-wider text-zinc-300 uppercase transition-all hover:border-zinc-600 hover:text-white active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 LIHAT ARTIKEL SATUAN
               </Link>

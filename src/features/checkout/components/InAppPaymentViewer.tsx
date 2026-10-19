@@ -29,7 +29,7 @@ const PANDUAN_TRANSFER: Record<
 > = {
   bca: {
     namaBank: "BCA Virtual Account",
-    logo: "/images/payments/bca.webp",
+    logo: "/assets/payment/bca.webp",
     mbanking: [
       "Buka aplikasi BCA Mobile, lalu pilih menu m-BCA.",
       "Pilih m-Transfer, lalu klik BCA Virtual Account.",
@@ -53,7 +53,7 @@ const PANDUAN_TRANSFER: Record<
   },
   mandiri: {
     namaBank: "Mandiri Bill Payment",
-    logo: "/images/payments/mandiri.webp",
+    logo: "/assets/payment/mandiri.webp",
     mbanking: [
       "Buka aplikasi Livin' by Mandiri, lalu masuk dengan akun Anda.",
       "Pilih menu Bayar, lalu pilih Pembayaran Baru.",
@@ -77,7 +77,7 @@ const PANDUAN_TRANSFER: Record<
   },
   bni: {
     namaBank: "BNI Virtual Account",
-    logo: "/images/payments/bni.webp",
+    logo: "/assets/payment/bni.webp",
     mbanking: [
       "Buka aplikasi BNI Mobile Banking.",
       "Pilih menu Pembayaran, lalu klik Virtual Account Billing.",
@@ -101,7 +101,7 @@ const PANDUAN_TRANSFER: Record<
   },
   bri: {
     namaBank: "BRI Virtual Account (BRIVA)",
-    logo: "/images/payments/bri.webp",
+    logo: "/assets/payment/bri.webp",
     mbanking: [
       "Buka aplikasi BRImo, lalu login.",
       "Pilih menu Tagihan, lalu pilih BRIVA.",
