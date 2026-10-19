@@ -51,12 +51,15 @@ test.describe("Fase 3: Master Shopper Journey & Storefront UX E2E", () => {
     // Verifikasi modal otomatis tertutup
     await expect(dialogPanduan).toBeHidden();
 
-    // 4. TAMBAH KE KERANJANG
-    const tombolTambahKeranjang = page.locator(
-      'button:has-text("TAMBAHKAN KE KERANJANG"), button:has-text("TAMBAH KE KERANJANG")'
-    ).first();
+    // 4. TAMBAH KE KERANJANG (dukung desktop & mobile sticky bar)
+    const tombolTambahKeranjang = page
+      .locator(
+        'button[data-testid="tombol-tambah-keranjang"], button[data-testid="tombol-tambah-keranjang-mobile"], button:has-text("TAMBAH KE KERANJANG"), button:has-text("+ BAG")'
+      )
+      .filter({ visible: true })
+      .first();
     await expect(tombolTambahKeranjang).toBeVisible();
-    await tombolTambahKeranjang.click({ force: true });
+    await tombolTambahKeranjang.click();
 
     // 5. DRAWER KERANJANG & NAVIGASI KE /keranjang
     const judulDrawer = page.locator('text="KERANJANG BELANJA"').first();

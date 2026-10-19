@@ -158,15 +158,8 @@ export function CheckoutProvider({ children }: { children: React.ReactNode }) {
     mode: "onBlur",
   });
 
-  // 1. Redirect Guard: Pengguna belum login diarahkan ke /masuk?next=/checkout
-  useEffect(() => {
-    if (!sessionLoading && !session && items.length > 0) {
-      toast.info(
-        "Silakan masuk atau daftarkan akun untuk menyelesaikan pemesanan."
-      );
-      router.replace("/masuk?next=/checkout");
-    }
-  }, [sessionLoading, session, items.length, router]);
+  // 1. Dukungan Checkout Multi-Mode: Pembeli Tamu (Guest) & Pengguna Terotentikasi (Authenticated)
+  // Sesi tidak memblokir checkout, namun secara otomatis mengaitkan profil bila login.
 
   // 2. Kalkulasi Ongkir Server-Authoritative
   const muatTarifOngkir = useCallback(

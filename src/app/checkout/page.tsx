@@ -29,11 +29,21 @@ function KontenCheckout() {
           <span className="font-mono text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
             CHECKOUT AMAN // ALAMAT & PEMBAYARAN
           </span>
-          {session?.user && (
+          {session?.user ? (
             <div className="flex items-center gap-1.5 font-mono text-[10px] text-neutral-400">
               <span className="inline-block h-1.5 w-1.5 bg-emerald-500" />
               <span>SESI AKTIF:</span>
               <span className="font-bold text-white">{session.user.name}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 font-mono text-[11px] text-neutral-400">
+              <span>Sudah punya akun?</span>
+              <Link
+                href="/masuk?next=/checkout"
+                className="font-bold text-neutral-200 underline hover:text-white transition-colors"
+              >
+                Masuk di sini
+              </Link>
             </div>
           )}
         </div>
@@ -57,13 +67,7 @@ function KontenCheckout() {
         )}
       </div>
 
-      {sessionLoading && items.length > 0 ? (
-        <div className="border border-neutral-800 bg-neutral-950 p-12 text-center">
-          <p className="font-mono text-xs tracking-wider text-neutral-400 uppercase animate-pulse">
-            MEMVERIFIKASI OTORISASI SESI PENGGUNA...
-          </p>
-        </div>
-      ) : items.length === 0 && !sedangMemuat ? (
+      {items.length === 0 && !sedangMemuat ? (
         <div className="border border-neutral-800 bg-neutral-950 p-12 text-center">
           <p className="font-mono text-xs text-neutral-400">
             KERANJANG BELANJA ANDA KOSONG

@@ -249,6 +249,7 @@ export function PilihanKurir() {
                   <button
                     key={`${kurir.kodeKurir}_${kurir.layanan}`}
                     type="button"
+                    data-testid="opsi-kurir-item"
                     onClick={() => setKurirTerpilih(kurir)}
                     className={`flex flex-col justify-between border p-4 text-left transition-all active:scale-[0.98] ${
                       terpilih

@@ -25,10 +25,15 @@ test.describe("E2E: Alur Keranjang & Hidrasi Multi-Platform (Module 02.15)", () 
     await expect(tombolUkuran).toBeVisible({ timeout: 10000 });
     await tombolUkuran.click({ force: true });
 
-    // 5. Klik tombol Tambah ke Keranjang
-    const tombolTambah = page.locator('button:has-text("TAMBAHKAN KE KERANJANG"), button:has-text("TAMBAH KE KERANJANG")').first();
+    // 5. Klik tombol Tambah ke Keranjang (dukung desktop & mobile sticky bar)
+    const tombolTambah = page
+      .locator(
+        'button[data-testid="tombol-tambah-keranjang"], button[data-testid="tombol-tambah-keranjang-mobile"], button:has-text("TAMBAH KE KERANJANG"), button:has-text("+ BAG")'
+      )
+      .filter({ visible: true })
+      .first();
     await expect(tombolTambah).toBeVisible();
-    await tombolTambah.click({ force: true });
+    await tombolTambah.click();
 
     // 6. Verifikasi Drawer Keranjang terbuka dan item tercatat
     const judulDrawer = page.locator('text="KERANJANG BELANJA"');

@@ -11,10 +11,15 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
     await expect(tombolUkuran).toBeVisible({ timeout: 10000 });
     await tombolUkuran.click({ force: true });
 
-    // Tambahkan artikel ke keranjang
-    const tombolTambah = page.locator('button:has-text("TAMBAHKAN KE KERANJANG"), button:has-text("TAMBAH KE KERANJANG")').first();
+    // Tambahkan artikel ke keranjang (dukung baik desktop maupun sticky mobile bar)
+    const tombolTambah = page
+      .locator(
+        'button[data-testid="tombol-tambah-keranjang"], button[data-testid="tombol-tambah-keranjang-mobile"], button:has-text("TAMBAH KE KERANJANG"), button:has-text("+ BAG")'
+      )
+      .filter({ visible: true })
+      .first();
     await expect(tombolTambah).toBeVisible();
-    await tombolTambah.click({ force: true });
+    await tombolTambah.click();
 
     // Tunggu drawer keranjang terbuka mengonfirmasi penambahan sukses
     await expect(page.locator('text="KERANJANG BELANJA"')).toBeVisible({ timeout: 10000 });
@@ -23,7 +28,7 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
   test("menolak pengiriman formulir jika data penerima tidak lengkap", async ({ page }) => {
     await page.goto("/checkout");
 
-    const tombolBayar = page.locator('button:has-text("LANJUT KE PEMBAYARAN")');
+    const tombolBayar = page.locator('button[type="submit"]');
     await expect(tombolBayar).toBeVisible();
 
     // Verifikasi perlindungan keamanan: tombol bayar disabled jika kurir belum dipilih

@@ -389,6 +389,7 @@ export function PemilihVarian({
       {/* 5. Tombol Aksi Tambah ke Keranjang */}
       <Button
         type="button"
+        data-testid="tombol-tambah-keranjang"
         variant={apakahVarianHabis || apakahHabisTotal ? "secondary" : "primary"}
         size="lg"
         disabled={!apakahBisaBeli}
@@ -416,6 +417,7 @@ export function PemilihVarian({
         <Button
           type="button"
           size="sm"
+          data-testid="tombol-tambah-keranjang-mobile"
           disabled={!apakahBisaBeli}
           onClick={tanganiTambahKeranjang}
           className="min-h-11 px-5 font-mono text-xs font-bold tracking-wider"

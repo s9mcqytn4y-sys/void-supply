@@ -36,9 +36,13 @@ export function DevToolsSandboxDrawer({
   const [sedangMemproses, setSedangMemproses] = useState(false);
   const [sudahDisalin, setSudahDisalin] = useState(false);
 
-  // Keyboard shortcut: ESC to close drawer
+  // Keyboard shortcut: F3 to toggle drawer, ESC to close drawer
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "F3") {
+        e.preventDefault();
+        setBuka((prev) => !prev);
+      }
       if (e.key === "Escape" && buka) {
         setBuka(false);
       }
@@ -93,7 +97,7 @@ export function DevToolsSandboxDrawer({
   return (
     <>
       {/* Tombol Mengambang (Floating Pill Button) di Pojok Kanan Bawah */}
-      <div className="fixed bottom-6 right-6 z-40">
+      <div className="fixed bottom-6 right-6 z-50">
         <button
           type="button"
           onClick={() => setBuka(true)}
