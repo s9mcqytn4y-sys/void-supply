@@ -30,3 +30,18 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
    - Gunakan database-backed rate limiting dan session storage di Neon PostgreSQL tanpa dependensi Redis.
    - Proteksi `/demo/inbox` dengan kunci operator (`?key=...`) dan sanitasi seluruh data sensitif/token.
    - Pertahankan integritas pesanan historis melalui relasi `pengguna_id` yang non-destruktif pada `pelanggan`.
+
+---
+
+## Operating policy update (2026-10-20, higher-priority audit work)
+Read [docs/audit-admin-architecture-2026-10-20.md](docs/audit-admin-architecture-2026-10-20.md), [SRS.md](SRS.md), [DESIGN.md](DESIGN.md) before implementation. Do not erase the Next.js auto-generated instruction block above.
+
+1. Work on branches with small reviewed PRs. Scope Development and Demo Staging only; production changes and live gateway charges are prohibited in this initiative.
+2. P0 sequence: reproduce cron 404, enforce fail-closed auth/webhooks, atomic cancellation and stock ledger, separate Administration/Operator capabilities, then refactor.
+3. Treat every state transition as a guarded command with transaction, idempotency key, failure handling, permission check and tests. Never rely on menu hiding.
+4. Active checkout is CheckoutProvider on src/app/checkout/page.tsx and permits guest ordering; legacy hooks/useCheckout is not canonical. Remove legacy only with import graph and tests.
+5. No blind dependency removal or broad architectural rewrite. Next.js runs the app; Vite config is used for Vitest. TanStack Query should have a documented server-state consumer before expanding usage.
+6. Provide evidence: changed paths, reproducer, test commands + actual results, security impact, rollback plan; if live staging cannot be reached say so.
+7. Biteship testing credit and private Gmail are finite resources. Mock outgoing effects by default; never leak recipient PII and credentials.
+8. Previous instruction suggesting protection of /demo/inbox with query key is obsolete: actual route redirects to /. Avoid reactivating test inbox without design and privacy review.
+
