@@ -663,3 +663,16 @@ Seluruh pedoman Anti-Slop proyek VOID Supply (UI, copywriting, aksesibilitas man
    - Shape: Input field = `Square`, Button = `Square` (Konsisten dengan identitas brutalist VOID Supply)
    - Language: Indonesian (atau English)
    - Order ID: Unchecked (Pastikan Order ID tetap terlihat agar pelanggan dapat mencocokkan referensi pesanan)
+
+---
+
+## 22. Post-audit operating guardrails (2026-10-20)
+**Newest audit evidence and roadmap:** [docs/audit-admin-architecture-2026-10-20.md](docs/audit-admin-architecture-2026-10-20.md). Requirements in [SRS.md](SRS.md), visual decisions in [DESIGN.md](DESIGN.md). Existing module documentation above represents historical decisions; implementation and dated audit evidence override any stale status assertions.
+
+- Block development expansion until cron HTTP 404 and outbox skip, Better Auth hardcoded fallback, unauthenticated-if-unset Biteship webhook, non-atomic admin order cancellation/inventory ledger, and Admin-vs-Operator permissions are resolved.
+- Guest checkout is canonical in CheckoutContext.tsx (active on /checkout). hooks/useCheckout.ts is a potential obsolete alternative with login redirect: verify usages before deletion.
+- Main runtime is Next.js 16; Vite is for Vitest in this repository. Use Drizzle + Neon server-authoritative business rules; do not adopt microservices, Redis, or client query caching without concrete bottleneck.
+- No production deployment or real settlement; Midtrans Sandbox, Biteship Testing and isolated database only. Avoid consuming Biteship testing balance during routine unit/E2E.
+- Stage every change with unit+integration+contract+mobile visual checks, measured before/after, rollback notes. No unverified assertions of 'fully secure', 'atomic', 'live-tested' or 'production ready'.
+- Follow response shape: Evidence -> root cause -> target behavior -> smallest change -> tests/acceptance -> rollback -> PR evidence. Promote SRS requirements to implemented only after merge + verification.
+
