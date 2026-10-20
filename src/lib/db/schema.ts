@@ -15,6 +15,7 @@ import { relations, sql } from "drizzle-orm";
 
 // 0. PostgreSQL Enums (Life Cycle & State Machine)
 export const statusProdukEnum = pgEnum("status_produk", ["draft", "aktif", "habis", "arsip"]);
+export const tipeProdukEnum = pgEnum("tipe_produk", ["standar", "pre_order", "bundle"]);
 
 export const statusPesananEnum = pgEnum("status_pesanan", [
   "menunggu_pembayaran",
@@ -161,6 +162,14 @@ export const produk = pgTable(
     deskripsi: text("deskripsi").notNull(),
     hargaDasar: integer("harga_dasar").notNull(),
     status: statusProdukEnum("status").default("aktif").notNull(),
+    tipeProduk: tipeProdukEnum("tipe_produk").default("standar").notNull(),
+    estimasiPreOrderHari: integer("estimasi_pre_order_hari"),
+    metadataBundle: jsonb("metadata_bundle").$type<{
+      itemSku: string[];
+      deskripsiItem?: string[];
+      diskonPersen?: number;
+      hematNominal?: number;
+    }>(),
     gambarUtama: text("gambar_utama").notNull(),
     galeriGambar: jsonb("galeri_gambar").$type<string[]>().default([]).notNull(),
     spesifikasi: jsonb("spesifikasi").$type<SpesifikasiGarmen>(),
@@ -267,6 +276,8 @@ export const itemPesanan = pgTable(
     beratGram: integer("berat_gram").notNull(),
     jumlah: integer("jumlah").notNull(),
     subtotalItem: integer("subtotal_item").notNull(),
+    tipeProduk: varchar("tipe_produk", { length: 30 }).default("standar").notNull(),
+    catatanPreOrder: text("catatan_pre_order"),
     dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
   },
   (tabel) => ({

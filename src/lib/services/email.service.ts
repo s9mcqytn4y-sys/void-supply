@@ -197,18 +197,18 @@ function buatHtmlEmail(
   const metaHtml =
     infoKotakMeta.length > 0
       ? `
-      <div style="background-color: #0c0c0e; border: 1px solid #27272a; padding: 14px 16px; margin: 20px 0; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 11px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #0c0c0e; border: 1px solid #27272a; margin: 20px 0; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 11px;">
         ${infoKotakMeta
           .map(
             (item) => `
-          <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #1c1c1f;">
-            <span style="color: #71717a; text-transform: uppercase;">${item.label}</span>
-            <span style="color: #ffffff; font-weight: bold;">${item.nilai}</span>
-          </div>
+          <tr>
+            <td style="padding: 8px 14px; border-bottom: 1px dashed #1c1c1f; color: #71717a; text-transform: uppercase;">${item.label}</td>
+            <td align="right" style="padding: 8px 14px; border-bottom: 1px dashed #1c1c1f; color: #ffffff; font-weight: bold;">${item.nilai}</td>
+          </tr>
         `
           )
           .join("")}
-      </div>
+      </table>
     `
       : "";
 
@@ -223,7 +223,7 @@ function buatHtmlEmail(
         Atau buka tautan berikut: <br><a href="${tautan}" style="color: #a1a1aa; text-decoration: underline;">${tautan}</a>
       </p>
     `
-    : "";
+      : "";
 
   return `
 <!DOCTYPE html>
@@ -289,15 +289,26 @@ function buatHtmlEmail(
 export async function kirimEmailNotifikasi(
   params: ParameterKirimEmail
 ): Promise<HasilKirimEmail> {
-  const emailTarget =
+  const emailTargetAsli =
     params.emailPenerima || params.emailTujuan || "pelanggan@voidsupply.com";
+
+  // Deteksi Alamat Uji Coba / Fiktif untuk Mencegah Bounce '550 Address not found' pada Google SMTP
+  const domainFiktifRegex = /@([^@]+\.)?(test|example|invalid|localhost|voidsupply\.test)$/i;
+  const isEmailFiktif = domainFiktifRegex.test(emailTargetAsli) || emailTargetAsli.endsWith(".test");
+  
+  // Reroute otomatis ke email demo pengembang jika domain fiktif terdeteksi
+  const emailTarget = isEmailFiktif
+    ? (process.env.DEMO_EMAIL_OVERRIDE || "abdulaziz543333@gmail.com")
+    : emailTargetAsli;
+
   const tipeFinal: TipeEmail =
     params.tipe || params.jenis || "konfirmasi_pesanan";
   const subjekFinal =
-    params.subjek ||
-    (tipeFinal === "konfirmasi_pesanan"
-      ? `Konfirmasi Pesanan #${params.nomorPesanan || ""}`
-      : `Pemberitahuan Transaksi VOID Supply`);
+    (isEmailFiktif ? "[SIMULASI DEMO] " : "") +
+    (params.subjek ||
+      (tipeFinal === "konfirmasi_pesanan"
+        ? `Konfirmasi Pesanan #${params.nomorPesanan || ""}`
+        : `Pemberitahuan Transaksi VOID Supply`));
 
   const payloadData: Record<string, unknown> = params.data || {
     nomorPesanan: params.nomorPesanan,
@@ -307,7 +318,20 @@ export async function kirimEmailNotifikasi(
   };
 
   const pesananId = params.pesananId;
-  const htmlContent = buatHtmlEmail(tipeFinal, subjekFinal, payloadData);
+  let htmlContent = buatHtmlEmail(tipeFinal, subjekFinal, payloadData);
+
+  // Sisipkan disclaimer transparan jika email dialihkan dari akun pengujian
+  if (isEmailFiktif) {
+    const bannerReroute = `
+    <div style="background-color: #27272a; border-left: 3px solid #f59e0b; padding: 10px 14px; margin-bottom: 20px; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 11px; color: #fef3c7;">
+      [SIMULASI / DEMO DISPATCH] Dialihkan ke <strong>${emailTarget}</strong> karena alamat penerima asli adalah akun pengujian: <code>${emailTargetAsli}</code>.
+    </div>
+    `;
+    htmlContent = htmlContent.replace(
+      '<div style="background-color: #141417;',
+      `${bannerReroute}\n    <div style="background-color: #141417;`
+    );
+  }
 
   let driver = "console_mock";
   let statusPengiriman: "terkirim" | "gagal" | "simulasi" = "simulasi";
@@ -326,7 +350,7 @@ export async function kirimEmailNotifikasi(
       });
 
       statusPengiriman = "terkirim";
-      pesanHasil = `Email berhasil terkirim melalui Nodemailer Gmail (${gmailConfig.pengirim}) ke ${emailTarget}.`;
+      pesanHasil = `Email berhasil terkirim melalui Nodemailer Gmail (${gmailConfig.pengirim}) ke ${emailTarget}${isEmailFiktif ? ` (dialihkan dari ${emailTargetAsli})` : ""}.`;
       console.info(`[GMAIL SMTP] Sukses mengirim email ${tipeFinal} ke: ${emailTarget}`);
     } catch (gmailErr) {
       statusPengiriman = "gagal";

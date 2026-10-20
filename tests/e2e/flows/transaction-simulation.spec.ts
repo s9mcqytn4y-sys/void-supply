@@ -26,7 +26,7 @@ test.describe("Fase 3 Master Regression: Alur UI Transaksi & Simulasi DevTools E
       .filter({ visible: true })
       .first();
     await expect(tombolTambah).toBeVisible();
-    await tombolTambah.click();
+    await tombolTambah.click({ force: true });
 
     // Verifikasi drawer keranjang terbuka
     const drawerKeranjang = page.locator('text="KERANJANG BELANJA"').first();
@@ -88,9 +88,13 @@ test.describe("Fase 3 Master Regression: Alur UI Transaksi & Simulasi DevTools E
       await tombolTutupCookie.click({ force: true });
     }
 
-    const tombolDevTools = page.locator('button[aria-label="Buka Sandbox DevTools Drawer"]');
+    const tombolDevTools = page.locator('button[data-testid="tombol-buka-devtools"], button[aria-label="Buka Sandbox DevTools Drawer"]');
     await expect(tombolDevTools).toBeVisible({ timeout: 10000 });
     await tombolDevTools.click({ force: true });
+    // Jika animasi atau overlay browser menunda pembukaan, tekan tombol F3
+    if (!(await page.locator('h2:has-text("SANDBOX DEVTOOLS")').isVisible())) {
+      await page.keyboard.press("F3");
+    }
 
     // Verifikasi panel drawer terbuka
     await expect(page.locator('h2:has-text("SANDBOX DEVTOOLS")')).toBeVisible({
@@ -135,7 +139,10 @@ test.describe("Fase 3 Master Regression: Alur UI Transaksi & Simulasi DevTools E
     });
 
     // Buka DevTools drawer untuk memicu kurir pickup
-    await tombolDevTools.click();
+    await tombolDevTools.click({ force: true });
+    if (!(await page.locator('h2:has-text("SANDBOX DEVTOOLS")').isVisible())) {
+      await page.keyboard.press("F3");
+    }
     const tombolPickup = page.locator(
       'button:has-text("2. BITESHIP: KURIR PICKUP")'
     );

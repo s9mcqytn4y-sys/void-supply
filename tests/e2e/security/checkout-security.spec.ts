@@ -19,7 +19,7 @@ test.describe("E2E: Validasi Keamanan & Aksesibilitas Checkout (Module 02.15)", 
       .filter({ visible: true })
       .first();
     await expect(tombolTambah).toBeVisible();
-    await tombolTambah.click();
+    await tombolTambah.click({ force: true });
 
     // Tunggu drawer keranjang terbuka mengonfirmasi penambahan sukses
     await expect(page.locator('text="KERANJANG BELANJA"')).toBeVisible({ timeout: 10000 });

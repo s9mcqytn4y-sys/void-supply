@@ -97,10 +97,11 @@ export function DevToolsSandboxDrawer({
   return (
     <>
       {/* Tombol Mengambang (Floating Pill Button) di Pojok Kanan Bawah */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-16 right-4 sm:bottom-6 sm:right-6 z-50">
         <button
           type="button"
           onClick={() => setBuka(true)}
+          data-testid="tombol-buka-devtools"
           className="group inline-flex min-h-11 items-center gap-2.5 rounded-full border border-neutral-700 bg-neutral-950/95 px-4 py-2 font-mono text-xs font-bold text-white shadow-2xl backdrop-blur-md transition-all hover:border-emerald-400 hover:bg-neutral-900 active:scale-95"
           aria-label="Buka Sandbox DevTools Drawer"
         >

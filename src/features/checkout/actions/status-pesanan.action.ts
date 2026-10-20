@@ -75,6 +75,9 @@ export interface DetailStatusPesanan {
   }>;
 }
 
+export type ItemPesananStatus = DetailStatusPesanan["items"][number];
+
+
 export interface HasilAmbilStatusPesanan {
   sukses: boolean;
   pesan: string;

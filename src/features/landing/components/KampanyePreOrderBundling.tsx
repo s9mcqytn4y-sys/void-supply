@@ -181,7 +181,8 @@ export function KampanyePreOrderBundling() {
             {/* Tombol Aksi */}
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
-                href="/katalog?koleksi=cybernetic"
+                href="/katalog/cybernetic-trinity-set"
+                data-testid="tombol-klaim-bundling"
                 className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 border border-white bg-white px-5 py-2.5 font-mono text-xs font-semibold tracking-wider text-black uppercase transition-all hover:bg-zinc-200 active:scale-[0.98] active:bg-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 KLAIM PAKET BUNDLING

@@ -7,6 +7,7 @@ import { NavLinks } from "./NavLinks";
 import { LanguageSelector } from "./LanguageSelector";
 import { CartButton } from "./CartButton";
 import { MobileNavDrawer } from "./MobileNavDrawer";
+import { UserNavMenu } from "./UserNavMenu";
 
 export function HeaderToko() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -34,9 +35,12 @@ export function HeaderToko() {
         {/* Desktop Navigation */}
         <NavLinks />
 
-        {/* Action Controls: Language Toggle + Bag Button + Mobile Toggle */}
-        <div className="flex items-center gap-3">
-          <LanguageSelector />
+        {/* Action Controls: User Account + Language Toggle + Bag Button + Mobile Toggle */}
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <UserNavMenu />
+          <div className="hidden sm:block">
+            <LanguageSelector />
+          </div>
           <CartButton />
 
           {/* Mobile Menu Hamburger Button */}

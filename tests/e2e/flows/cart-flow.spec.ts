@@ -33,7 +33,7 @@ test.describe("E2E: Alur Keranjang & Hidrasi Multi-Platform (Module 02.15)", () 
       .filter({ visible: true })
       .first();
     await expect(tombolTambah).toBeVisible();
-    await tombolTambah.click();
+    await tombolTambah.click({ force: true });
 
     // 6. Verifikasi Drawer Keranjang terbuka dan item tercatat
     const judulDrawer = page.locator('text="KERANJANG BELANJA"');

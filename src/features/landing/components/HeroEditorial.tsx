@@ -72,14 +72,6 @@ export function HeroEditorial() {
               >
                 <source src="/assets/video/ambient-lookbook-loop.webm" type="video/webm" />
                 <source src="/assets/video/ambient-lookbook-loop.mp4" type="video/mp4" />
-                <Image
-                  src="/images/lookbook/drop-04-editorial-hero.webp"
-                  alt="Lookbook Editorial Model VOID Supply Drop 04 Night Transmission"
-                  fill
-                  priority
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 55vw"
-                  className="object-cover object-center"
-                />
               </video>
             </div>
 

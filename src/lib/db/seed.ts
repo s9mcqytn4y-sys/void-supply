@@ -747,6 +747,65 @@ async function seed() {
         { ukuran: "ALL", warna: "Vintage Olive", sku: "VOID-D04-CAP-OLV-ALL", stok: 25, berat: 135, gambar: "/images/products/drop-04/balaclava-detail.webp" },
       ],
     },
+    {
+      kategoriId: katOuterwear.id,
+      nama: "Cybernetic Trinity Bundle Set [Pre-Order]",
+      slug: "cybernetic-trinity-set",
+      deskripsi:
+        "Paket bundling edisi terbatas Cybernetic Division Drop 04. Menggabungkan Heavy Hoodie 450 GSM, Tactical Modular Cargo Pants V2 Ripstop, dan Industrial Utility Balaclava dalam satu rilis eksklusif. Alokasi batch 01 dibatasi 50 paket dengan estimasi produksi 14 hari kerja.",
+      hargaDasar: 1199000,
+      tipeProduk: "bundle" as const,
+      estimasiPreOrderHari: 14,
+      metadataBundle: {
+        itemSku: ["VOID-D04-HOD-CYB", "VOID-D04-CRGV2-BLK", "VOID-D04-ACC-BAL-ALL"],
+        deskripsiItem: [
+          "Cybernetic Pullover Heavy Hoodie (450 GSM)",
+          "Tactical Modular Cargo Pants V2 (Ripstop Nilon)",
+          "Industrial Utility Balaclava (Anti-Bakterial)",
+        ],
+        diskonPersen: 18,
+        hematNominal: 268000,
+      },
+      gambarUtama: "/images/lookbook/cybernetic-division-campaign.jpg",
+      galeriGambar: [
+        "/images/lookbook/cybernetic-division-campaign.jpg",
+        "/images/products/drop-04/cyber-hoodie-front.webp",
+        "/images/products/drop-04/cargo-v2-front.webp",
+        "/images/products/drop-04/balaclava-front.webp",
+      ],
+      spesifikasi: {
+        material: {
+          komposisi: "French Terry 450 GSM + Cordura Ripstop 320 GSM + Mikrofiber Spandex",
+          gramasi: "Kombinasi Multi-Lapisan 160 : 450 GSM",
+          pewarnaan: "Mineral Acid Wash & Deep Carbon Reactive Dye",
+          finishing: "Silicone Bio-Wash & DWR Water Repellent",
+        },
+        konstruksi: {
+          jahitan: "Flatlock Stitching & Triple Chainstitch Inseam",
+          kerahRib: "FIDLOCK Magnetic Buckle & Double Layered Hood",
+          teknikGrafis: "Tonal Circuit Screenprint & 3D Silicone Monogram",
+          label: "VOID Division Technical Woven Patch",
+        },
+        perawatan: {
+          suhuCuci: "Air Dingin 30°C Putaran Lembut",
+          bahanKimia: "Tanpa Pemutih Klorin",
+          pengeringan: "Gantung Teduh Tanpa Mesin Pengering",
+          penyetrikaan: "Suhu Sedang dari Sisi Dalam",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "S", panjangBadan: 71, lebarDada: 58, panjangCelana: 103, lingkarPinggang: 78 },
+        { ukuran: "M", panjangBadan: 73, lebarDada: 61, panjangCelana: 105, lingkarPinggang: 82 },
+        { ukuran: "L", panjangBadan: 76, lebarDada: 64, panjangCelana: 107, lingkarPinggang: 86 },
+        { ukuran: "XL", panjangBadan: 78, lebarDada: 67, panjangCelana: 109, lingkarPinggang: 90 },
+      ],
+      varians: [
+        { ukuran: "S", warna: "Cyber Stealth Black", sku: "VOID-BUNDLE-TRINITY-S", stok: 12, berat: 1440, gambar: "/images/lookbook/cybernetic-division-campaign.jpg" },
+        { ukuran: "M", warna: "Cyber Stealth Black", sku: "VOID-BUNDLE-TRINITY-M", stok: 18, berat: 1490, gambar: "/images/lookbook/cybernetic-division-campaign.jpg" },
+        { ukuran: "L", warna: "Cyber Stealth Black", sku: "VOID-BUNDLE-TRINITY-L", stok: 15, berat: 1540, gambar: "/images/lookbook/cybernetic-division-campaign.jpg" },
+        { ukuran: "XL", warna: "Cyber Stealth Black", sku: "VOID-BUNDLE-TRINITY-XL", stok: 8, berat: 1600, gambar: "/images/lookbook/cybernetic-division-campaign.jpg" },
+      ],
+    },
   ];
 
   for (const item of dataProduk) {
@@ -759,6 +818,9 @@ async function seed() {
         deskripsi: item.deskripsi,
         hargaDasar: item.hargaDasar,
         status: "aktif",
+        tipeProduk: ((item as Record<string, unknown>).tipeProduk as "standar" | "pre_order" | "bundle") || "standar",
+        estimasiPreOrderHari: ((item as Record<string, unknown>).estimasiPreOrderHari as number) || null,
+        metadataBundle: ((item as Record<string, unknown>).metadataBundle as { itemSku: string[]; deskripsiItem?: string[]; diskonPersen?: number; hematNominal?: number; }) || null,
         gambarUtama: item.gambarUtama,
         galeriGambar: item.galeriGambar,
         spesifikasi: item.spesifikasi,

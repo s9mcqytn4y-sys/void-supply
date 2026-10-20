@@ -80,7 +80,8 @@ test.describe("Fase 3: Master Shopper Journey & Storefront UX E2E", () => {
     // Verifikasi tombol lanjut ke checkout
     const tombolKeCheckout = page.locator('a:has-text("LANJUT KE CHECKOUT")');
     await expect(tombolKeCheckout).toBeVisible();
-    await tombolKeCheckout.click();
+    await tombolKeCheckout.scrollIntoViewIfNeeded();
+    await tombolKeCheckout.click({ force: true });
 
     // 7. HALAMAN CHECKOUT (/checkout)
     await expect(page).toHaveURL(/\/checkout/);

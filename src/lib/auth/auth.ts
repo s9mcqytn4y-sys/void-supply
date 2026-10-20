@@ -35,6 +35,15 @@ export const auth = betterAuth({
       rateLimit: authSchema.batasPermintaanAuth,
     },
   }),
+  user: {
+    additionalFields: {
+      peran: {
+        type: "string",
+        defaultValue: "pelanggan",
+        returned: true,
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
