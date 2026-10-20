@@ -396,4 +396,44 @@ describe("Fase 3: Biteship Webhook Contract & Tracking Integration Matrix", () =
     // Kode eksplisit yang sudah valid
     expect(petakanKodeLayananBiteship("sicepat", "Besok Sampai Tujuan", "best")).toBe("best");
   });
+
+  it("menolak webhook dengan HTTP 500 jika secret belum dikonfigurasi pada production (fail-closed)", async () => {
+    delete process.env.BITESHIP_WEBHOOK_SECRET;
+    const oldAppEnv = process.env.APP_ENV;
+    const oldCi = process.env.CI;
+    const oldDbUrl = process.env.DATABASE_URL;
+    process.env.APP_ENV = "production";
+    process.env.DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/void_supply";
+    delete process.env.CI;
+    resetCacheKonfigurasi();
+
+    try {
+      const req = new Request("http://localhost:3000/api/biteship/webhook", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "picking_up",
+          order_id: "VOID-TEST-UNAUTHENTICATED",
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(500);
+      const data = await res.json();
+      expect(data.error).toContain("belum dikonfigurasi");
+    } finally {
+      process.env.BITESHIP_WEBHOOK_SECRET = WEBHOOK_SECRET_TEST;
+      process.env.APP_ENV = oldAppEnv;
+      if (oldCi) process.env.CI = oldCi;
+      if (oldDbUrl !== undefined) {
+        process.env.DATABASE_URL = oldDbUrl;
+      } else {
+        delete process.env.DATABASE_URL;
+      }
+      resetCacheKonfigurasi();
+    }
+  });
 });
+

@@ -1,6 +1,6 @@
 "use server";
 
-import { desc, eq, and, sql, or } from "drizzle-orm";
+import { desc, eq, and, sql, or, ne } from "drizzle-orm";
 import { headers } from "next/headers";
 import { db } from "@/lib/db";
 import {
@@ -17,7 +17,7 @@ import {
   catatanOperasionalPesanan,
   auditAktivitasAdmin,
 } from "@/lib/db/admin.schema";
-import { verifikasiStafAdmin } from "./auth-guard";
+import { verifikasiStafAdmin, verifikasiHakAksesAdmin } from "./auth-guard";
 import { selesaikanKonfigurasiEnvironment } from "@/lib/environment/resolver";
 import { buatOrderPengirimanBiteship } from "@/lib/services/biteship.service";
 import { tambahTugasOutboxLangsung } from "@/lib/services/outbox.service";
@@ -402,88 +402,95 @@ export async function batalkanPesananAdminAction(
   alasan: string
 ): Promise<{ sukses: boolean; pesan: string }> {
   try {
-    const cek = await verifikasiStafAdmin();
-    if (!cek.sah || !cek.staf) {
+    const cek = await verifikasiHakAksesAdmin();
+    if (!cek.sah || !cek.admin) {
       return { sukses: false, pesan: cek.pesan || "Akses tidak sah." };
     }
 
-    const [dataPesanan] = await db
-      .select()
-      .from(pesanan)
-      .where(eq(pesanan.nomorPesanan, nomorPesanan))
-      .limit(1);
+    const adminAktif = cek.admin;
 
-    if (!dataPesanan) {
-      return { sukses: false, pesan: "Pesanan tidak ditemukan." };
-    }
+    const hasilTransaksi = await db.transaction(async (tx) => {
+      const [dataPesanan] = await tx
+        .select({
+          id: pesanan.id,
+          statusPesanan: pesanan.statusPesanan,
+        })
+        .from(pesanan)
+        .where(eq(pesanan.nomorPesanan, nomorPesanan))
+        .limit(1);
 
-    if (dataPesanan.statusPesanan === "dibatalkan") {
-      return { sukses: false, pesan: "Pesanan ini sudah dibatalkan sebelumnya." };
-    }
-
-    // Ubah status pesanan menjadi dibatalkan
-    const hasilUpdate = await db
-      .update(pesanan)
-      .set({ statusPesanan: "dibatalkan", diperbaruiPada: new Date() })
-      .where(
-        and(
-          eq(pesanan.id, dataPesanan.id),
-          eq(pesanan.statusPesanan, dataPesanan.statusPesanan)
-        )
-      );
-
-    // Ambil seluruh item untuk memulihkan stok
-    const items = await db
-      .select()
-      .from(itemPesanan)
-      .where(eq(itemPesanan.pesananId, dataPesanan.id));
-
-    for (const item of items) {
-      if (item.varianId) {
-        // Ambil stok sekarang
-        const [v] = await db
-          .select({ stok: varianProduk.stok })
-          .from(varianProduk)
-          .where(eq(varianProduk.id, item.varianId))
-          .limit(1);
-
-        const stokSebelum = v?.stok || 0;
-        const stokSesudah = stokSebelum + item.jumlah;
-
-        await db
-          .update(varianProduk)
-          .set({
-            stok: sql`${varianProduk.stok} + ${item.jumlah}`,
-            diperbaruiPada: new Date(),
-          })
-          .where(eq(varianProduk.id, item.varianId));
-
-        // Catat ke buku besar mutasi stok
-        await db.insert(riwayatMutasiStok).values({
-          varianId: item.varianId,
-          adminId: cek.staf.id,
-          jenisMutasi: "koreksi_fisik",
-          kuantitasSebelum: stokSebelum,
-          perubahan: item.jumlah,
-          kuantitasSesudah: stokSesudah,
-          nomorReferensi: nomorPesanan,
-          catatan: `Pemulihan stok akibat pembatalan pesanan admin: ${alasan}`,
-        });
+      if (!dataPesanan) {
+        return { sukses: false, pesan: "Pesanan tidak ditemukan." };
       }
-    }
 
-    // Catat log audit admin
-    await db.insert(auditAktivitasAdmin).values({
-      adminId: cek.staf.id,
-      tindakan: "batalkan_pesanan",
-      targetId: nomorPesanan,
-      payloadAman: { alasan },
+      if (dataPesanan.statusPesanan === "dibatalkan") {
+        return { sukses: false, pesan: "Pesanan ini sudah dibatalkan sebelumnya." };
+      }
+
+      const [pesananDibatalkan] = await tx
+        .update(pesanan)
+        .set({ statusPesanan: "dibatalkan", diperbaruiPada: new Date() })
+        .where(
+          and(
+            eq(pesanan.id, dataPesanan.id),
+            ne(pesanan.statusPesanan, "dibatalkan")
+          )
+        )
+        .returning({ id: pesanan.id });
+
+      if (!pesananDibatalkan) {
+        return {
+          sukses: false,
+          pesan: "Gagal membatalkan pesanan karena status telah berubah oleh transaksi lain.",
+        };
+      }
+
+      const items = await tx
+        .select()
+        .from(itemPesanan)
+        .where(eq(itemPesanan.pesananId, pesananDibatalkan.id));
+
+      for (const item of items) {
+        if (item.varianId) {
+          const [varianTerupdate] = await tx
+            .update(varianProduk)
+            .set({
+              stok: sql`${varianProduk.stok} + ${item.jumlah}`,
+              diperbaruiPada: new Date(),
+            })
+            .where(eq(varianProduk.id, item.varianId))
+            .returning({ stok: varianProduk.stok });
+
+          const stokSesudah = varianTerupdate?.stok ?? 0;
+          const stokSebelum = Math.max(0, stokSesudah - item.jumlah);
+
+          await tx.insert(riwayatMutasiStok).values({
+            varianId: item.varianId,
+            adminId: adminAktif.id,
+            jenisMutasi: "koreksi_fisik",
+            kuantitasSebelum: stokSebelum,
+            perubahan: item.jumlah,
+            kuantitasSesudah: stokSesudah,
+            nomorReferensi: nomorPesanan,
+            catatan: `Pemulihan stok akibat pembatalan pesanan admin: ${alasan}`,
+          });
+        }
+      }
+
+      await tx.insert(auditAktivitasAdmin).values({
+        adminId: adminAktif.id,
+        tindakan: "batalkan_pesanan",
+        targetId: nomorPesanan,
+        payloadAman: { alasan },
+      });
+
+      return {
+        sukses: true,
+        pesan: `Pesanan #${nomorPesanan} berhasil dibatalkan dan seluruh stok artikel telah dipulihkan.`,
+      };
     });
 
-    return {
-      sukses: true,
-      pesan: `Pesanan #${nomorPesanan} berhasil dibatalkan dan seluruh stok artikel telah dipulihkan.`,
-    };
+    return hasilTransaksi;
   } catch (error) {
     console.error("[BATALKAN PESANAN] Gagal membatalkan pesanan:", error);
     return {

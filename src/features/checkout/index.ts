@@ -4,7 +4,6 @@ export * from "./actions/ongkir.action";
 export * from "./actions/alamat.action";
 export * from "./context/CheckoutContext";
 export * from "./hooks/useCheckoutSubHooks";
-export * from "./hooks/useCheckout";
 export * from "./components/FormulirPengiriman";
 export * from "./components/PilihanKurir";
 export * from "./components/RingkasanPesananCheckout";

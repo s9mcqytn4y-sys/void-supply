@@ -8,7 +8,7 @@ import {
   auditAktivitasAdmin,
   type jenisMutasiStokEnum,
 } from "@/lib/db/admin.schema";
-import { verifikasiStafAdmin } from "./auth-guard";
+import { verifikasiStafAdmin, verifikasiHakAksesAdmin } from "./auth-guard";
 
 export interface ItemInventarisAdmin {
   id: string;
@@ -128,83 +128,93 @@ export async function mutasiStokAdminAction(input: {
   catatan?: string;
 }): Promise<{ sukses: boolean; pesan: string }> {
   try {
-    const cek = await verifikasiStafAdmin();
-    if (!cek.sah || !cek.staf) {
+    const cek = await verifikasiHakAksesAdmin();
+    if (!cek.sah || !cek.admin) {
       return { sukses: false, pesan: cek.pesan || "Akses tidak sah." };
     }
+
+    const adminAktif = cek.admin;
 
     if (input.perubahan === 0) {
       return { sukses: false, pesan: "Nilai perubahan stok tidak boleh nol." };
     }
 
-    // Ambil baris varian saat ini
-    const [varian] = await db
-      .select({
-        id: varianProduk.id,
-        stok: varianProduk.stok,
-        sku: varianProduk.sku,
-      })
-      .from(varianProduk)
-      .where(eq(varianProduk.id, input.varianId))
-      .limit(1);
+    const hasilTransaksi = await db.transaction(async (tx) => {
+      const [varian] = await tx
+        .select({
+          id: varianProduk.id,
+          stok: varianProduk.stok,
+          sku: varianProduk.sku,
+        })
+        .from(varianProduk)
+        .where(eq(varianProduk.id, input.varianId))
+        .limit(1);
 
-    if (!varian) {
-      return { sukses: false, pesan: "Varian produk tidak ditemukan." };
-    }
+      if (!varian) {
+        return { sukses: false, pesan: "Varian produk tidak ditemukan." };
+      }
 
-    const stokSebelum = varian.stok;
-    const stokSesudah = stokSebelum + input.perubahan;
+      const stokSebelum = varian.stok;
+      const stokSesudah = stokSebelum + input.perubahan;
 
-    if (stokSesudah < 0) {
-      return {
-        sukses: false,
-        pesan: `Gagal: Stok tidak boleh bernilai negatif (Stok saat ini: ${stokSebelum}, pengurangan: ${Math.abs(input.perubahan)}).`,
-      };
-    }
+      if (stokSesudah < 0) {
+        return {
+          sukses: false,
+          pesan: `Gagal: Stok tidak boleh bernilai negatif (Stok saat ini: ${stokSebelum}, pengurangan: ${Math.abs(input.perubahan)}).`,
+        };
+      }
 
-    // Update atomik Compare-and-Set
-    const hasil = await db
-      .update(varianProduk)
-      .set({
-        stok: stokSesudah,
-        diperbaruiPada: new Date(),
-      })
-      .where(
-        and(
-          eq(varianProduk.id, input.varianId),
-          eq(varianProduk.stok, stokSebelum)
+      const [varianTerupdate] = await tx
+        .update(varianProduk)
+        .set({
+          stok: stokSesudah,
+          diperbaruiPada: new Date(),
+        })
+        .where(
+          and(
+            eq(varianProduk.id, input.varianId),
+            eq(varianProduk.stok, stokSebelum)
+          )
         )
-      );
+        .returning({ id: varianProduk.id });
 
-    // Catat ke tabel riwayat mutasi stok imutabel
-    await db.insert(riwayatMutasiStok).values({
-      varianId: input.varianId,
-      adminId: cek.staf.id,
-      jenisMutasi: input.jenisMutasi,
-      kuantitasSebelum: stokSebelum,
-      perubahan: input.perubahan,
-      kuantitasSesudah: stokSesudah,
-      nomorReferensi: input.nomorReferensi || null,
-      catatan: input.catatan || null,
-    });
+      if (!varianTerupdate) {
+        return {
+          sukses: false,
+          pesan: "Gagal memperbarui stok: Nilai stok telah berubah oleh transaksi lain.",
+        };
+      }
 
-    // Catat log audit admin
-    await db.insert(auditAktivitasAdmin).values({
-      adminId: cek.staf.id,
-      tindakan: "mutasi_stok_manual",
-      targetId: varian.sku,
-      payloadAman: {
+      await tx.insert(riwayatMutasiStok).values({
+        varianId: input.varianId,
+        adminId: adminAktif.id,
         jenisMutasi: input.jenisMutasi,
+        kuantitasSebelum: stokSebelum,
         perubahan: input.perubahan,
-        stokSebelum,
-        stokSesudah,
-      },
+        kuantitasSesudah: stokSesudah,
+        nomorReferensi: input.nomorReferensi || null,
+        catatan: input.catatan || null,
+      });
+
+      await tx.insert(auditAktivitasAdmin).values({
+        adminId: adminAktif.id,
+        tindakan: "mutasi_stok_manual",
+        targetId: varian.sku,
+        payloadAman: {
+          jenisMutasi: input.jenisMutasi,
+          perubahan: input.perubahan,
+          stokSebelum,
+          stokSesudah,
+        },
+      });
+
+      return {
+        sukses: true,
+        pesan: `Stok SKU ${varian.sku} berhasil disesuaikan (${stokSebelum} ke ${stokSesudah} unit).`,
+      };
     });
 
-    return {
-      sukses: true,
-      pesan: `Stok SKU ${varian.sku} berhasil disesuaikan (${stokSebelum} → ${stokSesudah} unit).`,
-    };
+    return hasilTransaksi;
   } catch (error) {
     console.error("[MUTASI STOK] Gagal memperbarui stok:", error);
     return {

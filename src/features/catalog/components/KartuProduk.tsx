@@ -135,6 +135,11 @@ export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
             {daftarUkuranWarna.map((item) => {
               const isTersedia = item.stok > 0;
               const isDipilih = item.ukuran === (varianAktif?.ukuran || ukuranTerpilih);
+              const kelasUkuran = isDipilih
+                ? "border-white bg-white font-bold text-black shadow-sm"
+                : isTersedia
+                  ? "border-neutral-700 bg-neutral-900/90 text-neutral-200 hover:border-neutral-400 hover:text-white"
+                  : "cursor-not-allowed border-neutral-900 bg-neutral-950/80 text-neutral-600 line-through";
 
               return (
                 <button
@@ -149,14 +154,7 @@ export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
                   }}
                   disabled={!isTersedia}
                   aria-label={`Pilih ukuran ${item.ukuran}${isTersedia ? "" : " (Habis)"}`}
-                  className={cn(
-                    "min-h-7 min-w-7 border px-2 py-0.5 text-center font-mono text-[11px] tracking-wider transition-colors",
-                    isDipilih
-                      ? "border-white bg-white font-bold text-black shadow-sm"
-                      : isTersedia
-                        ? "border-neutral-700 bg-neutral-900/90 text-neutral-200 hover:border-neutral-400 hover:text-white"
-                        : "cursor-not-allowed border-neutral-900 bg-neutral-950/80 text-neutral-600 line-through"
-                  )}
+                  className={`min-h-7 min-w-7 border px-2 py-0.5 text-center font-mono text-[11px] tracking-wider transition-colors ${kelasUkuran}`}
                 >
                   {item.ukuran}
                 </button>
@@ -197,6 +195,10 @@ export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
               <span className="font-mono text-[10px] text-neutral-500 uppercase">Warna:</span>
               {daftarWarna.map((warna) => {
                 const isWarnaAktif = warna === warnaTerpilih;
+                const kelasWarna = isWarnaAktif
+                  ? "border-neutral-200 bg-neutral-800 text-white font-medium"
+                  : "border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-600 hover:text-neutral-200";
+
                 return (
                   <button
                     key={warna}
@@ -213,12 +215,7 @@ export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
                       }
                     }}
                     aria-label={`Ganti ke warna ${warna}`}
-                    className={cn(
-                      "min-h-6 border px-1.5 py-0.5 font-mono text-[10px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none",
-                      isWarnaAktif
-                        ? "border-neutral-200 bg-neutral-800 text-white font-medium"
-                        : "border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-600 hover:text-neutral-200"
-                    )}
+                    className={`min-h-6 border px-1.5 py-0.5 font-mono text-[10px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none ${kelasWarna}`}
                   >
                     {warna}
                   </button>
@@ -267,12 +264,11 @@ export function KartuProduk({ produk, priority = false }: PropertiKartuProduk) {
             onClick={handleTambahKeKeranjang}
             disabled={sedangMenambah}
             aria-label={`Tambahkan ${produk.nama} varian ${varianAktif?.ukuran} ke keranjang`}
-            className={cn(
-              "flex min-h-11 flex-1 items-center justify-center gap-1.5 px-3 py-2 font-mono text-xs font-bold tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none",
+            className={`flex min-h-11 flex-1 items-center justify-center gap-1.5 px-3 py-2 font-mono text-xs font-bold tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none ${
               sedangMenambah
                 ? "bg-white text-black"
                 : "bg-neutral-950 text-neutral-100 hover:bg-white hover:text-black active:bg-neutral-200"
-            )}
+            }`}
           >
             {sedangMenambah ? (
               <>

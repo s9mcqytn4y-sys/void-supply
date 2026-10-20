@@ -103,7 +103,7 @@ export async function POST(req: Request) {
 
     const env = selesaikanKonfigurasiEnvironment();
 
-    // 3. Verifikasi Autentikasi Custom Header jika Secret Dikonfigurasi
+    // 3. Verifikasi Autentikasi Custom Header (Fail-Closed)
     const webhookSecret = env.biteship.webhookSecret;
     if (webhookSecret && webhookSecret.trim().length > 0) {
       const headerKey = env.biteship.webhookHeaderKey.toLowerCase();
@@ -122,6 +122,16 @@ export async function POST(req: Request) {
         return NextResponse.json(
           { error: "Autentikasi webhook Biteship tidak valid." },
           { status: 403 }
+        );
+      }
+    } else {
+      if (env.appEnv === "production" && process.env.CI !== "true") {
+        console.error(
+          "[BITESHIP WEBHOOK] BITESHIP_WEBHOOK_SECRET belum dikonfigurasi di lingkungan produksi."
+        );
+        return NextResponse.json(
+          { error: "Konfigurasi autentikasi webhook server belum dikonfigurasi." },
+          { status: 500 }
         );
       }
     }

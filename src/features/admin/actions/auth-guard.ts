@@ -48,3 +48,53 @@ export async function verifikasiStafAdmin(): Promise<{
     },
   };
 }
+
+export interface AdminSajaAktif {
+  id: string;
+  nama: string;
+  email: string;
+  peran: "admin";
+}
+
+/**
+ * Server-authoritative Guard: Memverifikasi apakah sesi pengguna memiliki peran 'admin'.
+ * Menolak keras peran 'operator', 'pelanggan', atau anonim untuk tindakan administratif destruktif.
+ */
+export async function verifikasiHakAksesAdmin(): Promise<{
+  sah: boolean;
+  sesi: SesiPenggunaAktif | null;
+  admin?: AdminSajaAktif;
+  pesan?: string;
+}> {
+  const sesi = await ambilSesiPengguna();
+
+  if (!sesi?.pengguna?.id) {
+    return {
+      sah: false,
+      sesi: null,
+      pesan: "Sesi tidak ditemukan. Silakan masuk sebagai administrator terlebih dahulu.",
+    };
+  }
+
+  const peran = sesi.pengguna.peran?.toLowerCase();
+
+  if (peran !== "admin") {
+    return {
+      sah: false,
+      sesi,
+      pesan: "Akses Ditolak: Tindakan ini memerlukan hak akses Administrator.",
+    };
+  }
+
+  return {
+    sah: true,
+    sesi,
+    admin: {
+      id: sesi.pengguna.id,
+      nama: sesi.pengguna.nama,
+      email: sesi.pengguna.email,
+      peran: "admin",
+    },
+  };
+}
+

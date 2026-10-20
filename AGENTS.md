@@ -30,3 +30,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
    - Gunakan database-backed rate limiting dan session storage di Neon PostgreSQL tanpa dependensi Redis.
    - Proteksi `/demo/inbox` dengan kunci operator (`?key=...`) dan sanitasi seluruh data sensitif/token.
    - Pertahankan integritas pesanan historis melalui relasi `pengguna_id` yang non-destruktif pada `pelanggan`.
+
+5. **Prinsip Ponytail (The Laziest Senior Developer Mode)**:
+   - Selesaikan masalah dengan kode seminimal mungkin: YAGNI, standard library first, manfaatkan kode yang sudah ada di codebase.
+   - Jangan menambahkan abstraksi, wrapper, atau boilerplate yang tidak diminta.
+   - Pengurangan kode lebih unggul dari penambahan (deletion beats addition) tanpa pernah mengorbankan validasi batas kepercayaan, keamanan, dan aksesibilitas.

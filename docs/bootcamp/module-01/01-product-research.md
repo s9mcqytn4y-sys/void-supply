@@ -37,41 +37,33 @@ Usia ini masih hipotesis awal. Jangan menganggapnya fakta sebelum ada data bisni
 
 ### Secondary user
 
-Admin/operasional yang membutuhkan:
-
-- katalog produk,
-- variant dan inventory,
-- order management,
-- payment status,
-- shipment status.
+Admin dan staf operasional toko yang membutuhkan visibilitas menyeluruh terhadap pengelolaan katalog produk, matriks varian beserta inventaris fisik, alur pemrosesan pesanan, verifikasi status pembayaran gateway, serta pembaruan nomor resi logistik pengiriman.
 
 ## 2. Jobs to be Done
 
 Format:
 
-> Ketika ..., saya ingin ..., agar ...
-
-Contoh:
-
-> Ketika menemukan t-shirt yang saya suka, saya ingin mengetahui ukuran yang tersedia dan biaya total sebelum membayar, agar saya dapat membeli tanpa kejutan di tahap checkout.
-
-> Ketika pembayaran selesai, saya ingin melihat status order yang jelas, agar saya yakin uang saya tercatat.
-
-> Ketika order dikirim, saya ingin melacak paket tanpa menghubungi admin.
+> Format penulisan: Ketika [kondisi pemicu tertentu], saya ingin [tindakan langsung yang diambil], sehingga [hasil bernilai yang diharapkan tercapai].
+>
+> Ketika menemukan t-shirt yang saya suka, saya ingin mengetahui ukuran yang tersedia serta rincian biaya total sebelum membayar agar dapat membeli tanpa kejutan di tahap checkout.
+>
+> Ketika pembayaran selesai, saya ingin melihat status order yang jelas agar yakin transaksi tercatat rapi di sistem.
+>
+> Ketika paket order dikirimkan oleh kurir, saya ingin melacak perjalanannya secara mandiri tanpa harus menghubungi pihak admin toko.
 
 ## 3. Goals dan non-goals
 
 ### Goals MVP
 
-- Product discovery yang cepat.
-- Product detail yang informatif.
-- Cart yang stabil.
-- Checkout yang jujur dan mudah dipahami.
-- Perhitungan ongkir dari Biteship.
-- Pembayaran Midtrans Sandbox sebelum production.
-- Source of truth order berada di server/database.
-- Responsive dan accessible.
-- Semua asynchronous UI mempunyai loading, empty, error, dan success state yang relevan.
+- Pengalaman penemuan artikel busana yang gesit melalui live search dan filter kategori drop.
+- Informasi spesifikasi garmen yang mendalam mencakup GSM, serat kain, dan size chart presisi dalam sentimeter.
+- Keranjang belanja lokal yang stabil serta tangguh terhadap refresh halaman maupun rekonsiliasi server.
+- Alur checkout yang transparan, minim friksi, dan mudah dipahami oleh pembeli pertama.
+- Perhitungan tarif ongkos kirim real-time langsung dari layanan logistik Biteship.
+- Integrasi gateway pembayaran Midtrans Sandbox sebelum aktivasi lingkungan produksi.
+- Basis data PostgreSQL sebagai satu-satunya penentu kebenaran (single source of truth) untuk seluruh pesanan.
+- Desain antarmuka yang sepenuhnya responsif dan memenuhi standar aksesibilitas WCAG AA.
+- Seluruh antarmuka data asinkron wajib memiliki state loading, data kosong, galat, dan sukses yang informatif.
 
 ### Non-goals MVP
 
@@ -86,11 +78,11 @@ Belum perlu:
 - multi-warehouse,
 - mobile app native.
 
-Non-goal mencegah project berubah menjadi demo yang terlalu besar untuk benar-benar selesai.
+Batasan non-goals ini menjaga fokus tim agar ruang lingkup proyek tidak melebar menjadi demo raksasa yang tak kunjung tuntas.
 
 ## 4. Competitor research
 
-Tujuan competitor research bukan menyalin layout. Cari pola, friction, dan keputusan.
+Tujuan utama riset kompetitor bukanlah menyalin tata letak visual, melainkan membedah pola interaksi, titik friksi belanja, dan alasan di balik keputusan arsitektur mereka.
 
 ### Baseline 1: Erigo
 
@@ -105,9 +97,9 @@ Observasi publik 2026:
 
 Pertanyaan yang harus kita jawab:
 
-- bagaimana filter tetap usable di mobile?
-- kapan diskon membantu, kapan justru menciptakan visual noise?
-- informasi apa yang harus muncul sebelum pengguna membuka PDP?
+- Bagaimana merancang filter multi-dimensi agar tetap nyaman dioperasikan satu tangan pada layar ponsel?
+- Kapan penonjolan label diskon benar-benar menguntungkan pembeli, dan kapan hal itu justru menjadi kebisingan visual?
+- Informasi esensial apa saja yang wajib diketahui calon pembeli bahkan sebelum mereka membuka halaman detail produk?
 
 ### Baseline 2: Thanksinsomnia
 
@@ -120,9 +112,9 @@ Observasi publik 2026:
 
 Pertanyaan:
 
-- seberapa besar image harus mendominasi card?
-- apakah kategori perlu ditampilkan di card?
-- bagaimana menjaga visual brand tanpa mengorbankan scannability?
+- Seberapa dominan rasio foto editorial harus mengisi kartu katalog tanpa mengorbankan keterbacaan data produk?
+- Apakah label kategori pakaian perlu dimunculkan langsung pada kartu produk?
+- Bagaimana menjaga karakter visual streetwear yang gelap tanpa merusak kemudahan memindai daftar belanja?
 
 ### Baseline 3: Screamous
 
@@ -135,9 +127,9 @@ Observasi publik 2026:
 
 Pertanyaan:
 
-- bagaimana kita memperlakukan sold-out product?
-- apakah sold-out masih ditampilkan untuk discovery?
-- bagaimana membuat sale badge tidak mendominasi semua hierarchy?
+- Bagaimana pendekatan terbaik dalam memperlakukan artikel produk yang stoknya telah habis terjual?
+- Apakah produk sold-out tetap perlu ditampilkan sebagai bahan penemuan koleksi dan arsip rilis?
+- Bagaimana merancang badge potongan harga agar tidak merusak ketegasan hierarki tipografi monospaced?
 
 ## 5. Competitor research template
 
@@ -158,24 +150,22 @@ Jangan menulis "bagus" tanpa alasan. Kaitkan dengan discoverability, clarity, tr
 
 ## 6. Research questions sebelum desain
 
-- Apakah checkout memerlukan login?
-- Apakah user boleh guest checkout?
-- Produk memiliki warna, size, atau keduanya?
-- Stock berada di product atau variant?
-- Apakah harga variant dapat berbeda?
-- Apakah satu order dapat memakai satu courier service saja?
-- Apakah coupon termasuk MVP?
-- Apakah retur/exchange termasuk flow MVP atau hanya policy page?
-- Apakah checkout harus meminta email, nomor WhatsApp, atau keduanya?
-- Berapa lama cart harus persist?
-- Apa yang terjadi kalau stock berubah ketika user berada di checkout?
+- Apakah alur checkout mewajibkan akun atau mendukung mode tamu (guest checkout)?
+- Bagaimana struktur relasi varian warna dan ukuran pada tingkat inventaris database?
+- Apakah harga dasar tiap varian fisik dapat berbeda dalam satu artikel produk?
+- Apakah satu pesanan hanya dapat dilayani oleh satu layanan kurir tunggal?
+- Apakah sistem voucher diskon termasuk cakupan rilis awal MVP?
+- Bagaimana penanganan kebijakan retur pakaian, apakah alur sistemik atau halaman kebijakan?
+- Apakah checkout membutuhkan alamat surel, nomor kontak WhatsApp, atau kombinasi keduanya?
+- Berapa lama batas waktu persistensi keranjang sebelum sistem melakukan pelepasan stok reservasi?
+- Apa mekanisme kompensasi ketika kuota stok berubah saat pembeli berada di tahap akhir pembayaran?
 
-Setiap pertanyaan yang belum terjawab dicatat sebagai assumption, bukan disembunyikan sebagai fakta.
+Setiap pertanyaan yang belum terjawab dicatat sebagai asumsi eksplisit, bukan disamarkan sebagai fakta matang.
 
 ## 7. Hipotesis produk awal
 
 Hipotesis:
 
-> Jika product information, variant availability, shipping cost, dan payment state dibuat jelas sebelum dan sesudah checkout, maka pengguna lebih mudah menyelesaikan pembelian dengan keyakinan lebih tinggi.
+> Jika informasi produk, ketersediaan varian, kalkulasi ongkos kirim, dan status pembayaran disajikan secara gamblang sejak awal, maka pembeli dapat menyelesaikan transaksi dengan tingkat keyakinan yang jauh lebih kokoh.
 
-Ini belum kesimpulan. Nanti perlu divalidasi melalui analytics, usability testing, support tickets, dan conversion funnel.
+Pernyataan ini merupakan hipotesis awal yang akan terus divalidasi berkala melalui metrik analitik, pengujian kegunaan, interaksi tiket bantuan, dan tingkat konversi corong belanja.

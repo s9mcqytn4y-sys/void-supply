@@ -12,6 +12,7 @@
 ## 1. Poin 0: Evaluasi Akun Demo, Integrasi Notifikasi & Nodemailer SMTP
 
 ### A. Reset & Status Akun Demo
+
 - Akun demo utama telah berhasil direset dan dihubungkan ke email pengguna:
   - **Email**: `abdulaziz543333@gmail.com`
   - **Nama Lengkap**: `Abdul Aziz`
@@ -21,6 +22,7 @@
   - **Hasil Uji Sesi Live**: Endpoint otentikasi `POST /api/auth/sign-in/email` menghasilkan status HTTP 200 dengan penerbitan token sesi aman `__Secure-better-auth.session_token`.
 
 ### B. Evaluasi Penggunaan Nodemailer Gmail SMTP vs Provider Eksternal
+
 1. **Keunggulan Implementasi Saat Ini**:
    - Berjalan dengan transport Gmail SMTP resmi (`smtp.gmail.com:465` dengan SSL/TLS aktif).
    - Pengujian pengiriman email riil melalui helper `kirimEmailNotifikasi()` berhasil terkirim ke `abdulaziz543333@gmail.com` (Message ID: `526d19f8-10da-45ca-b8a2-64a672db262b`).
@@ -48,11 +50,13 @@ Berdasarkan audit scraping langsung pada website resmi:
 ## 3. Poin 2: Evaluasi Arsitektur State Management & Komponen Klien
 
 ### A. Evaluasi Zustand Store (`useKeranjangStore`)
+
 - **Kondisi Aktual**: Store keranjang belanja mengelola item, kuantitas, catatan, dan status drawer menggunakan middleware `persist` (Local Storage).
 - **Proteksi Hidrasi**: Didukung oleh `CartHydrationProvider` yang mencegah rendering tidak sinkron (*hydration mismatch*) dengan menunggu sinyal hidrasi tuntas sebelum mengizinkan drawer membuka.
 - **Penyempurnaan Module 03**: Batasan kuota item per SKU dibatasi maksimal 10 unit secara otomatis pada layer store dan disinkronkan ke server action.
 
 ### B. Evaluasi TanStack Query v5 vs Next.js Server Components
+
 - **Pola Hibrida Efisien**:
   - Halaman katalog (`/katalog`) dan PDP (`/katalog/[slug]`) memanfaatkan **Server Components** murni dengan caching native Next.js untuk initial load berkecepatan tinggi dan indeksasi SEO sempurna.
   - Sisi interaktif (search, filter, sort) dikelola via state lokal reaktif dengan sinkronisasi ke URL search parameters melalui `useTransition()`.
@@ -63,6 +67,7 @@ Berdasarkan audit scraping langsung pada website resmi:
 ## 4. Poin 3: Spesifikasi Komprehensif Sistem E-Commerce Lanjutan
 
 ### A. Product Management & Inventory Ledger
+
 ```sql
 -- Skema Tabel Mutasi Inventaris (Stock Ledger)
 CREATE TABLE mutasi_inventaris (
@@ -78,6 +83,7 @@ CREATE TABLE mutasi_inventaris (
 ```
 
 ### B. Promo, Pricing, Discounts & Voucher Engine
+
 - **Model Diskon Fleksibel**:
   1. *Diskon Persentase* (contoh: 18% untuk Paket Bundling Cybernetic Division).
   2. *Potongan Tetap IDR* (contoh: Potongan Rp 50.000 untuk minimal belanja Rp 500.000).
@@ -88,6 +94,7 @@ CREATE TABLE mutasi_inventaris (
   - Perhitungan diskon dievaluasi secara server-authoritative sebelum pembentukan transaksi Midtrans Snap.
 
 ### C. CRM & Segmentasi Pelanggan
+
 - Kategori Pelanggan:
   - `FIRST_TIME_BUYER`: Mendapatkan sambutan otomatis dan kode aktivasi selamat datang.
   - `RETURNING_COLLECTOR`: Pelanggan dengan akumulasi pesanan > 2 kali.
@@ -98,6 +105,7 @@ CREATE TABLE mutasi_inventaris (
 ## 5. Poin 4: Kampanye Pre-Order & Bundling "CYBERNETIC DIVISION"
 
 ### A. Konsep Visual & Aset Kampanye
+
 - **Visual Utama**: Foto editorial lookbook cyber-brutalist dengan pencahayaan neon ambient industrial dan tekstur garmen teknikal berbobot tinggi.
 - **Aset Web-Ready**: Disimpan di `public/images/lookbook/cybernetic-division-campaign.jpg` dengan format terkompresi optimal, atribut `loading="lazy"`, dan responsive sizing Next.js Image.
 - **Komponen Interaktif**: `src/features/landing/components/KampanyePreOrderBundling.tsx`.
@@ -112,6 +120,7 @@ CREATE TABLE mutasi_inventaris (
 ## 6. Poin 5: Fitur Wishlist, Cookie Tracking & Preferensi Pengguna
 
 ### A. Bilah Persetujuan Cookie (`BilahPersetujuanCookie.tsx`)
+
 - Mematuhi prinsip privasi data dan regulasi internasional (GDPR / PDP Indonesia).
 - Menyediakan 2 opsi jelas tanpa dark patterns:
   - **HANYA ESENSIAL**: Menyimpan cookie sesi dan proteksi IDOR checkout.
@@ -119,6 +128,7 @@ CREATE TABLE mutasi_inventaris (
 - Terintegrasi di Root Layout tanpa mengganggu elemen Sonner Toaster.
 
 ### B. Desain Skema Database Wishlist & Preferensi
+
 ```sql
 CREATE TABLE wishlist_pengguna (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

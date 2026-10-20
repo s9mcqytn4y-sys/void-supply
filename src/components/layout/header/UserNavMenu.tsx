@@ -85,7 +85,7 @@ export function UserNavMenu() {
           className="inline-flex min-h-11 items-center gap-1.5 border border-neutral-800 bg-neutral-900 px-3 py-1.5 font-mono text-xs font-semibold tracking-wider text-neutral-200 uppercase transition-colors hover:border-white hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
           <User className="h-3.5 w-3.5 text-zinc-400" />
-          <span className="max-w-[100px] truncate">{namaPanggilan}</span>
+          <span className="max-w-25 truncate">{namaPanggilan}</span>
           <ChevronDown
             className={`h-3 w-3 text-zinc-500 transition-transform duration-200 ${
               menuTerbuka ? "rotate-180" : ""

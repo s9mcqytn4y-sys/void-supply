@@ -4,11 +4,21 @@ import { db } from "@/lib/db";
 import * as authSchema from "@/lib/db/auth.schema";
 import { tambahTugasOutboxLangsung } from "@/lib/services/outbox.service";
 
+function ambilSecretAutentikasi(): string {
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (!secret || secret.trim().length === 0) {
+    if (process.env.NODE_ENV === "production" && process.env.CI !== "true") {
+      throw new Error(
+        "FATAL: BETTER_AUTH_SECRET wajib dikonfigurasi pada lingkungan produksi."
+      );
+    }
+    return "void-supply-dev-secret-only-local-testing-entropy-64bytes-key-2026";
+  }
+  return secret;
+}
+
 export const auth = betterAuth({
-  secret:
-    process.env.BETTER_AUTH_SECRET ||
-    process.env.CRON_SECRET ||
-    "void-supply-super-secure-production-ready-auth-secret-entropy-64bytes-key-2026",
+  secret: ambilSecretAutentikasi(),
   baseURL:
     process.env.BETTER_AUTH_URL ||
     process.env.NEXT_PUBLIC_APP_URL ||
