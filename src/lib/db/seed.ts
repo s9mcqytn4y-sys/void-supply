@@ -56,7 +56,7 @@ async function seed() {
       console.log("✓ Data katalog referensi disiapkan untuk pembaruan");
     }
 
-    // 1.1 Seeding Akun Demo Utama (Fokus Testing & Staging Vercel)
+    // 1.1 Seeding Akun Demo Utama (Fokus Testing, Staging Vercel, & Akses Admin)
     const demoUserEmail = "abdulaziz543333@gmail.com";
     const demoUserId = "usr_demo_void_collector_2026";
     const demoPasswordHash = await hashPassword("Password123!");
@@ -68,9 +68,16 @@ async function seed() {
         name: "Abdul Aziz",
         email: demoUserEmail,
         emailVerified: true,
-        peran: "pelanggan",
+        peran: "admin",
       })
-      .onConflictDoNothing({ target: authSchema.pengguna.email });
+      .onConflictDoUpdate({
+        target: authSchema.pengguna.email,
+        set: {
+          name: "Abdul Aziz",
+          peran: "admin",
+          emailVerified: true,
+        },
+      });
 
     await tx
       .insert(authSchema.akunAutentikasi)
@@ -100,7 +107,7 @@ async function seed() {
       })
       .onConflictDoNothing();
 
-    await tx
+    const [pelangganAbdulAziz] = await tx
       .insert(schema.pelanggan)
       .values({
         penggunaId: demoUserId,
@@ -112,9 +119,21 @@ async function seed() {
         provinsiDefault: "DKI Jakarta",
         kodePosDefault: "10560",
       })
-      .onConflictDoNothing({ target: schema.pelanggan.email });
+      .onConflictDoUpdate({
+        target: schema.pelanggan.email,
+        set: {
+          penggunaId: demoUserId,
+          namaLengkap: "Abdul Aziz",
+          telepon: "081298765432",
+          alamatDefault: "Jl. Kramat Jaya Baru No. 12, RT 05 / RW 01, Johar Baru",
+          kotaDefault: "Jakarta Pusat",
+          provinsiDefault: "DKI Jakarta",
+          kodePosDefault: "10560",
+        },
+      })
+      .returning();
 
-    console.log(`✓ Akun Demo Utama (${demoUserEmail} / Password123!) siap digunakan`);
+    console.log(`✓ Akun Demo Utama Admin (${demoUserEmail} / Password123!) siap digunakan`);
 
     // 1.2 Profil Pelanggan Sekunder (Persona Rian The Trendsetter)
     const [pelangganRian] = await tx
@@ -806,7 +825,149 @@ async function seed() {
         { ukuran: "XL", warna: "Cyber Stealth Black", sku: "VOID-BUNDLE-TRINITY-XL", stok: 8, berat: 1600, gambar: "/images/lookbook/cybernetic-division-campaign.jpg" },
       ],
     },
+    {
+      kategoriId: katOuterwear.id,
+      nama: "Void Tactical Field Jacket 01",
+      slug: "void-tactical-field-jacket-01",
+      deskripsi:
+        "Jaket lapangan taktikal berdaya tahan tinggi bermaterial katun twill militer 340 GSM dengan lapisan coating water-resistant. Dilengkapi 6 kompartemen fungsional, tudung tersembunyi, dan ritsleting YKK dua arah.",
+      hargaDasar: 849000,
+      gambarUtama: "/images/products/drop-04/bomber-front.webp",
+      galeriGambar: [
+        "/images/products/drop-04/bomber-front.webp",
+        "/images/products/drop-04/bomber-back.webp",
+        "/images/products/drop-04/bomber-detail.webp",
+      ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Military Grade Cotton Twill",
+          gramasi: "340 GSM Heavyweight Weatherproof",
+          pewarnaan: "Carbon Pigment Wash",
+          finishing: "DWR C6 Water Repellent",
+        },
+        konstruksi: {
+          jahitan: "Triple Needle Chainstitch",
+          kerahRib: "Storm Flap dengan Ritsleting Dua Arah YKK",
+          teknikGrafis: "Bordir Tonal Stealth Monogram",
+          label: "VOID Spec Woven Patch",
+        },
+        perawatan: {
+          suhuCuci: "Air Dingin 30°C",
+          bahanKimia: "Tanpa Pemutih Klorin",
+          pengeringan: "Gantung di Tempat Teduh",
+          penyetrikaan: "Suhu Sedang dari Bagian Dalam",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "S", panjangBadan: 71, lebarDada: 58, panjangLengan: 62 },
+        { ukuran: "M", panjangBadan: 73, lebarDada: 61, panjangLengan: 64 },
+        { ukuran: "L", panjangBadan: 76, lebarDada: 64, panjangLengan: 66 },
+        { ukuran: "XL", panjangBadan: 78, lebarDada: 67, panjangLengan: 68 },
+      ],
+      varians: [
+        { ukuran: "S", warna: "Charcoal Gray", sku: "VOID-D04-JKT-GRY-S", stok: 12, berat: 850, gambar: "/images/products/drop-04/bomber-front.webp" },
+        { ukuran: "M", warna: "Charcoal Gray", sku: "VOID-D04-JKT-GRY-M", stok: 20, berat: 850, gambar: "/images/products/drop-04/bomber-front.webp" },
+        { ukuran: "L", warna: "Charcoal Gray", sku: "VOID-D04-JKT-GRY-L", stok: 18, berat: 850, gambar: "/images/products/drop-04/bomber-front.webp" },
+        { ukuran: "XL", warna: "Charcoal Gray", sku: "VOID-D04-JKT-GRY-XL", stok: 8, berat: 850, gambar: "/images/products/drop-04/bomber-front.webp" },
+        { ukuran: "S", warna: "Washed Black", sku: "VOID-D04-JKT-BLK-S", stok: 15, berat: 850, gambar: "/images/products/drop-04/bomber-back.webp" },
+        { ukuran: "M", warna: "Washed Black", sku: "VOID-D04-JKT-BLK-M", stok: 22, berat: 850, gambar: "/images/products/drop-04/bomber-back.webp" },
+        { ukuran: "L", warna: "Washed Black", sku: "VOID-D04-JKT-BLK-L", stok: 16, berat: 850, gambar: "/images/products/drop-04/bomber-back.webp" },
+        { ukuran: "XL", warna: "Washed Black", sku: "VOID-D04-JKT-BLK-XL", stok: 10, berat: 850, gambar: "/images/products/drop-04/bomber-back.webp" },
+      ],
+    },
+    {
+      kategoriId: katTshirt.id,
+      nama: "Acid Wash Heavyweight Longsleeve 01",
+      slug: "acid-wash-heavyweight-longsleeve-01",
+      deskripsi:
+        "Kaos lengan panjang berpotongan boxy santai berbahan katun jersey 16s (240 GSM) dengan proses acid mineral wash manual. Detail ribbed cuffs elastis dan grafis tipografi geometris tonal di sepanjang lengan.",
+      hargaDasar: 449000,
+      gambarUtama: "/images/products/drop-04/cybernetic-ls-01-front.webp",
+      galeriGambar: [
+        "/images/products/drop-04/cybernetic-ls-01-front.webp",
+        "/images/products/drop-04/cybernetic-ls-01-back.webp",
+        "/images/products/drop-04/cybernetic-ls-01-detail.webp",
+      ],
+      spesifikasi: {
+        material: {
+          komposisi: "100% Katun Combed 16s",
+          gramasi: "240 GSM Heavyweight Jersey",
+          pewarnaan: "Manual Acid Mineral Wash",
+          finishing: "Enzyme Soft Touch",
+        },
+        konstruksi: {
+          jahitan: "Double Needle Stitching",
+          kerahRib: "Ribbed Cuff 5 cm Elastis Anti Melar",
+          teknikGrafis: "Plastisol Screenprint Tonal",
+          label: "Woven Satin Neck Label",
+        },
+        perawatan: {
+          suhuCuci: "Air Dingin 30°C",
+          bahanKimia: "Tanpa Pemutih Klorin",
+          pengeringan: "Jemur Terbalik Tanpa Mesin",
+          penyetrikaan: "Suhu Sedang Balik Sablon",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "S", panjangBadan: 71, lebarDada: 54, panjangLengan: 60 },
+        { ukuran: "M", panjangBadan: 74, lebarDada: 57, panjangLengan: 62 },
+        { ukuran: "L", panjangBadan: 77, lebarDada: 60, panjangLengan: 64 },
+        { ukuran: "XL", panjangBadan: 79, lebarDada: 63, panjangLengan: 66 },
+      ],
+      varians: [
+        { ukuran: "S", warna: "Vintage Charcoal", sku: "VOID-D04-LS-CHR-S", stok: 20, berat: 380, gambar: "/images/products/drop-04/cybernetic-ls-01-front.webp" },
+        { ukuran: "M", warna: "Vintage Charcoal", sku: "VOID-D04-LS-CHR-M", stok: 30, berat: 380, gambar: "/images/products/drop-04/cybernetic-ls-01-front.webp" },
+        { ukuran: "L", warna: "Vintage Charcoal", sku: "VOID-D04-LS-CHR-L", stok: 25, berat: 380, gambar: "/images/products/drop-04/cybernetic-ls-01-front.webp" },
+        { ukuran: "XL", warna: "Vintage Charcoal", sku: "VOID-D04-LS-CHR-XL", stok: 12, berat: 380, gambar: "/images/products/drop-04/cybernetic-ls-01-front.webp" },
+        { ukuran: "S", warna: "Bone Off-White", sku: "VOID-D04-LS-BNE-S", stok: 15, berat: 380, gambar: "/images/products/drop-04/cybernetic-ls-01-back.webp" },
+        { ukuran: "M", warna: "Bone Off-White", sku: "VOID-D04-LS-BNE-M", stok: 24, berat: 380, gambar: "/images/products/drop-04/cybernetic-ls-01-back.webp" },
+        { ukuran: "L", warna: "Bone Off-White", sku: "VOID-D04-LS-BNE-L", stok: 20, berat: 380, gambar: "/images/products/drop-04/cybernetic-ls-01-back.webp" },
+        { ukuran: "XL", warna: "Bone Off-White", sku: "VOID-D04-LS-BNE-XL", stok: 8, berat: 380, gambar: "/images/products/drop-04/cybernetic-ls-01-back.webp" },
+      ],
+    },
+    {
+      kategoriId: katAccessories.id,
+      nama: "Cordura Modular Utility Crossbody Bag 01",
+      slug: "cordura-modular-utility-crossbody-bag-01",
+      deskripsi:
+        "Tas selempang berdesain modular kompak berbahan Cordura 500D nilon tahan abrasi dan cuaca lembap. Dilengkapi sistem webbing taktikal, kompartemen ritsleting terpisah, dan buckle pelepasan cepat ergonomis.",
+      hargaDasar: 329000,
+      gambarUtama: "/images/products/drop-04/sling-bag-front.webp",
+      galeriGambar: [
+        "/images/products/drop-04/sling-bag-front.webp",
+        "/images/products/drop-04/balaclava-detail.webp",
+      ],
+      spesifikasi: {
+        material: {
+          komposisi: "Cordura 500D High Tenacity Nylon",
+          gramasi: "280 GSM Abrasion Resistant",
+          pewarnaan: "Solution Dyed Carbon",
+          finishing: "Water-Repellent Polyurethane Coating",
+        },
+        konstruksi: {
+          jahitan: "Bartack Heavy Load Stress Points",
+          kerahRib: "Tactical Webbing Nilon 3.8 cm",
+          teknikGrafis: "Rubberized Monogram Badge",
+          label: "VOID Spec Monogram",
+        },
+        perawatan: {
+          suhuCuci: "Lap Bersih dengan Air Hangat",
+          bahanKimia: "Tanpa Bahan Kimia Keras",
+          pengeringan: "Angin-anginkan di Tempat Sejuk",
+          penyetrikaan: "Dilarang Disetrika",
+        },
+      },
+      panduanUkuran: [
+        { ukuran: "ALL", panjangBadan: 22, lebarDada: 16, panjangLengan: 6 },
+      ],
+      varians: [
+        { ukuran: "ALL", warna: "Triple Black", sku: "VOID-D04-UTL-BLK-ALL", stok: 35, berat: 420, gambar: "/images/products/drop-04/sling-bag-front.webp" },
+        { ukuran: "ALL", warna: "Military Olive", sku: "VOID-D04-UTL-OLV-ALL", stok: 25, berat: 420, gambar: "/images/products/drop-04/balaclava-detail.webp" },
+      ],
+    },
   ];
+
+  const mapVarianTersimpan: Record<string, typeof schema.varianProduk.$inferSelect> = {};
 
   for (const item of dataProduk) {
     const [produkBaru] = await tx
@@ -836,7 +997,7 @@ async function seed() {
 
     // Masukkan Varian Produk
     for (const v of item.varians) {
-      await tx.insert(schema.varianProduk).values({
+      const [varianBaru] = await tx.insert(schema.varianProduk).values({
         produkId: produkBaru.id,
         ukuran: v.ukuran,
         warna: v.warna,
@@ -845,11 +1006,102 @@ async function seed() {
         beratGram: v.berat,
         harga: item.hargaDasar,
         gambar: (v as { gambar?: string }).gambar || item.gambarUtama,
-      });
+      }).returning();
+
+      mapVarianTersimpan[v.sku] = varianBaru;
     }
   }
 
   console.log(`✓ Berhasil memasukkan ${dataProduk.length} artikel Drop 04 beserta varian fisik, spesifikasi teknis, dan size guide`);
+
+  // 5. Seeding Contoh Pesanan Historis untuk Akun Abdul Aziz
+  if (pelangganAbdulAziz) {
+    const varianTee = mapVarianTersimpan["VOID-D04-TEE-BLK-L"] || Object.values(mapVarianTersimpan)[0];
+    const varianJacket = mapVarianTersimpan["VOID-D04-JKT-BLK-L"] || Object.values(mapVarianTersimpan)[1];
+
+    if (varianTee && varianJacket) {
+      // 5.1 Pesanan 1 : Status 'diproses' (Sudah dibayar)
+      const subtotal1 = varianTee.harga * 1 + varianJacket.harga * 1;
+      const ongkir1 = 25000;
+      const total1 = subtotal1 + ongkir1;
+
+      const [pesanan1] = await tx
+        .insert(schema.pesanan)
+        .values({
+          nomorPesanan: "VOID-ORD-20261020-0001",
+          pelangganId: pelangganAbdulAziz.id,
+          namaPelanggan: "Abdul Aziz",
+          emailPelanggan: demoUserEmail,
+          teleponPelanggan: "081298765432",
+          statusPesanan: "diproses",
+          subtotal: subtotal1,
+          totalOngkir: ongkir1,
+          totalDiskon: 0,
+          totalAkhir: total1,
+          idempotensiKey: "idemp_seed_abdulaziz_ord_001",
+          tokenAkses: "tok_seed_access_abdulaziz_001",
+          catatan: "Pesanan koleksi Drop 04 untuk Abdul Aziz",
+        })
+        .onConflictDoNothing()
+        .returning();
+
+      if (pesanan1) {
+        await tx.insert(schema.itemPesanan).values([
+          {
+            pesananId: pesanan1.id,
+            varianId: varianTee.id,
+            namaProduk: "Void Heavyweight Oversized Tee 01",
+            namaVarian: `${varianTee.warna} / ${varianTee.ukuran}`,
+            sku: varianTee.sku,
+            hargaSatuan: varianTee.harga,
+            beratGram: varianTee.beratGram,
+            jumlah: 1,
+            subtotalItem: varianTee.harga,
+          },
+          {
+            pesananId: pesanan1.id,
+            varianId: varianJacket.id,
+            namaProduk: "Void Tactical Field Jacket 01",
+            namaVarian: `${varianJacket.warna} / ${varianJacket.ukuran}`,
+            sku: varianJacket.sku,
+            hargaSatuan: varianJacket.harga,
+            beratGram: varianJacket.beratGram,
+            jumlah: 1,
+            subtotalItem: varianJacket.harga,
+          },
+        ]);
+
+        await tx.insert(schema.pembayaran).values({
+          pesananId: pesanan1.id,
+          gateway: "midtrans",
+          gatewayOrderId: `MID-VOID-ORD-20261020-0001`,
+          metodePembayaran: "qris",
+          statusPembayaran: "berhasil",
+          jumlahBayar: total1,
+          dibayarPada: new Date(),
+        });
+
+        await tx.insert(schema.pengiriman).values({
+          pesananId: pesanan1.id,
+          kurir: "jnt",
+          layanan: "EZ",
+          nomorResi: "JT92817482910ID",
+          statusPengiriman: "dalam_pengiriman",
+          estimasiHari: "1-2 Hari",
+          biayaOngkir: ongkir1,
+          beratTotalGram: varianTee.beratGram + varianJacket.beratGram,
+          namaPenerima: "Abdul Aziz",
+          teleponPenerima: "081298765432",
+          alamatLengkap: "Jl. Kramat Jaya Baru No. 12, RT 05 / RW 01, Johar Baru",
+          kota: "Jakarta Pusat",
+          provinsi: "DKI Jakarta",
+          kodePos: "10560",
+        });
+
+        console.log("✓ Contoh pesanan aktif untuk Abdul Aziz berhasil di-seed");
+      }
+    }
+  }
   });
 
   console.log("--- Seeding Selesai dengan Sukses ---");
