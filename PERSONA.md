@@ -101,3 +101,19 @@ Dokumen cetak biru pengembangan dapat dilihat pada [advance_roadmap_void_supply.
 | Proteksi dokumen & otorisasi resi (*IDOR & Access control*) | Critical | **P0** (Aktif & Terverifikasi) |
 | Dashboard Admin Control Center & CMS (*Admin operations*) | High | **P1** (Fokus Roadmap Fase 3 & 4) |
 | Analitik penjualan & rasio konversi (*Analytics & reporting*) | Medium | **P2** (Fokus Roadmap Fase 5) |
+
+---
+
+## Persona extension: two internal operational roles + guest buyer (2026-10-20)
+Source: [SRS](SRS.md), [Design](DESIGN.md), [staging audit](docs/audit-admin-architecture-2026-10-20.md). These are target personas, not a claim that all modules are implemented.
+
+**Guest drop buyer:** browses drops without account, adds color/size variants, checks Biteship shipping quote, pays sandbox and tracks through a scoped order-access token. Friction: forced signup, obscure preorder ETA, unclear stock, untrusted redirects. Need quick order status, size guide and clear all-in price.
+
+**Administration / founder:** accountable for price margin, launch schedule, customer trust, gateway health, stock accuracy, catalog/CMS publishing, sensitive settings, refunds, staff approvals and campaign ROI. Needs anomaly-first dashboard and audited powerful controls. Cannot monitor everything in multiple external tabs.
+
+**Operator / fulfillment:** handles order queues, packing, label printing, physical count, logistics exception and ticket triage on mobile/tablet. Must not silently alter price, create privileged staff, change secrets, approve refunds or export all PII. Needs one clear next action per order, safe retry and minimized data.
+
+**Support contact:** investigates shipment/status problems from order-linked ticket and evidence without receiving unrestricted DB/admin privileges. Consent and response SLA are explicit.
+
+Validate these personas through task observation before building speculative CRM/campaign breadth. Separate navigation information architecture from authorization policy: server-side RBAC decides capabilities.
+
