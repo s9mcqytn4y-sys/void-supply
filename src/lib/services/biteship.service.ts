@@ -1,4 +1,3 @@
-import axios from "axios";
 import { selesaikanKonfigurasiEnvironment } from "@/lib/environment";
 
 /**
@@ -307,19 +306,31 @@ export async function hitungOngkirBiteship(
       payload.destination_longitude = params.longitudeTujuan;
     }
 
-    const response = await axios.post(
-      "https://api.biteship.com/v1/rates/couriers",
-      payload,
-      {
-        headers: {
-          Authorization: BITESHIP_API_KEY,
-          "Content-Type": "application/json",
-        },
-        timeout: 7000,
-      }
-    );
+    const response = await fetch("https://api.biteship.com/v1/rates/couriers", {
+      method: "POST",
+      headers: {
+        Authorization: BITESHIP_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(7000),
+    });
 
-    const data = response.data;
+    if (!response.ok) {
+      const errJson = (await response.json().catch(() => null)) as { message?: string } | null;
+      throw new Error(errJson?.message || `HTTP ${response.status}: Gagal memanggil API Biteship`);
+    }
+
+    const data = (await response.json()) as {
+      pricing?: Array<{
+        courier_name: string;
+        courier_code: string;
+        courier_service_name: string;
+        courier_service_code?: string;
+        duration: string;
+        price: number;
+      }>;
+    };
     if (data && Array.isArray(data.pricing) && data.pricing.length > 0) {
       const hasilPricing = data.pricing.map(
         (p: {
@@ -470,19 +481,28 @@ export async function buatOrderPengirimanBiteship(
       };
     }
 
-    const res = await axios.post(
-      "https://api.biteship.com/v1/orders",
-      payloadOrder,
-      {
-        headers: {
-          Authorization: BITESHIP_API_KEY,
-          "Content-Type": "application/json",
-        },
-        timeout: 10000,
-      }
-    );
+    const res = await fetch("https://api.biteship.com/v1/orders", {
+      method: "POST",
+      headers: {
+        Authorization: BITESHIP_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payloadOrder),
+      signal: AbortSignal.timeout(10000),
+    });
 
-    const resData = res.data;
+    const resData = (await res.json().catch(() => null)) as {
+      success?: boolean;
+      id?: string;
+      waybill_id?: string;
+      status?: string;
+      message?: string;
+      courier?: {
+        waybill_id?: string;
+        tracking_id?: string;
+        link?: string;
+      };
+    } | null;
     if (resData && (resData.success || resData.id)) {
       return {
         sukses: true,
@@ -554,14 +574,30 @@ export async function lacakPengirimanBiteship(
       ? `https://api.biteship.com/v1/trackings/${encodeURIComponent(trackingIdOrWaybill)}/couriers/${encodeURIComponent(courierCode)}`
       : `https://api.biteship.com/v1/trackings/${encodeURIComponent(trackingIdOrWaybill)}`;
 
-    const res = await axios.get(url, {
+    const res = await fetch(url, {
+      method: "GET",
       headers: {
         Authorization: BITESHIP_API_KEY,
       },
-      timeout: 8000,
+      signal: AbortSignal.timeout(8000),
     });
 
-    const data = res.data;
+    const data = (await res.json().catch(() => null)) as {
+      success?: boolean;
+      status?: string;
+      waybill_id?: string;
+      link?: string;
+      message?: string;
+      courier?: {
+        company?: string;
+      };
+      history?: Array<{
+        status: string;
+        note: string;
+        updated_at: string;
+        location?: string;
+      }>;
+    } | null;
     if (data && data.success) {
       const history = Array.isArray(data.history)
         ? data.history.map((h: { status: string; note: string; updated_at: string; location?: string }) => ({

@@ -43,9 +43,9 @@ Berdasarkan hasil audit post-commit dan verifikasi uji, seluruh residual P0 tela
 | `class-variance-authority` | `^0.7.1` | **Aktif** (Varian komponen tombol & badge) | Pertahankan |
 | `sonner` | `^2.0.8` | **Aktif** (Komponen toast notifikasi) | Pertahankan |
 | `ws` | `^8.22.0` | **Aktif** (WebSocket driver untuk Neon serverless) | Pertahankan |
-| `axios` | `^1.7.9` | **Sebagian** (Hanya 3 pemanggilan API di `biteship.service.ts`) | **Migrasi ke native `fetch`** pada Fase 1B, hapus paket |
-| `@tanstack/react-query` | `^5.67.1` | **Mati / Dead Code** (0 baris impor pada seluruh `src/`) | **Hapus dari `package.json`** pada Fase 1B |
-| `@neon/config` / `@neon/env` | `^1.9.2` / `^1.6.3` | **Mati / Dead Code** (0 baris impor pada seluruh `src/`) | **Hapus dari `package.json`** pada Fase 1B |
+| `axios` | `^1.7.9` | **Dihapus** (Dimigrasikan ke native `fetch` dengan `AbortSignal.timeout`) | Selesai pada Fase 1B |
+| `@tanstack/react-query` | `^5.67.1` | **Dihapus** (0 baris impor pada seluruh `src/`) | Selesai pada Fase 1B |
+| `@neon/config` / `@neon/env` | `^1.9.2` / `^1.6.3` | **Dihapus** (Berkas `neon.ts` dieliminasi) | Selesai pada Fase 1B |
 | `pg` | `^8.13.3` | **Redundan** (Koneksi aktif menggunakan `postgres` & `@neondatabase/serverless`) | Evaluasi dan hapus jika tidak dibutuhkan adapter Better Auth |
 
 ---
@@ -88,12 +88,13 @@ Hasil pemindaian kompleksitas dan volume baris pada direktori `src/`:
 Sesuai panduan Ponytail dan strategi PR kecil terisolasi:
 
 ```
-[Fase 1A: Baseline Arsitektur] -> PR Dokumentasi (Selesai pada berkas ini)
+[Fase 1A: Baseline Arsitektur] -> Dokumen Baseline (Selesai)
        │
        ▼
-[Fase 1B: Pembersihan Dead Code & Dependensi]
-       │ -> Hapus @tanstack/react-query, @neon/config, @neon/env
-       │ -> Refactor axios ke native fetch di biteship.service.ts
+[Fase 1B: Pembersihan Dead Code & Dependensi] -> Selesai
+       │ -> Dihapus: @tanstack/react-query, @neon/config, @neon/env, axios, neon.ts
+       │ -> Refactor: axios digantikan native fetch di biteship.service.ts
+       │ -> Verifikasi: 115 tes Vitest lulus, 16 tes Playwright lulus, 0 tsc error
        │
        ▼
 [Fase 1C: Pemisahan Domain Use-Cases]
