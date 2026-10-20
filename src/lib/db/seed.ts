@@ -59,7 +59,8 @@ async function seed() {
     // 1.1 Seeding Akun Demo Utama (Fokus Testing, Staging Vercel, & Akses Admin)
     const demoUserEmail = "abdulaziz543333@gmail.com";
     const demoUserId = "usr_demo_void_collector_2026";
-    const demoPasswordHash = await hashPassword("Password123!");
+    const rawDemoPassword = process.env.SEED_ADMIN_PASSWORD || "Password123!";
+    const demoPasswordHash = await hashPassword(rawDemoPassword);
 
     await tx
       .insert(authSchema.pengguna)
@@ -133,7 +134,7 @@ async function seed() {
       })
       .returning();
 
-    console.log(`✓ Akun Demo Utama Admin (${demoUserEmail} / Password123!) siap digunakan`);
+    console.log(`✓ Akun Demo Utama Admin (${demoUserEmail}) siap digunakan [Kredensial diamankan]`);
 
     // 1.2 Profil Pelanggan Sekunder (Persona Rian The Trendsetter)
     const [pelangganRian] = await tx

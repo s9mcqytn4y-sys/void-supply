@@ -6,14 +6,26 @@ import { tambahTugasOutboxLangsung } from "@/lib/services/outbox.service";
 
 function ambilSecretAutentikasi(): string {
   const secret = process.env.BETTER_AUTH_SECRET;
+  const isPublicDeployment =
+    process.env.NODE_ENV === "production" ||
+    process.env.APP_ENV === "staging" ||
+    Boolean(process.env.VERCEL);
+
   if (!secret || secret.trim().length === 0) {
-    if (process.env.NODE_ENV === "production" && process.env.CI !== "true") {
+    if (isPublicDeployment && process.env.CI !== "true") {
       throw new Error(
-        "FATAL: BETTER_AUTH_SECRET wajib dikonfigurasi pada lingkungan produksi."
+        "FATAL: BETTER_AUTH_SECRET wajib dikonfigurasi pada lingkungan staging dan produksi."
       );
     }
     return "void-supply-dev-secret-only-local-testing-entropy-64bytes-key-2026";
   }
+
+  if (isPublicDeployment && process.env.CI !== "true" && secret.trim().length < 32) {
+    throw new Error(
+      "FATAL: BETTER_AUTH_SECRET wajib memiliki panjang entropi minimal 32 karakter."
+    );
+  }
+
   return secret;
 }
 

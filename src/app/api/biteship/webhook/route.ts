@@ -125,9 +125,14 @@ export async function POST(req: Request) {
         );
       }
     } else {
-      if (env.appEnv === "production" && process.env.CI !== "true") {
+      const isPublicDeployment =
+        env.appEnv === "production" ||
+        env.appEnv === "staging" ||
+        Boolean(process.env.VERCEL);
+
+      if (isPublicDeployment && process.env.CI !== "true") {
         console.error(
-          "[BITESHIP WEBHOOK] BITESHIP_WEBHOOK_SECRET belum dikonfigurasi di lingkungan produksi."
+          "[BITESHIP WEBHOOK] BITESHIP_WEBHOOK_SECRET belum dikonfigurasi di lingkungan publik (staging/produksi)."
         );
         return NextResponse.json(
           { error: "Konfigurasi autentikasi webhook server belum dikonfigurasi." },

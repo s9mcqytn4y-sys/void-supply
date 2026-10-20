@@ -427,13 +427,23 @@ export async function batalkanPesananAdminAction(
         return { sukses: false, pesan: "Pesanan ini sudah dibatalkan sebelumnya." };
       }
 
+      if (dataPesanan.statusPesanan === "dikirim" || dataPesanan.statusPesanan === "selesai") {
+        return {
+          sukses: false,
+          pesan: `Pesanan berstatus '${dataPesanan.statusPesanan}' tidak dapat dibatalkan secara sepihak karena barang telah dalam pengiriman atau selesai. Silakan gunakan prosedur retur.`,
+        };
+      }
+
       const [pesananDibatalkan] = await tx
         .update(pesanan)
         .set({ statusPesanan: "dibatalkan", diperbaruiPada: new Date() })
         .where(
           and(
             eq(pesanan.id, dataPesanan.id),
-            ne(pesanan.statusPesanan, "dibatalkan")
+            or(
+              eq(pesanan.statusPesanan, "menunggu_pembayaran"),
+              eq(pesanan.statusPesanan, "diproses")
+            )
           )
         )
         .returning({ id: pesanan.id });

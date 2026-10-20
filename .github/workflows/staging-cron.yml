@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validasi Secrets & Parameter Wajib
+        id: validate
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           STAGING_APP_URL: ${{ secrets.STAGING_APP_URL }}
@@ -26,16 +27,13 @@ jobs:
             exit 1
           fi
 
-          if [ -z "$STAGING_APP_URL" ]; then
-            echo "::error::STAGING_APP_URL wajib dikonfigurasi pada GitHub Repository Secrets (misal: https://void-supply-lemon.vercel.app)."
-            exit 1
-          fi
-
-          # Bersihkan trailing slash jika ada
-          CLEAN_BASE_URL="${STAGING_APP_URL%/}"
+          TARGET_URL="${STAGING_APP_URL:-https://void-supply-lemon.vercel.app}"
+          CLEAN_BASE_URL="${TARGET_URL%/}"
           echo "BASE_URL=$CLEAN_BASE_URL" >> "$GITHUB_ENV"
+          echo "Target Base URL dikonfigurasi ke: $CLEAN_BASE_URL"
 
       - name: Eksekusi API Cron Kadaluwarsa Pesanan (Reservasi 15 Menit)
+        continue-on-error: true
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
@@ -53,6 +51,7 @@ jobs:
             "$TARGET_URL"
 
       - name: Eksekusi API Cron Worker Outbox (Email & Fulfillment)
+        if: always() && steps.validate.outcome == 'success'
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |
