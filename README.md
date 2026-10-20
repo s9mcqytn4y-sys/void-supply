@@ -178,3 +178,17 @@ npm run format
 ## Konvensi & Pedoman Kode
 
 Lihat panduan lengkap di [`GEMINI.md`](file:///c:/Projects/VOID%20Supply/GEMINI.md) untuk konvensi penamaan Bahasa Indonesia serta aturan Anti-Slop (Mode 1: DURING).
+
+---
+
+## Staging audit 2026-10-20: Agent & operator quickstart
+**Current evidence, blockers, and roadmap:** [Audit admin/architecture](docs/audit-admin-architecture-2026-10-20.md). New specifications: [DESIGN.md](DESIGN.md) and [SRS.md](SRS.md). Treat implementation and current CI logs as truth when older explanatory docs conflict.
+
+- **Current runtime:** Next.js App Router + Tailwind v4 (PostCSS), Vite used by Vitest, not Vite storefront runtime. Reconcile dependencies with package.json/package-lock.json rather than stale versions in prose.
+- **Environments:** Development and Demo/Staging only. Demo always Midtrans Sandbox + Biteship Testing. Never deploy production, process real charges, migrate production data, or send test shipping orders that burn credit without explicit approval.
+- **Local verification:** npm ci; npm run typecheck; npm run lint; npm test; npm run build; npm run test:e2e, with appropriate isolated test DB and safe env. Successful CI does not certify GitHub Actions scheduled operations.
+- **Observed blocker:** 2026-10-20 staging expiry workflow returned HTTP 404 and outbox step was skipped. See [staging-cron.yml](.github/workflows/staging-cron.yml) and [audit](docs/audit-admin-architecture-2026-10-20.md#temuan-root-cause-dan-mitigasi).
+- **P0 backlog:** fail-closed Better Auth secret, Biteship webhook authenticated business events, single-transaction stock ledger/cancellation, capability-based RBAC, cron smoke test.
+- **Operational truth:** guest checkout is supported by the active CheckoutProvider; a second legacy useCheckout hook still contains auth redirect and must not be assumed canonical. Avoid automatic cleanup until import graph/tests confirm.
+- **Documentation links:** Replace local file:/// Windows links incrementally with repo-relative paths.
+
