@@ -78,6 +78,20 @@
       "when": 1792342947600,
       "tag": "0010_wet_peter_quill",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792360000000,
+      "tag": "0011_update_last_request_bigint",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792455000000,
+      "tag": "0012_preorder_bundles",
+      "breakpoints": true
     }
   ]
 }
