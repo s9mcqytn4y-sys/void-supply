@@ -102,6 +102,22 @@ export async function prosesAntreanOutbox(batchLimit = 10): Promise<HasilProsesO
           lt(outboxPekerjaan.percobaan, outboxPekerjaan.maksimalPercobaan)
         )
       );
+
+    // Tandai permanen gagal (Dead-Letter) untuk tugas 'diproses' yang kedaluwarsa dan telah mencapai batas maksimal percobaan
+    await db
+      .update(outboxPekerjaan)
+      .set({
+        status: "gagal",
+        pesanKesalahan: "Dead-letter: tugas kedaluwarsa dan telah mencapai batas maksimal percobaan.",
+        diperbaruiPada: sekarang,
+      })
+      .where(
+        and(
+          eq(outboxPekerjaan.status, "diproses"),
+          lt(outboxPekerjaan.diperbaruiPada, batasTimeoutLease),
+          sql`${outboxPekerjaan.percobaan} >= ${outboxPekerjaan.maksimalPercobaan}`
+        )
+      );
   } catch (reaperErr) {
     console.warn("[OUTBOX REAPER] Peringatan saat memulihkan lease tugas tertahan:", reaperErr);
   }

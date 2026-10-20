@@ -104,9 +104,10 @@ Sesuai panduan Ponytail dan strategi PR kecil terisolasi:
        │ -> Verifikasi: 115 tes Vitest lulus, 0 tsc error
        │
        ▼
-[Fase 1D: Keandalan Outbox & Asinkron]
-       │ -> Penguatan lease reaper dan batas retry pengiriman pesan outbox
-       │ -> Pengujian injeksi kegagalan API eksternal
+[Fase 1D: Keandalan Outbox & Asinkron] -> Selesai
+       │ -> Penguatan lease timeout reaper dan proteksi dead-letter queue untuk kuota percobaan habis
+       │ -> Penambahan skenario failure injection, dead-letter DLQ, dan recovery di outbox.test.ts
+       │ -> Verifikasi: 119 tes Vitest lulus (20 file uji), 0 tsc error
        │
        ▼
 [Fase 1E: Neon PostgreSQL & Migrations Hardening]
@@ -123,7 +124,7 @@ Sesuai panduan Ponytail dan strategi PR kecil terisolasi:
 
 ## 5. Ringkasan Kualitas & Release Gate Baseline
 
-- **Unit & Contract Testing**: 115 pengujian lulus (20 file uji) via Vitest.
+- **Unit & Contract Testing**: 119 pengujian lulus (20 file uji) via Vitest.
 - **End-to-End Testing**: 16 pengujian browser lulus via Playwright Chromium.
 - **Static Typing**: 0 kesalahan kompilasi TypeScript (`npx tsc --noEmit`).
 - **Linter & Format**: 0 peringatan format Tailwind CSS kanonikal.

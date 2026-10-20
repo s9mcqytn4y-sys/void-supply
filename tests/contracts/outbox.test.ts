@@ -102,4 +102,118 @@ describe("Fase 5: Transactional Outbox Engine & Cron Worker Matrix", () => {
     expect(json.status).toBe("ok");
     expect(typeof json.totalDiproses).toBe("number");
   });
+
+  it("failure injection: tugas dengan tipe tidak dikenal gagal dan mencatat pesan kesalahan", async () => {
+    const [tugas] = await db
+      .insert(outboxPekerjaan)
+      .values({
+        tipePekerjaan: "tipe_pekerjaan_palsu_failure_injection",
+        payload: { test: true },
+        status: "antre",
+        percobaan: 0,
+        maksimalPercobaan: 3,
+      })
+      .returning({ id: outboxPekerjaan.id });
+
+    const hasil = await prosesAntreanOutbox(10);
+    expect(hasil.totalGagal).toBeGreaterThanOrEqual(1);
+
+    const [tugasDb] = await db
+      .select()
+      .from(outboxPekerjaan)
+      .where(eq(outboxPekerjaan.id, tugas.id))
+      .limit(1);
+
+    expect(tugasDb).toBeDefined();
+    expect(tugasDb.status).toBe("gagal");
+    expect(tugasDb.percobaan).toBe(1);
+    expect(tugasDb.pesanKesalahan).toContain("tidak dikenali");
+  });
+
+  it("dead-letter queue: tugas yang mencapai batas maksimal percobaan tidak lagi diproses", async () => {
+    const [tugasDlq] = await db
+      .insert(outboxPekerjaan)
+      .values({
+        tipePekerjaan: "kirim_email",
+        payload: { emailPenerima: "dlq@test.com" },
+        status: "gagal",
+        percobaan: 5,
+        maksimalPercobaan: 5,
+        pesanKesalahan: "Kegagalan permanen sebelumnya",
+      })
+      .returning({ id: outboxPekerjaan.id });
+
+    // Jalankan antrean outbox
+    await prosesAntreanOutbox(10);
+
+    const [tugasDb] = await db
+      .select()
+      .from(outboxPekerjaan)
+      .where(eq(outboxPekerjaan.id, tugasDlq.id))
+      .limit(1);
+
+    expect(tugasDb.status).toBe("gagal");
+    expect(tugasDb.percobaan).toBe(5);
+  });
+
+  it("lease reaper: memulihkan tugas 'diproses' yang kedaluwarsa kembali ke status antre", async () => {
+    const sepuluhMenitLalu = new Date(Date.now() - 10 * 60 * 1000);
+
+    const [tugasStuck] = await db
+      .insert(outboxPekerjaan)
+      .values({
+        tipePekerjaan: "kirim_email",
+        payload: {
+          emailPenerima: "reaper-recovery@voidsupply.test",
+          tipe: "konfirmasi_pesanan",
+          subjek: "Uji Reaper Recovery",
+          data: { nomorPesanan: "VOID-REAPER-1" },
+        },
+        status: "diproses",
+        percobaan: 1,
+        maksimalPercobaan: 5,
+        diperbaruiPada: sepuluhMenitLalu,
+      })
+      .returning({ id: outboxPekerjaan.id });
+
+    // Saat prosesAntreanOutbox dipanggil, lease reaper aktif membersihkan tugas stuck
+    await prosesAntreanOutbox(10);
+
+    const [tugasDb] = await db
+      .select()
+      .from(outboxPekerjaan)
+      .where(eq(outboxPekerjaan.id, tugasStuck.id))
+      .limit(1);
+
+    // Tugas dipulihkan dan berhasil dieksekusi atau berstatus berhasil
+    expect(["antre", "berhasil"]).toContain(tugasDb.status);
+  });
+
+  it("lease reaper dead-letter: tugas 'diproses' yang kedaluwarsa dan melampaui kuota percobaan ditandai 'gagal'", async () => {
+    const sepuluhMenitLalu = new Date(Date.now() - 10 * 60 * 1000);
+
+    const [tugasExhausted] = await db
+      .insert(outboxPekerjaan)
+      .values({
+        tipePekerjaan: "kirim_email",
+        payload: { test: "exhausted" },
+        status: "diproses",
+        percobaan: 5,
+        maksimalPercobaan: 5,
+        diperbaruiPada: sepuluhMenitLalu,
+      })
+      .returning({ id: outboxPekerjaan.id });
+
+    await prosesAntreanOutbox(10);
+
+    const [tugasDb] = await db
+      .select()
+      .from(outboxPekerjaan)
+      .where(eq(outboxPekerjaan.id, tugasExhausted.id))
+      .limit(1);
+
+    expect(tugasDb.status).toBe("gagal");
+    expect(tugasDb.pesanKesalahan).toContain("Dead-letter");
+  });
 });
+
