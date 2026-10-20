@@ -104,7 +104,7 @@ export function TabelInventarisAdminClient({
         <button
           type="button"
           onClick={() => handleBukaModal(item)}
-          className="inline-flex min-h-9 items-center gap-1.5 border border-zinc-700 bg-zinc-800 px-3 font-mono text-[11px] font-semibold text-zinc-200 hover:bg-zinc-700 hover:text-white transition-colors"
+          className="inline-flex min-h-11 items-center gap-1.5 border border-zinc-700 bg-zinc-800 px-3 font-mono text-[11px] font-semibold text-zinc-200 hover:bg-zinc-700 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white transition-colors"
         >
           <SlidersHorizontal className="h-3 w-3 text-zinc-400" />
           <span>SESUAIKAN STOK</span>

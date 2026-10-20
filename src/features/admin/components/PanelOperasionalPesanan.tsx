@@ -172,11 +172,11 @@ export function PanelOperasionalPesanan({
             className="w-full border border-zinc-800 bg-zinc-900 px-3 py-2 font-mono text-xs text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
           />
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <select
               value={urgensi}
               onChange={(e) => setUrgensi(e.target.value)}
-              className="border border-zinc-800 bg-zinc-900 px-3 py-1.5 font-mono text-xs text-zinc-300 focus:outline-none"
+              className="inline-flex min-h-11 border border-zinc-800 bg-zinc-900 px-3 font-mono text-xs text-zinc-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
             >
               <option value="normal">Urgensi: Normal</option>
               <option value="penting">Urgensi: Penting</option>
@@ -186,7 +186,7 @@ export function PanelOperasionalPesanan({
             <button
               type="submit"
               disabled={sedangSimpanCatatan || !catatanBaru.trim()}
-              className="inline-flex min-h-9 items-center gap-1.5 border border-white bg-white px-4 font-mono text-xs font-bold text-black uppercase hover:bg-zinc-200 transition-colors disabled:opacity-50"
+              className="inline-flex min-h-11 items-center justify-center gap-1.5 border border-white bg-white px-5 font-mono text-xs font-bold text-black uppercase hover:bg-zinc-200 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white disabled:opacity-50"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>{sedangSimpanCatatan ? "MENYIMPAN..." : "SIMPAN CATATAN"}</span>

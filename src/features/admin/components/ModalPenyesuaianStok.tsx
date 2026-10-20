@@ -92,7 +92,7 @@ export function ModalPenyesuaianStok({
           <select
             value={jenisMutasi}
             onChange={(e) => setJenisMutasi(e.target.value as any)}
-            className="w-full border border-zinc-800 bg-zinc-900 px-3 py-2 text-white focus:border-zinc-500 focus:outline-none"
+            className="w-full min-h-11 border border-zinc-800 bg-zinc-900 px-3 py-2 text-white focus:border-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-white"
           >
             <option value="restock">Restock Barang Datang (+)</option>
             <option value="retur">Retur Pembeli (+)</option>
@@ -111,7 +111,7 @@ export function ModalPenyesuaianStok({
             min={1}
             value={jumlah}
             onChange={(e) => setJumlah(Number(e.target.value))}
-            className="w-full border border-zinc-800 bg-zinc-900 px-3 py-2 text-white focus:border-zinc-500 focus:outline-none"
+            className="w-full min-h-11 border border-zinc-800 bg-zinc-900 px-3 py-2 text-white focus:border-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-white"
           />
           <p className="mt-1 text-[11px] text-zinc-500">
             Estimasi stok akhir:{" "}
@@ -131,7 +131,7 @@ export function ModalPenyesuaianStok({
             value={nomorReferensi}
             onChange={(e) => setNomorReferensi(e.target.value)}
             placeholder="Misal: PO-2026-DROP04 / OPNAME-OKT"
-            className="w-full border border-zinc-800 bg-zinc-900 px-3 py-2 text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+            className="w-full min-h-11 border border-zinc-800 bg-zinc-900 px-3 py-2 text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-white"
           />
         </div>
 
@@ -145,7 +145,7 @@ export function ModalPenyesuaianStok({
             onChange={(e) => setCatatan(e.target.value)}
             placeholder="Keterangan tambahan untuk audit trail buku besar..."
             rows={2}
-            className="w-full border border-zinc-800 bg-zinc-900 px-3 py-2 text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+            className="w-full border border-zinc-800 bg-zinc-900 px-3 py-2 text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none focus-visible:ring-1 focus-visible:ring-white"
           />
         </div>
       </div>

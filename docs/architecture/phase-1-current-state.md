@@ -110,14 +110,16 @@ Sesuai panduan Ponytail dan strategi PR kecil terisolasi:
        │ -> Verifikasi: 119 tes Vitest lulus (20 file uji), 0 tsc error
        │
        ▼
+[Fase 1F: UI Primitives & Admin Accessibility] -> Selesai
+       │ -> Standarisasi komponen tabel, modal, dan drawer admin
+       │ -> Penegakan tap target mobile-first 44px (min-h-11) pada PanelOperasionalPesanan, ModalPenyesuaianStok, dan TabelInventarisAdminClient
+       │ -> Penambahan ring fokus aksesibilitas keyboard (focus-visible:ring-1 focus-visible:ring-white)
+       │ -> Verifikasi: 119 tes Vitest lulus (20 file uji), 29 rute Next.js build sukses, 0 tsc error
+       │
+       ▼
 [Fase 1E: Neon PostgreSQL & Migrations Hardening]
        │ -> Audit indeks kueri admin pesanan (EXPLAIN ANALYZE)
        │ -> Pemisahan branch database staging vs development
-       │
-       ▼
-[Fase 1F: UI Primitives & Admin Accessibility]
-       │ -> Standarisasi komponen tabel, modal, dan drawer admin
-       │ -> Verifikasi aksesibilitas keyboard dan mobile tap target 44px
 ```
 
 ---
