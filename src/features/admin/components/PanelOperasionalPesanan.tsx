@@ -7,7 +7,7 @@ import {
   inquireMidtransStatusAction,
   batalkanPesananAdminAction,
   tambahCatatanOperasionalAction,
-} from "../actions/pesanan-admin.action";
+} from "../actions/pesanan-admin.lifecycle";
 import { ModalAksiAdmin } from "./primitives";
 import {
   RefreshCw,

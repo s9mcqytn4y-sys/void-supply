@@ -1,4 +1,4 @@
-import { ambilDaftarPesananAdminAction } from "@/features/admin/actions/pesanan-admin.action";
+import { ambilDaftarPesananAdminAction } from "@/features/admin/actions/pesanan-admin.query";
 import {
   FilterStatusTabs,
   type OpsiFilterTab,

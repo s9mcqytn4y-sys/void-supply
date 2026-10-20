@@ -19,8 +19,8 @@ import { BadgeStatusOperasional } from "./primitives";
 import {
   batchRequestPickupBiteshipAction,
   type HasilBatchFulfillment,
-  type PesananAdminRow,
-} from "@/features/admin/actions/pesanan-admin.action";
+} from "@/features/admin/actions/pesanan-admin.fulfillment";
+import type { PesananAdminRow } from "@/features/admin/actions/pesanan-admin.query";
 
 interface TabelPesananAdminClientProps {
   daftarPesanan: PesananAdminRow[];

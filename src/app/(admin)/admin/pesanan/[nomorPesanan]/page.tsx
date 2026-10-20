@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatRupiah } from "@/lib/utils";
-import { ambilDetailPesananAdminAction } from "@/features/admin/actions/pesanan-admin.action";
+import { ambilDetailPesananAdminAction } from "@/features/admin/actions/pesanan-admin.query";
 import { BadgeStatusOperasional } from "@/features/admin/components/primitives";
 import { PanelOperasionalPesanan } from "@/features/admin/components/PanelOperasionalPesanan";
 import { ArrowLeft, Clock, ShieldCheck, MapPin, CreditCard } from "lucide-react";
