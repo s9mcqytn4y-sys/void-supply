@@ -946,3 +946,18 @@ Bagian ini mendefinisikan rancangan 9 komponen antarmuka yang digunakan secara k
 3. **Motion & Fisika Pegas Native:** Gunakan transisi CSS performa tinggi tanpa overhead bundle (`duration-200 ease-out transform-gpu`) dan hindari animasi dekoratif linear lambat.
 4. **Optimasi Media:** Gunakan format WebP untuk seluruh foto katalog dengan rasio aspek terkunci `4:5` untuk mencegah pergeseran tata letak kumulatif (_Cumulative Layout Shift / CLS_).
 5. **State Antarmuka Menyeluruh:** Setiap komponen yang terhubung ke data wajib menyediakan 3 status utama: _Loading State_ (skeleton loader abu-abu gelap), _Empty State_ (ilustrasi minimalis bertema gelap), dan _Error State_ (pesan galat jelas dengan tombol coba lagi).
+
+---
+
+## Appendix | Admin-first wireframe delta (2026-10-20)
+Reference: [DESIGN.md](DESIGN.md), [SRS.md](SRS.md), [audit](docs/audit-admin-architecture-2026-10-20.md). Existing wireframes are historical; route names differ in places from current /katalog and /admin implementation.
+
+**Admin phone / 390px:** compact header (brand, role, alert), one operational priority panel, horizontally scrolling KPI labels avoided; queued order cards with critical status, payment, SKU count, shipping SLA and primary action; bottom safe-area CTA, filter drawer, explicit loading/empty/retry. 
+**Admin tablet / 768px:** collapsible side navigation, filters in sticky utility bar, two-column operations board, shipment / inventory queue with sticky state labels. 
+**Admin desktop / 1440px:** fixed operations navigation + overview, KPI tiles leading to filtered queues, order exception list, gateway/outbox health with last-success timestamp. Important tables show selected-row detail panel and reversible navigation.
+**Catalog authoring:** list -> draft editor -> variant matrix -> media -> preview -> publish confirmation; unsaved changes guard; SKU duplicate inline error. 
+**Inventory:** current/available/reserved/damaged, inline count adjustment with reason, read-only immutable movement history and failed conflict state.
+**Support:** triage queue -> order-linked thread -> customer timeline -> macro response -> resolution SLA; redact or hide nonessential PII.
+**Customer:** maintain editorial brutality with functional clarity: explicit product variant, stock availability, size guide, pricing, shipping quote, checkout progress, error recovery and guest-safe order tracking.
+**Review dimensions:** 360,390,768,1024,1440 px; keyboard, screenreader, 200% zoom, reduced-motion; screenshot evidence required for visual claims.
+
