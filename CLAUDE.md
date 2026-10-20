@@ -49,3 +49,14 @@ npm run db:seed
 - Gunakan `npx ctx7@latest docs <lib>` untuk referensi dokumentasi terkini framework pihak ketiga (Next.js 16, React 19, Drizzle, Tailwind v4).
 - Gunakan tool MCP `playwright` untuk pengujian browser visual E2E dan verifikasi mobile viewport.
 
+---
+
+## Staging audit execution contract | 2026-10-20
+Canonical findings: [docs/audit-admin-architecture-2026-10-20.md](docs/audit-admin-architecture-2026-10-20.md), [SRS.md](SRS.md), [DESIGN.md](DESIGN.md).
+
+Before coding: state current expected behavior + exact file/line evidence + risk severity; choose smallest safe patch; isolate staging DB and sandbox gateway. Begin with failed tests for P0 (cron 404, Better Auth missing secret, unsigned Biteship business events, double cancel/stock ledger race, operator privileged mutations). Stop rather than performing live provider/production actions.
+
+During coding: keep App Router entry thin; server action checks role/capability; domain service handles state machine; repository performs atomic DB writes; external effects through idempotent outbox. Avoid duplicate checkout state logic, unawaited async work without durable recovery, and speculative package removal.
+
+After coding: npm run typecheck, npm run lint, npm test, npm run build, npm run test:e2e with actual results logged. Document failure/retry/rollback and verification of Admin, Operator, Guest, Customer. Do not claim browser QA was completed unless screenshots/tests exist.
+
