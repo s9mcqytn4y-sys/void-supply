@@ -117,9 +117,11 @@ Sesuai panduan Ponytail dan strategi PR kecil terisolasi:
        │ -> Verifikasi: 119 tes Vitest lulus (20 file uji), 29 rute Next.js build sukses, 0 tsc error
        │
        ▼
-[Fase 1E: Neon PostgreSQL & Migrations Hardening]
-       │ -> Audit indeks kueri admin pesanan (EXPLAIN ANALYZE)
-       │ -> Pemisahan branch database staging vs development
+[Fase 1E: Neon PostgreSQL & Migrations Hardening] -> Selesai
+       │ -> Penambahan indeks B-tree Drizzle: idx_pesanan_status_dibuat, idx_pesanan_pelanggan_id, idx_pesanan_kedaluwarsa_pada, dan idx_outbox_status_dieksekusi
+       │ -> Pembuatan migrasi terdaftar 0013_brief_vertigo.sql dengan klausa idempotent
+       │ -> Penguatan resolusi koneksi database di src/lib/db/index.ts (pencegahan tunneling WebSocket Neon pada host localhost)
+       │ -> Verifikasi: 119 tes Vitest lulus (20 file uji), 16 tes Playwright E2E browser lulus, migrasi dan seed sukses
 ```
 
 ---

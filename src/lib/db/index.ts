@@ -44,8 +44,8 @@ const isLocalhost =
   connectionString.includes("::1");
 
 const isNeon =
-  connectionString.includes("neon.tech") ||
-  Boolean(process.env.NEON_BRANCH);
+  !isLocalhost &&
+  (connectionString.includes("neon.tech") || Boolean(process.env.NEON_BRANCH));
 
 const isVercelServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 

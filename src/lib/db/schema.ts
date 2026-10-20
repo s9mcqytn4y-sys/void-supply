@@ -10,6 +10,7 @@ import {
   jsonb,
   primaryKey,
   check,
+  index,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
 
@@ -257,6 +258,9 @@ export const pesanan = pgTable(
   (tabel) => ({
     checkSubtotal: check("check_pesanan_subtotal", sql`${tabel.subtotal} >= 0`),
     checkTotalAkhir: check("check_pesanan_total_akhir", sql`${tabel.totalAkhir} >= 0`),
+    idxPesananStatusDibuat: index("idx_pesanan_status_dibuat").on(tabel.statusPesanan, tabel.dibuatPada),
+    idxPesananPelanggan: index("idx_pesanan_pelanggan_id").on(tabel.pelangganId),
+    idxPesananKedaluwarsa: index("idx_pesanan_kedaluwarsa_pada").on(tabel.kedaluwarsaPada),
   })
 );
 
@@ -440,19 +444,28 @@ export const pelacakanPengiriman = pgTable("pelacakan_pengiriman", {
 });
 
 // 16. Tabel Antrean Pekerjaan Transactional Outbox (Resilient Serverless Worker)
-export const outboxPekerjaan = pgTable("outbox_pekerjaan", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  tipePekerjaan: varchar("tipe_pekerjaan", { length: 50 }).notNull(),
-  pesananId: uuid("pesanan_id").references(() => pesanan.id, { onDelete: "cascade" }),
-  payload: jsonb("payload").notNull(),
-  status: statusOutboxEnum("status").default("antre").notNull(),
-  percobaan: integer("percobaan").default(0).notNull(),
-  maksimalPercobaan: integer("maksimal_percobaan").default(5).notNull(),
-  pesanKesalahan: text("pesan_kesalahan"),
-  dieksekusiPada: timestamp("dieksekusi_pada", { withTimezone: true }),
-  dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
-  diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
-});
+export const outboxPekerjaan = pgTable(
+  "outbox_pekerjaan",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tipePekerjaan: varchar("tipe_pekerjaan", { length: 50 }).notNull(),
+    pesananId: uuid("pesanan_id").references(() => pesanan.id, { onDelete: "cascade" }),
+    payload: jsonb("payload").notNull(),
+    status: statusOutboxEnum("status").default("antre").notNull(),
+    percobaan: integer("percobaan").default(0).notNull(),
+    maksimalPercobaan: integer("maksimal_percobaan").default(5).notNull(),
+    pesanKesalahan: text("pesan_kesalahan"),
+    dieksekusiPada: timestamp("dieksekusi_pada", { withTimezone: true }),
+    dibuatPada: timestamp("dibuat_pada", { withTimezone: true }).defaultNow().notNull(),
+    diperbaruiPada: timestamp("diperbarui_pada", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (tabel) => ({
+    idxOutboxStatusDieksekusi: index("idx_outbox_status_dieksekusi").on(
+      tabel.status,
+      tabel.dieksekusiPada
+    ),
+  })
+);
 
 // 17. Tabel Pesan Kontak Studio (Komunikasi Pelanggan & Anti-Slop R-26)
 export const pesanKontak = pgTable("pesan_kontak", {

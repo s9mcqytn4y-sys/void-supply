@@ -92,6 +92,13 @@
       "when": 1792455000000,
       "tag": "0012_preorder_bundles",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792519483644,
+      "tag": "0013_brief_vertigo",
+      "breakpoints": true
     }
   ]
 }
