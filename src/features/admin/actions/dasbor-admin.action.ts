@@ -2,12 +2,16 @@
 
 import { desc, eq, sql, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { pesanan, varianProduk, produk, pengiriman } from "@/lib/db/schema";
+import { pesanan, pembayaran, varianProduk, produk, pengiriman } from "@/lib/db/schema";
 import { riwayatMutasiStok } from "@/lib/db/admin.schema";
 import { verifikasiStafAdmin } from "./auth-guard";
 
 export interface MetrikDasborAdmin {
-  totalOmset: number;
+  totalOmset: number; // Kompatibilitas mundur (Omzet Lunas)
+  omzetLunas: number;
+  nilaiMenungguBayar: number;
+  totalRefundPending: number;
+  omzetBersih: number;
   totalPesanan: number;
   pesananPerluProses: number;
   totalArtikelKritis: number;
@@ -43,14 +47,32 @@ export async function ambilStatistikDasborAction(): Promise<{
       return { sukses: false, pesan: cek.pesan || "Akses tidak sah." };
     }
 
-    // 1. Agregasi Total Omset dan Total Pesanan
+    // 1. Agregasi Metrik Finansial Transparan (CFO & Entrepreneur Perspective)
+    // - omzetLunas: Penjualan resmi terverifikasi bayar (status pesanan diproses, dikirim, selesai)
+    // - nilaiMenungguBayar: Niat beli / reservasi in-flight (menunggu_pembayaran)
+    // - totalRefundPending: Dana pelanggan yang harus dikembalikan (pembayaran menunggu_refund)
+    // - omzetBersih: omzetLunas dikurangi pesanan yang berstatus dikembalikan/refund
     const [ringkasanPesanan] = await db
       .select({
         totalPesanan: sql<number>`count(*)`,
-        totalOmset: sql<number>`COALESCE(sum(CASE WHEN ${pesanan.statusPesanan} != 'dibatalkan' THEN ${pesanan.totalAkhir} ELSE 0 END), 0)`,
+        omzetLunas: sql<number>`COALESCE(sum(CASE WHEN ${pesanan.statusPesanan} IN ('diproses', 'dikirim', 'selesai') THEN ${pesanan.totalAkhir} ELSE 0 END), 0)`,
+        nilaiMenungguBayar: sql<number>`COALESCE(sum(CASE WHEN ${pesanan.statusPesanan} = 'menunggu_pembayaran' THEN ${pesanan.totalAkhir} ELSE 0 END), 0)`,
         perluProses: sql<number>`count(CASE WHEN ${pesanan.statusPesanan} IN ('diproses', 'menunggu_pembayaran') THEN 1 ELSE NULL END)`,
       })
       .from(pesanan);
+
+    const [ringkasanRefund] = await db
+      .select({
+        totalRefundPending: sql<number>`COALESCE(sum(CASE WHEN ${pembayaran.statusPembayaran} = 'menunggu_refund' THEN ${pembayaran.jumlahBayar} ELSE 0 END), 0)`,
+        totalRefundSelesai: sql<number>`COALESCE(sum(CASE WHEN ${pembayaran.statusPembayaran} = 'dikembalikan' THEN ${pembayaran.jumlahBayar} ELSE 0 END), 0)`,
+      })
+      .from(pembayaran);
+
+    const omzetLunas = Number(ringkasanPesanan?.omzetLunas || 0);
+    const nilaiMenungguBayar = Number(ringkasanPesanan?.nilaiMenungguBayar || 0);
+    const totalRefundPending = Number(ringkasanRefund?.totalRefundPending || 0);
+    const totalRefundSelesai = Number(ringkasanRefund?.totalRefundSelesai || 0);
+    const omzetBersih = Math.max(0, omzetLunas - totalRefundSelesai);
 
     // 2. Varian dengan stok menipis (<= 5 unit)
     const varianMenipis = await db
@@ -86,7 +108,11 @@ export async function ambilStatistikDasborAction(): Promise<{
     return {
       sukses: true,
       data: {
-        totalOmset: Number(ringkasanPesanan?.totalOmset || 0),
+        totalOmset: omzetLunas,
+        omzetLunas,
+        nilaiMenungguBayar,
+        totalRefundPending,
+        omzetBersih,
         totalPesanan: Number(ringkasanPesanan?.totalPesanan || 0),
         pesananPerluProses: Number(ringkasanPesanan?.perluProses || 0),
         totalArtikelKritis: varianMenipis.length,

@@ -1,6 +1,7 @@
 import { and, eq, lt, or, sql } from "drizzle-orm";
 import {
   db,
+  pesanan,
   outboxPekerjaan,
   pengiriman,
   pelacakanPengiriman,
@@ -132,8 +133,8 @@ export async function prosesAntreanOutbox(batchLimit = 10): Promise<HasilProsesO
         and(
           eq(outboxPekerjaan.status, "gagal"),
           lt(outboxPekerjaan.percobaan, outboxPekerjaan.maksimalPercobaan),
-          // Jeda backoff eksponensial: 2^percobaan * 60 detik (misal: coba 1 jeda 2 menit, coba 2 jeda 4 menit)
-          sql`${outboxPekerjaan.diperbaruiPada} + (power(2, ${outboxPekerjaan.percobaan}) * interval '60 second') <= now()`
+          // Jeda backoff eksponensial dengan batas atas 30 menit (1800 detik)
+          sql`${outboxPekerjaan.diperbaruiPada} + (LEAST(power(2, ${outboxPekerjaan.percobaan}) * 60, 1800) * interval '1 second') <= now()`
         )
       )
     )
@@ -194,6 +195,44 @@ export async function prosesAntreanOutbox(batchLimit = 10): Promise<HasilProsesO
           nomorPesanan: string;
         };
 
+        // P0-D Anti-Balapan: Verifikasi kelayakan pengiriman pesanan
+        const [dataPesanan] = await db
+          .select({
+            id: pesanan.id,
+            statusPesanan: pesanan.statusPesanan,
+          })
+          .from(pesanan)
+          .where(eq(pesanan.id, payloadOrder.pesananId))
+          .limit(1);
+
+        if (!dataPesanan) {
+          throw new Error(`Pesanan dengan ID ${payloadOrder.pesananId} tidak ditemukan.`);
+        }
+
+        if (dataPesanan.statusPesanan === "dibatalkan") {
+          console.warn(
+            `[OUTBOX BITESHIP] Pesanan ${payloadOrder.nomorPesanan} telah berstatus dibatalkan. Tugas pembuatan order kurir dibatalkan demi mencegah biaya pengiriman sia-sia.`
+          );
+          // Tandai selesai tanpa memanggil kurir
+          await db
+            .update(outboxPekerjaan)
+            .set({
+              status: "berhasil",
+              pesanKesalahan: "Dibatalkan: Pesanan telah berstatus dibatalkan sebelum pemesanan kurir dieksekusi.",
+              dieksekusiPada: new Date(),
+              diperbaruiPada: new Date(),
+            })
+            .where(eq(outboxPekerjaan.id, tugas.id));
+
+          totalBerhasil++;
+          rincian.push({
+            id: tugas.id,
+            tipePekerjaan: tugas.tipePekerjaan,
+            status: "berhasil",
+          });
+          continue;
+        }
+
         const [dataPengiriman] = await db
           .select()
           .from(pengiriman)
@@ -211,9 +250,15 @@ export async function prosesAntreanOutbox(batchLimit = 10): Promise<HasilProsesO
           .from(itemPesanan)
           .where(eq(itemPesanan.pesananId, payloadOrder.pesananId));
 
-        if (dataPengiriman.biteshipOrderId) {
+        const orderIdSah =
+          dataPengiriman.biteshipOrderId &&
+          !dataPengiriman.biteshipOrderId.startsWith("DISPATCHING_")
+            ? dataPengiriman.biteshipOrderId
+            : null;
+
+        if (orderIdSah) {
           console.info(
-            `[OUTBOX BITESHIP] Order Biteship sudah tercatat (${dataPengiriman.biteshipOrderId}) untuk pesanan ${payloadOrder.nomorPesanan}. Melewati request baru untuk menghemat saldo Biteship.`
+            `[OUTBOX BITESHIP] Order Biteship sudah tercatat (${orderIdSah}) untuk pesanan ${payloadOrder.nomorPesanan}. Melewati request baru untuk menghemat saldo Biteship.`
           );
         } else {
           const resBiteship = await buatOrderPengirimanBiteship({

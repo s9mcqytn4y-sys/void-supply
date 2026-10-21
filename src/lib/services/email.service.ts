@@ -226,56 +226,76 @@ function buatHtmlEmail(
       : "";
 
   return `
-<!DOCTYPE html>
-<html lang="id">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="id">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${subjek}</title>
+  <!--[if mso]>
+  <style type="text/css">
+    body, table, td, a { font-family: Arial, Helvetica, sans-serif !important; }
+  </style>
+  <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; background-color: #09090b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f4f4f5;">
-  <div style="max-width: 580px; margin: 0 auto; padding: 36px 18px;">
-    
-    <!-- Header Brand Monospace -->
-    <div style="border-bottom: 2px solid #27272a; padding-bottom: 16px; margin-bottom: 24px;">
-      <div style="font-family: 'SFMono-Regular', Consolas, monospace; font-size: 15px; font-weight: 800; letter-spacing: 3px; color: #ffffff; text-transform: uppercase;">
-        VOID SUPPLY
-      </div>
-      <div style="font-family: 'SFMono-Regular', Consolas, monospace; font-size: 10px; color: #71717a; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px;">
-        ${headerLabel}
-      </div>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #09090b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f4f4f5; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #09090b; width: 100%;">
+    <tr>
+      <td align="center" style="padding: 32px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 580px; width: 100%; text-align: left;">
+          
+          <!-- Header Brand Monospace -->
+          <tr>
+            <td style="border-bottom: 2px solid #27272a; padding-bottom: 16px; margin-bottom: 24px;">
+              <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 15px; font-weight: 800; letter-spacing: 3px; color: #ffffff; text-transform: uppercase;">
+                VOID SUPPLY
+              </div>
+              <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 10px; color: #71717a; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px;">
+                ${headerLabel}
+              </div>
+            </td>
+          </tr>
 
-    <!-- Konten Utama Card -->
-    <div style="background-color: #141417; border: 1px solid #27272a; padding: 26px 22px;">
-      <h1 style="font-family: 'SFMono-Regular', Consolas, monospace; font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #ffffff; margin-top: 0; margin-bottom: 14px; text-transform: uppercase;">
-        ${judulUtama}
-      </h1>
+          <!-- Spacer -->
+          <tr><td height="20" style="font-size: 0px; line-height: 0px;">&nbsp;</td></tr>
 
-      <p style="font-size: 13px; line-height: 1.6; color: #d4d4d8; margin: 0 0 14px 0;">
-        Halo ${namaPelanggan},
-      </p>
+          <!-- Konten Utama Card -->
+          <tr>
+            <td style="background-color: #141417; border: 1px solid #27272a; padding: 28px 24px;">
+              <h1 style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 15px; font-weight: 800; letter-spacing: 1px; color: #ffffff; margin-top: 0; margin-bottom: 14px; text-transform: uppercase;">
+                ${judulUtama}
+              </h1>
 
-      <p style="font-size: 13px; line-height: 1.6; color: #a1a1aa; margin: 0 0 14px 0;">
-        ${pesanDeskripsi}
-      </p>
+              <p style="font-size: 13px; line-height: 1.6; color: #d4d4d8; margin: 0 0 14px 0;">
+                Halo ${namaPelanggan},
+              </p>
 
-      ${metaHtml}
-      ${ctaHtml}
+              <p style="font-size: 13px; line-height: 1.6; color: #a1a1aa; margin: 0 0 14px 0;">
+                ${pesanDeskripsi}
+              </p>
 
-      <div style="border-top: 1px solid #27272a; padding-top: 14px; margin-top: 24px; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 10px; color: #71717a; line-height: 1.5;">
-        Sistem pemrosesan pesanan otomatis VOID Supply. Pesan ini dikirim secara otomatis dan tidak memerlukan balasan langsung.
-      </div>
-    </div>
+              ${metaHtml}
+              ${ctaHtml}
 
-    <!-- Footer Studio -->
-    <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #1c1c1f; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 10px; color: #52525b; text-align: center; line-height: 1.6;">
-      <div>VOID SUPPLY // ATELIER & STUDIO</div>
-      <div>Johar Baru, Jakarta Pusat, DKI Jakarta 10560, Indonesia</div>
-      <div style="margin-top: 6px; color: #3f3f46;">&copy; 2026 VOID Supply. Seluruh hak cipta dilindungi undang-undang.</div>
-    </div>
+              <div style="border-top: 1px solid #27272a; padding-top: 14px; margin-top: 24px; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 10px; color: #71717a; line-height: 1.5;">
+                Sistem pemrosesan pesanan otomatis VOID Supply. Pesan ini dikirim secara otomatis dan tidak memerlukan balasan langsung.
+              </div>
+            </td>
+          </tr>
 
-  </div>
+          <!-- Footer Studio -->
+          <tr>
+            <td style="padding-top: 24px; border-top: 1px solid #1c1c1f; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 10px; color: #52525b; text-align: center; line-height: 1.6;">
+              <div>VOID SUPPLY // ATELIER & STUDIO</div>
+              <div>Johar Baru, Jakarta Pusat, DKI Jakarta 10560, Indonesia</div>
+              <div style="margin-top: 6px; color: #3f3f46;">&copy; 2026 VOID Supply. Seluruh hak cipta dilindungi undang-undang.</div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
   `.trim();

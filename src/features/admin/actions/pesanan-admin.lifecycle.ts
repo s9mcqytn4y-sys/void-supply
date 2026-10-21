@@ -15,6 +15,10 @@ import {
 } from "@/lib/db/admin.schema";
 import { verifikasiStafAdmin, verifikasiHakAksesAdmin } from "./auth-guard";
 import { selesaikanKonfigurasiEnvironment } from "@/lib/environment/resolver";
+import {
+  prosesSettlementMidtransDomain,
+  prosesKegagalanMidtransDomain,
+} from "@/lib/services/transisi-pembayaran.service";
 
 /**
  * Server Action: Inquire langsung ke Gateway Midtrans API untuk rekonsiliasi status
@@ -80,153 +84,26 @@ export async function inquireMidtransStatusAction(
       transactionStatus === "deny";
 
     await db.transaction(async (tx) => {
-      // Baca status pesanan terkini di dalam transaksi atomik untuk mencegah race condition (anti-stale read)
-      const [pesananTerkini] = await tx
-        .select({
-          id: pesanan.id,
-          statusPesanan: pesanan.statusPesanan,
-        })
-        .from(pesanan)
-        .where(eq(pesanan.nomorPesanan, nomorPesanan))
-        .limit(1);
-
-      if (!pesananTerkini) {
-        return;
-      }
-
       const stafId = cek.staf?.id;
 
       if (apakahLunasSah) {
-        if (pesananTerkini.statusPesanan === "menunggu_pembayaran") {
-          // Atomic Compare-and-Set: hanya ubah pesanan jika masih menunggu pembayaran
-          await tx
-            .update(pesanan)
-            .set({ statusPesanan: "diproses", diperbaruiPada: new Date() })
-            .where(
-              and(
-                eq(pesanan.id, pesananTerkini.id),
-                eq(pesanan.statusPesanan, "menunggu_pembayaran")
-              )
-            );
-
-          await tx
-            .update(pembayaran)
-            .set({
-              statusPembayaran: "berhasil",
-              dibayarPada: new Date(),
-              metodePembayaran: dataGateway.payment_type || "qris",
-              gatewayTransactionId: dataGateway.transaction_id,
-              diperbaruiPada: new Date(),
-            })
-            .where(eq(pembayaran.pesananId, pesananTerkini.id));
-        } else if (
-          pesananTerkini.statusPesanan === "diproses" ||
-          pesananTerkini.statusPesanan === "dikirim" ||
-          pesananTerkini.statusPesanan === "selesai"
-        ) {
-          await tx
-            .update(pembayaran)
-            .set({
-              statusPembayaran: "berhasil",
-              dibayarPada: new Date(),
-              metodePembayaran: dataGateway.payment_type || "qris",
-              gatewayTransactionId: dataGateway.transaction_id,
-              diperbaruiPada: new Date(),
-            })
-            .where(eq(pembayaran.pesananId, pesananTerkini.id));
-        } else if (pesananTerkini.statusPesanan === "dibatalkan") {
-          // P0 Late Settlement Guard: Pesanan sudah dibatalkan, jangan hidupkan kembali dan jangan potong stok
-          await tx
-            .update(pembayaran)
-            .set({
-              statusPembayaran: "menunggu_refund",
-              metodePembayaran: dataGateway.payment_type || "qris",
-              gatewayTransactionId: dataGateway.transaction_id,
-              dibayarPada: new Date(),
-              diperbaruiPada: new Date(),
-            })
-            .where(eq(pembayaran.pesananId, pesananTerkini.id));
-
-          await tx
-            .update(pesanan)
-            .set({
-              perluTinjauanManual: true,
-              diperbaruiPada: new Date(),
-            })
-            .where(eq(pesanan.id, pesananTerkini.id));
-
-          await tx.insert(catatanOperasionalPesanan).values({
-            pesananId: pesananTerkini.id,
-            adminId: stafId,
-            isiCatatan: `Anomali Late Settlement: Dana lunas terkonfirmasi oleh Midtrans (${dataGateway.payment_type || "gateway"}, TRX: ${dataGateway.transaction_id || "-"}) setelah pesanan berstatus dibatalkan. Status pembayaran dialihkan ke 'menunggu_refund' untuk tinjauan dan pengembalian dana manual.`,
-            tingkatUrgensi: "kritis",
-          });
-
-          await tx.insert(auditAktivitasAdmin).values({
-            adminId: stafId,
-            tindakan: "late_settlement_detected",
-            targetId: nomorPesanan,
-            payloadAman: {
-              transactionStatus,
-              fraudStatus: fraudStatus || null,
-              gateway: dataGateway.payment_type,
-              transactionId: dataGateway.transaction_id,
-            },
-          });
-        }
+        await prosesSettlementMidtransDomain(tx, {
+          nomorPesanan,
+          transactionStatus,
+          fraudStatus,
+          paymentType: dataGateway.payment_type || "qris",
+          transactionId: dataGateway.transaction_id,
+          settlementTime: dataGateway.settlement_time,
+          rawPayload: dataGateway,
+          asalPemicu: "admin_inquiry",
+          adminId: stafId,
+        });
       } else if (apakahKedaluwarsaAtauGagal) {
-        if (pesananTerkini.statusPesanan === "menunggu_pembayaran") {
-          const [pesananDibatalkan] = await tx
-            .update(pesanan)
-            .set({ statusPesanan: "dibatalkan", diperbaruiPada: new Date() })
-            .where(
-              and(
-                eq(pesanan.id, pesananTerkini.id),
-                eq(pesanan.statusPesanan, "menunggu_pembayaran")
-              )
-            )
-            .returning({ id: pesanan.id });
-
-          if (pesananDibatalkan) {
-            await tx
-              .update(pembayaran)
-              .set({
-                statusPembayaran: transactionStatus === "expire" ? "kadaluarsa" : "gagal",
-                diperbaruiPada: new Date(),
-              })
-              .where(eq(pembayaran.pesananId, pesananTerkini.id));
-
-            const items = await tx
-              .select()
-              .from(itemPesanan)
-              .where(eq(itemPesanan.pesananId, pesananTerkini.id));
-
-            for (const item of items) {
-              if (item.varianId) {
-                await tx
-                  .update(varianProduk)
-                  .set({
-                    stok: sql`${varianProduk.stok} + ${item.jumlah}`,
-                    diperbaruiPada: new Date(),
-                  })
-                  .where(eq(varianProduk.id, item.varianId));
-              }
-            }
-          }
-        } else if (pesananTerkini.statusPesanan === "dibatalkan") {
-          await tx
-            .update(pembayaran)
-            .set({
-              statusPembayaran: transactionStatus === "expire" ? "kadaluarsa" : "gagal",
-              diperbaruiPada: new Date(),
-            })
-            .where(
-              and(
-                eq(pembayaran.pesananId, pesananTerkini.id),
-                eq(pembayaran.statusPembayaran, "menunggu_pembayaran")
-              )
-            );
-        }
+        await prosesKegagalanMidtransDomain(tx, {
+          nomorPesanan,
+          transactionStatus,
+          rawPayload: dataGateway,
+        });
       }
 
       // Catat log audit staf

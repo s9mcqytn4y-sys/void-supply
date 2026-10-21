@@ -33,7 +33,6 @@ jobs:
           echo "Target Base URL dikonfigurasi ke: $CLEAN_BASE_URL"
 
       - name: Eksekusi API Cron Kadaluwarsa Pesanan (Reservasi 15 Menit)
-        continue-on-error: true
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
         run: |

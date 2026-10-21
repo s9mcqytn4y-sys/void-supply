@@ -169,6 +169,7 @@ export default async function HalamanDetailPesananAdmin({
             pesananId={p.id}
             nomorPesanan={p.nomorPesanan}
             statusPesanan={p.statusPesanan}
+            statusPembayaran={bayar?.statusPembayaran}
           />
 
           {/* Timeline Catatan Operasional Internal */}

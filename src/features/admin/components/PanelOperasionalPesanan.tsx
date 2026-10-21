@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import {
   inquireMidtransStatusAction,
   batalkanPesananAdminAction,
+  konfirmasiRefundAdminAction,
   tambahCatatanOperasionalAction,
 } from "../actions/pesanan-admin.lifecycle";
 import { ModalAksiAdmin } from "./primitives";
@@ -14,6 +15,7 @@ import {
   Printer,
   FileText,
   AlertTriangle,
+  RotateCcw,
   MessageSquare,
   Plus,
 } from "lucide-react";
@@ -22,18 +24,26 @@ interface PanelOperasionalPesananProps {
   pesananId: string;
   nomorPesanan: string;
   statusPesanan: string;
+  statusPembayaran?: string;
 }
 
 export function PanelOperasionalPesanan({
   pesananId,
   nomorPesanan,
   statusPesanan,
+  statusPembayaran,
 }: PanelOperasionalPesananProps) {
   const router = useRouter();
   const [sedangInquire, setSedangInquire] = useState(false);
   const [modalBatalTerbuka, setModalBatalTerbuka] = useState(false);
   const [alasanBatal, setAlasanBatal] = useState("");
   const [sedangBatal, setSedangBatal] = useState(false);
+
+  // Modal Konfirmasi Refund
+  const [modalRefundTerbuka, setModalRefundTerbuka] = useState(false);
+  const [referensiRefund, setReferensiRefund] = useState("");
+  const [catatanRefund, setCatatanRefund] = useState("");
+  const [sedangRefund, setSedangRefund] = useState(false);
 
   // Form Tambah Catatan
   const [catatanBaru, setCatatanBaru] = useState("");
@@ -76,6 +86,28 @@ export function PanelOperasionalPesanan({
       toast.error("Gagal memproses pembatalan pesanan.");
     } finally {
       setSedangBatal(false);
+    }
+  };
+
+  const handleKonfirmasiRefund = async () => {
+    if (!referensiRefund.trim()) {
+      toast.error("Silakan masukkan nomor referensi transfer bank atau bukti refund.");
+      return;
+    }
+    setSedangRefund(true);
+    try {
+      const res = await konfirmasiRefundAdminAction(nomorPesanan, referensiRefund, catatanRefund);
+      if (res.sukses) {
+        toast.success(res.pesan);
+        setModalRefundTerbuka(false);
+        router.refresh();
+      } else {
+        toast.error(res.pesan);
+      }
+    } catch {
+      toast.error("Gagal mengonfirmasi penyelesaian refund.");
+    } finally {
+      setSedangRefund(false);
     }
   };
 
@@ -153,6 +185,18 @@ export function PanelOperasionalPesanan({
               <span>BATALKAN PESANAN</span>
             </button>
           )}
+
+          {/* Konfirmasi Pengembalian Dana (Refund) */}
+          {statusPembayaran === "menunggu_refund" && (
+            <button
+              type="button"
+              onClick={() => setModalRefundTerbuka(true)}
+              className="inline-flex min-h-11 items-center gap-2 border border-amber-500/40 bg-amber-950/30 px-4 font-mono text-xs font-bold text-amber-300 uppercase transition-colors hover:border-amber-400 hover:bg-amber-950/50 animate-pulse"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              <span>KONFIRMASI REFUND DANA</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -219,6 +263,48 @@ export function PanelOperasionalPesanan({
             rows={3}
             className="w-full border border-zinc-800 bg-zinc-900 px-3 py-2 font-mono text-xs text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
           />
+        </div>
+      </ModalAksiAdmin>
+
+      {/* Modal Konfirmasi Refund */}
+      <ModalAksiAdmin
+        terbuka={modalRefundTerbuka}
+        onTutup={() => setModalRefundTerbuka(false)}
+        judul="KONFIRMASI PENGEMBALIAN DANA (REFUND)"
+        deskripsi={`Tindakan ini akan mengubah status pembayaran pesanan #${nomorPesanan} menjadi 'dikembalikan' dan mencatat nomor referensi bukti transfer.`}
+        tombolKonfirmasi={{
+          teks: "KONFIRMASI REFUND SELESAI",
+          onKlik: handleKonfirmasiRefund,
+          sedangProses: sedangRefund,
+          bahaya: false,
+        }}
+      >
+        <div className="space-y-4 font-mono text-xs">
+          <div className="space-y-1.5">
+            <label className="block text-zinc-300 uppercase font-semibold">
+              NOMOR REFERENSI TRANSFER / BUKTI REFUND (WAJIB):
+            </label>
+            <input
+              type="text"
+              value={referensiRefund}
+              onChange={(e) => setReferensiRefund(e.target.value)}
+              placeholder="Misal: BCA-TRF-982348723 / REF-MIDTRANS-12345"
+              className="w-full border border-zinc-800 bg-zinc-900 px-3 py-2.5 text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-zinc-300 uppercase font-semibold">
+              CATATAN TAMBAHAN (OPSIONAL):
+            </label>
+            <textarea
+              value={catatanRefund}
+              onChange={(e) => setCatatanRefund(e.target.value)}
+              placeholder="Catatan rekening tujuan pembeli atau rincian pemrosesan..."
+              rows={2}
+              className="w-full border border-zinc-800 bg-zinc-900 px-3 py-2 text-white placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
+            />
+          </div>
         </div>
       </ModalAksiAdmin>
     </div>

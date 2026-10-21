@@ -20,7 +20,9 @@ export default async function HalamanAdminDasbor() {
   const res = await ambilStatistikDasborAction();
   const data = res.data;
 
-  const totalOmset = data?.totalOmset || 0;
+  const totalOmset = data?.omzetLunas || data?.totalOmset || 0;
+  const nilaiMenungguBayar = data?.nilaiMenungguBayar || 0;
+  const totalRefundPending = data?.totalRefundPending || 0;
   const totalPesanan = data?.totalPesanan || 0;
   const pesananPerluProses = data?.pesananPerluProses || 0;
   const artikelKritis = data?.totalArtikelKritis || 0;
@@ -58,34 +60,35 @@ export default async function HalamanAdminDasbor() {
         </div>
       </div>
 
-      {/* Grid 4 Kartu Metrik */}
+      {/* Grid 4 Kartu Metrik Finansial & Operasional */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KartuMetrikBrutalis
-          label="TOTAL OMSET TERKUMPUL"
+          label="OMZET LUNAS (GROSS SALES)"
           nilai={formatRupiah(totalOmset)}
-          keterangan="Akumulasi seluruh transaksi non-batal"
+          keterangan="Total pembayaran terverifikasi lunas"
           warnaAksen="emerald"
           ikon={<DollarSign className="h-4 w-4" />}
         />
         <KartuMetrikBrutalis
-          label="TOTAL TRANSAKSI"
-          nilai={`${totalPesanan} Pesanan`}
-          keterangan="Total transaksi masuk ke sistem"
-          ikon={<Package className="h-4 w-4" />}
+          label="NILAI ORDER IN-FLIGHT"
+          nilai={formatRupiah(nilaiMenungguBayar)}
+          keterangan="Tagihan menunggu pembayaran"
+          warnaAksen="amber"
+          ikon={<TrendingUp className="h-4 w-4" />}
         />
         <KartuMetrikBrutalis
-          label="PERLU TINDAKAN"
-          nilai={`${pesananPerluProses} Pesanan`}
-          keterangan="Menunggu pembayaran atau penjemputan"
-          warnaAksen={pesananPerluProses > 0 ? "amber" : "default"}
-          ikon={<Clock className="h-4 w-4" />}
+          label="REFUND MENUNGGU TINDAKAN"
+          nilai={formatRupiah(totalRefundPending)}
+          keterangan="Kewajiban pengembalian dana pembeli"
+          warnaAksen={totalRefundPending > 0 ? "rose" : "default"}
+          ikon={<AlertOctagon className="h-4 w-4" />}
         />
         <KartuMetrikBrutalis
           label="SKU STOK KRITIS"
           nilai={`${artikelKritis} SKU`}
           keterangan="Varian dengan kuantitas <= 5 unit"
           warnaAksen={artikelKritis > 0 ? "rose" : "default"}
-          ikon={<AlertOctagon className="h-4 w-4" />}
+          ikon={<Package className="h-4 w-4" />}
         />
       </div>
 

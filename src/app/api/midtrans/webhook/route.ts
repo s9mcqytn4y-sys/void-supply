@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions";
-import { eq, and, sql } from "drizzle-orm";
-import { db, pesanan, pembayaran, itemPesanan, varianProduk } from "@/lib/db";
-import { faktur } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import { db, pesanan, pembayaran } from "@/lib/db";
 import { verifikasiSignatureMidtrans } from "@/lib/services/midtrans.service";
 import {
-  tambahTugasOutbox,
   prosesAntreanOutbox,
   picuProsesOutboxNonBlocking,
 } from "@/lib/services/outbox.service";
+import {
+  prosesSettlementMidtransDomain,
+  prosesKegagalanMidtransDomain,
+} from "@/lib/services/transisi-pembayaran.service";
 
 interface PayloadWebhookMidtrans {
   order_id: string;
@@ -118,168 +120,26 @@ export async function POST(req: Request) {
       transaction_status === "expire" ||
       transaction_status === "failure";
 
-    // 5. Eksekusi Mutasi Status Atomik (Compare-and-Set)
+    // 5. Eksekusi Mutasi Status Atomik melalui Domain Service Terpadu
     await db.transaction(async (tx) => {
       if (isSuccess) {
-        // Compare-and-Set: Hanya ubah jika status saat ini 'menunggu_pembayaran'
-        const [updatedOrder] = await tx
-          .update(pesanan)
-          .set({
-            statusPesanan: "diproses",
-            diperbaruiPada: new Date(),
-          })
-          .where(
-            and(
-              eq(pesanan.id, pesananTerkait.id),
-              eq(pesanan.statusPesanan, "menunggu_pembayaran")
-            )
-          )
-          .returning({ id: pesanan.id });
-
-        if (updatedOrder) {
-          await tx
-            .update(pembayaran)
-            .set({
-              statusPembayaran: "berhasil",
-              metodePembayaran: payment_type || "midtrans",
-              gatewayTransactionId: transaction_id,
-              dibayarPada: new Date(),
-              metadataGateway: body,
-              diperbaruiPada: new Date(),
-            })
-            .where(eq(pembayaran.pesananId, pesananTerkait.id));
-
-          // Terbitkan faktur resmi e-receipt
-          const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-          const nomorFaktur = `INV/${dateStr}/${order_id.replace(/^VOID-/, "")}`;
-
-          const [fakturBaru] = await tx
-            .insert(faktur)
-            .values({
-              nomorFaktur,
-              pesananId: pesananTerkait.id,
-              totalTagihan: pesananTerkait.totalAkhir,
-              statusFaktur: "lunas",
-              metadataFaktur: {
-                gatewayTransactionId: transaction_id,
-                metodePembayaran: payment_type || "midtrans",
-                settlementTime: settlement_time || new Date().toISOString(),
-              },
-            })
-            .onConflictDoNothing()
-            .returning({ id: faktur.id });
-
-          console.log(`[MIDTRANS WEBHOOK] Pesanan ${order_id} berhasil diverifikasi & faktur ${nomorFaktur} diterbitkan.`);
-
-          // Sisipkan tugas pembuatan snapshot arsip faktur ke antrean Transactional Outbox secara atomik
-          const idFakturFinal = fakturBaru?.id;
-          if (idFakturFinal) {
-            await tambahTugasOutbox(tx, {
-              tipePekerjaan: "buat_arsip_faktur",
-              pesananId: pesananTerkait.id,
-              payload: {
-                fakturId: idFakturFinal,
-                nomorFaktur,
-                pesananId: pesananTerkait.id,
-              },
-            });
-          }
-
-          // Sisipkan tugas notifikasi email ke antrean Transactional Outbox secara atomik
-          await tambahTugasOutbox(tx, {
-            tipePekerjaan: "kirim_email",
-            pesananId: pesananTerkait.id,
-            payload: {
-              pesananId: pesananTerkait.id,
-              emailPenerima: pesananTerkait.emailPelanggan,
-              tipe: "pembayaran_berhasil",
-              subjek: `Pembayaran Berhasil // Faktur ${nomorFaktur}`,
-              data: {
-                nomorPesanan: order_id,
-                namaPelanggan: pesananTerkait.namaPelanggan,
-                rincian: `Pembayaran sebesar Rp ${pesananTerkait.totalAkhir.toLocaleString("id-ID")} melalui ${payment_type || "Midtrans"} telah terverifikasi.`,
-                total: `Rp ${pesananTerkait.totalAkhir.toLocaleString("id-ID")}`,
-              },
-            },
-          });
-
-          // Sisipkan tugas pemesanan kurir Biteship ke antrean Transactional Outbox secara atomik
-          await tambahTugasOutbox(tx, {
-            tipePekerjaan: "buat_order_biteship",
-            pesananId: pesananTerkait.id,
-            payload: {
-              pesananId: pesananTerkait.id,
-              nomorPesanan: order_id,
-            },
-          });
-        } else {
-          console.info(`[MIDTRANS WEBHOOK] Order ${order_id} sudah berada pada status final (${pesananTerkait.statusPesanan}). Mutasi sukses diabaikan.`);
-        }
-
-        return { sukses: true };
-      }
-
-      if (isFailureOrCancelled) {
-        // Compare-and-Set: HANYA ubah dan pulihkan stok jika status saat ini 'menunggu_pembayaran'
-        const [cancelledOrder] = await tx
-          .update(pesanan)
-          .set({
-            statusPesanan: "dibatalkan",
-            diperbaruiPada: new Date(),
-          })
-          .where(
-            and(
-              eq(pesanan.id, pesananTerkait.id),
-              eq(pesanan.statusPesanan, "menunggu_pembayaran")
-            )
-          )
-          .returning({ id: pesanan.id });
-
-        if (cancelledOrder) {
-          // Status berhasil ditransisikan: Pulihkan stok artikel secara atomik
-          const items = await tx
-            .select({
-              varianId: itemPesanan.varianId,
-              jumlah: itemPesanan.jumlah,
-            })
-            .from(itemPesanan)
-            .where(eq(itemPesanan.pesananId, pesananTerkait.id));
-
-          for (const item of items) {
-            if (item.varianId) {
-              await tx
-                .update(varianProduk)
-                .set({
-                  stok: sql`${varianProduk.stok} + ${item.jumlah}`,
-                })
-                .where(eq(varianProduk.id, item.varianId));
-            }
-          }
-
-          const statusBayarAkhir =
-            transaction_status === "expire" ? "kadaluarsa" : "gagal";
-
-          await tx
-            .update(pembayaran)
-            .set({
-              statusPembayaran: statusBayarAkhir,
-              metadataGateway: body,
-              diperbaruiPada: new Date(),
-            })
-            .where(eq(pembayaran.pesananId, pesananTerkait.id));
-
-          console.log(
-            `[MIDTRANS WEBHOOK] Pesanan ${order_id} dibatalkan (${transaction_status}). Kuota stok dikembalikan secara atomik.`
-          );
-        } else {
-          console.info(
-            `[MIDTRANS WEBHOOK] Order ${order_id} sudah berstatus final (${pesananTerkait.statusPesanan}). Pengembalian stok ganda dicegah.`
-          );
-        }
-      }
-
-      if (isPending) {
-        // Transaksi tertunda: jangan sentuh stok atau status final
+        await prosesSettlementMidtransDomain(tx, {
+          nomorPesanan: order_id,
+          transactionStatus: transaction_status,
+          fraudStatus: fraud_status,
+          paymentType: payment_type,
+          transactionId: transaction_id,
+          settlementTime: settlement_time,
+          rawPayload: body as unknown as Record<string, unknown>,
+          asalPemicu: "webhook",
+        });
+      } else if (isFailureOrCancelled) {
+        await prosesKegagalanMidtransDomain(tx, {
+          nomorPesanan: order_id,
+          transactionStatus: transaction_status,
+          rawPayload: body as unknown as Record<string, unknown>,
+        });
+      } else if (isPending) {
         await tx
           .update(pembayaran)
           .set({

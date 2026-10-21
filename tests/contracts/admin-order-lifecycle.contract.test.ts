@@ -461,5 +461,83 @@ describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tes
       global.fetch = fetchAsli;
     }
   });
+
+  it("kontrak 6: webhook Midtrans yang tiba pada pesanan 'dibatalkan' otomatis mengalihkan status pembayaran ke 'menunggu_refund' dan menyalakan perluTinjauanManual", async () => {
+    // 1. Buat pesanan baru
+    const resPesanan = await buatPesanan({
+      namaLengkap: "Late Webhook Tester",
+      email: "late.webhook@example.com",
+      telepon: "081234567898",
+      alamatLengkap: "Jl. Percetakan Negara No. 12",
+      kota: "Jakarta Pusat",
+      provinsi: "DKI Jakarta",
+      kodePos: "10560",
+      kodeKurir: "jne",
+      layananKurir: "Reguler",
+      idempotensiKey: `IDEMP-LC-WH-LATE-${Date.now()}`,
+      items: [{ varianId: varianUjiId, jumlah: 1 }],
+    });
+
+    expect(resPesanan.sukses).toBe(true);
+    const nomorPesanan = resPesanan.nomorPesanan!;
+    daftarNomorPesananDibuat.push(nomorPesanan);
+
+    // 2. Batalkan pesanan oleh admin
+    setAdminSession();
+    await batalkanPesananAdminAction(nomorPesanan, "Dibatalkan oleh pembeli sebelum pembayaran");
+
+    const [pesananBatal] = await db
+      .select()
+      .from(pesanan)
+      .where(eq(pesanan.nomorPesanan, nomorPesanan));
+    expect(pesananBatal.statusPesanan).toBe("dibatalkan");
+
+    // 3. Simulasikan Webhook Settlement Midtrans masuk via POST handler
+    const { POST: webhookHandler } = await import("@/app/api/midtrans/webhook/route");
+
+    const mockWebhookReq = new Request("http://localhost:3000/api/midtrans/webhook", {
+      method: "POST",
+      body: JSON.stringify({
+        order_id: nomorPesanan,
+        status_code: "200",
+        gross_amount: String(pesananBatal.totalAkhir),
+        signature_key: "valid_signature_test",
+        transaction_status: "settlement",
+        payment_type: "qris",
+        transaction_id: "trx-wh-late-settle-888",
+        settlement_time: new Date().toISOString(),
+      }),
+    });
+
+    // Mock verifikasi signature agar lolos
+    const midtransService = await import("@/lib/services/midtrans.service");
+    const spySignature = vi
+      .spyOn(midtransService, "verifikasiSignatureMidtrans")
+      .mockReturnValue(true);
+
+    try {
+      const resWebhook = await webhookHandler(mockWebhookReq);
+      expect(resWebhook.status).toBe(200);
+
+      // 4. Verifikasi di database: pesanan tetap dibatalkan, perluTinjauanManual true, pembayaran menunggu_refund
+      const [pesananSesudah] = await db
+        .select()
+        .from(pesanan)
+        .where(eq(pesanan.nomorPesanan, nomorPesanan));
+
+      expect(pesananSesudah.statusPesanan).toBe("dibatalkan");
+      expect(pesananSesudah.perluTinjauanManual).toBe(true);
+
+      const [bayarSesudah] = await db
+        .select()
+        .from(pembayaran)
+        .where(eq(pembayaran.pesananId, pesananSesudah.id));
+
+      expect(bayarSesudah.statusPembayaran).toBe("menunggu_refund");
+      expect(bayarSesudah.gatewayTransactionId).toBe("trx-wh-late-settle-888");
+    } finally {
+      spySignature.mockRestore();
+    }
+  });
 });
 
