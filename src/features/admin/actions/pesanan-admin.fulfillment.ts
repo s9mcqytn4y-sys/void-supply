@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull, or, lt } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   pesanan,
@@ -118,7 +118,12 @@ export async function batchRequestPickupBiteshipAction(
         }
 
         // P0 Cost Guardrail: Bila sudah memiliki resi atau order Biteship eksis, lewati pemanggilan API ulang
-        const resiEksis = orderData.pengiriman.nomorResi || orderData.pengiriman.biteshipOrderId;
+        const biteshipOrderSah =
+          orderData.pengiriman.biteshipOrderId &&
+          !orderData.pengiriman.biteshipOrderId.startsWith("DISPATCHING_")
+            ? orderData.pengiriman.biteshipOrderId
+            : null;
+        const resiEksis = orderData.pengiriman.nomorResi || biteshipOrderSah;
         if (resiEksis) {
           daftarSukses.push({
             nomorPesanan,
@@ -140,6 +145,36 @@ export async function batchRequestPickupBiteshipAction(
           daftarGagal.push({
             nomorPesanan,
             alasan: `Status pesanan saat ini '${orderData.pesanan.statusPesanan}'. Hanya pesanan 'diproses' yang dapat diajukan pickup.`,
+          });
+          continue;
+        }
+
+        // P1 Single Dispatch Guard: Kunci optimistik pada pengiriman sebelum side-effect eksternal
+        const lockReservationId = `DISPATCHING_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const limaMenitLalu = new Date(Date.now() - 5 * 60 * 1000);
+
+        const [pengirimanTerkunci] = await db
+          .update(pengiriman)
+          .set({
+            biteshipOrderId: lockReservationId,
+            diperbaruiPada: new Date(),
+          })
+          .where(
+            and(
+              eq(pengiriman.id, orderData.pengiriman.id),
+              isNull(pengiriman.nomorResi),
+              or(
+                isNull(pengiriman.biteshipOrderId),
+                lt(pengiriman.diperbaruiPada, limaMenitLalu)
+              )
+            )
+          )
+          .returning({ id: pengiriman.id });
+
+        if (!pengirimanTerkunci) {
+          daftarGagal.push({
+            nomorPesanan,
+            alasan: "Permintaan penjemputan sedang berlangsung atau telah diproses oleh sesi lain.",
           });
           continue;
         }
@@ -169,6 +204,20 @@ export async function batchRequestPickupBiteshipAction(
         });
 
         if (!resBiteship.sukses) {
+          // Lepas lock pengiriman kembali ke null jika masih memegang lock reservation
+          await db
+            .update(pengiriman)
+            .set({
+              biteshipOrderId: null,
+              diperbaruiPada: new Date(),
+            })
+            .where(
+              and(
+                eq(pengiriman.id, orderData.pengiriman.id),
+                eq(pengiriman.biteshipOrderId, lockReservationId)
+              )
+            );
+
           daftarGagal.push({
             nomorPesanan,
             alasan: resBiteship.pesan || "Pemesanan kurir ke Biteship API gagal merespons sukses.",

@@ -3,6 +3,7 @@ import { db } from "./index";
 import * as schema from "./schema";
 import * as authSchema from "./auth.schema";
 import { hashPassword } from "better-auth/crypto";
+import crypto from "crypto";
 
 const connectionString =
   process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/void_supply";
@@ -59,8 +60,24 @@ async function seed() {
     // 1.1 Seeding Akun Demo Utama (Fokus Testing, Staging Vercel, & Akses Admin)
     const demoUserEmail = "abdulaziz543333@gmail.com";
     const demoUserId = "usr_demo_void_collector_2026";
-    const rawDemoPassword = process.env.SEED_ADMIN_PASSWORD || "Password123!";
-    const demoPasswordHash = await hashPassword(rawDemoPassword);
+    const isProductionEnv =
+      process.env.NODE_ENV === "production" ||
+      process.env.VERCEL_ENV === "production" ||
+      process.env.APP_ENV === "production";
+
+    let rawDemoPassword = process.env.SEED_ADMIN_PASSWORD;
+
+    if (!rawDemoPassword) {
+      if (isProductionEnv) {
+        throw new Error(
+          "Keamanan P0: Variabel SEED_ADMIN_PASSWORD wajib disetel di lingkungan produksi/staging."
+        );
+      }
+      rawDemoPassword = crypto.randomBytes(16).toString("base64url");
+      console.warn(`[KEAMANAN DEV] SEED_ADMIN_PASSWORD tidak disetel. Menggunakan password acak lokal sementara: ${rawDemoPassword}`);
+    }
+
+    const demoPasswordHash = await hashPassword(rawDemoPassword!);
 
     await tx
       .insert(authSchema.pengguna)
@@ -89,7 +106,13 @@ async function seed() {
         providerId: "credential",
         password: demoPasswordHash,
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: authSchema.akunAutentikasi.id,
+        set: {
+          password: demoPasswordHash,
+          updatedAt: new Date(),
+        },
+      });
 
     await tx
       .insert(authSchema.alamatPelanggan)

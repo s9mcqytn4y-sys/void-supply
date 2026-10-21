@@ -37,14 +37,19 @@ async function handleCronOutbox(req: Request) {
 
     const hasil = await prosesAntreanOutbox(batchLimit);
 
-    return NextResponse.json({
-      status: "ok",
-      totalDiproses: hasil.totalDiproses,
-      totalBerhasil: hasil.totalBerhasil,
-      totalGagal: hasil.totalGagal,
-      rincian: hasil.rincian,
-      dieksekusiPada: new Date().toISOString(),
-    });
+    const isDegraded = hasil.totalGagal > 0;
+
+    return NextResponse.json(
+      {
+        status: isDegraded ? "degraded" : "ok",
+        totalDiproses: hasil.totalDiproses,
+        totalBerhasil: hasil.totalBerhasil,
+        totalGagal: hasil.totalGagal,
+        rincian: hasil.rincian,
+        dieksekusiPada: new Date().toISOString(),
+      },
+      { status: isDegraded ? 207 : 200 }
+    );
   } catch (error) {
     console.error("[CRON OUTBOX] Galat saat menjalankan worker antrean outbox:", error);
     return NextResponse.json(

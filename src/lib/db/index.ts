@@ -6,10 +6,12 @@ import postgres from "postgres";
 import ws from "ws";
 import * as schema from "./schema";
 import * as authSchema from "./auth.schema";
+import * as adminSchema from "./admin.schema";
 
 export const combinedSchema = {
   ...schema,
   ...authSchema,
+  ...adminSchema,
   user: authSchema.pengguna,
   session: authSchema.sesiPengguna,
   account: authSchema.akunAutentikasi,
@@ -98,3 +100,4 @@ if (!globalForDb.db) {
 }
 
 export * from "./schema";
+export * from "./admin.schema";

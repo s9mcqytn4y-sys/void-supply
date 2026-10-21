@@ -1,5 +1,9 @@
 const config = {
-  schema: ["./src/lib/db/schema.ts", "./src/lib/db/auth.schema.ts"],
+  schema: [
+    "./src/lib/db/schema.ts",
+    "./src/lib/db/auth.schema.ts",
+    "./src/lib/db/admin.schema.ts",
+  ],
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {

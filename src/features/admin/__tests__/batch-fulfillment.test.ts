@@ -146,4 +146,74 @@ describe("Fase 3B: Batch Fulfillment & Request Pickup Biteship Tests", () => {
     // Verifikasi API Biteship TIDAK dipanggil ulang demi menghemat kuota biaya
     expect(biteshipService.buatOrderPengirimanBiteship).not.toHaveBeenCalled();
   });
+
+  it("mencegah duplikasi order Biteship saat pengiriman sedang dikunci oleh worker lain (Single Dispatch Guard)", async () => {
+    vi.mocked(authGuard.verifikasiStafAdmin).mockResolvedValue({
+      sah: true,
+      sesi: {
+        pengguna: {
+          id: "staf-01",
+          nama: "Operator Logistik",
+          email: "ops@voidsupply.local",
+          peran: "operator",
+          emailDiverifikasi: true,
+        },
+        sesi: {
+          id: "ses-1",
+          token: "tok-1",
+          kedaluwarsaPada: new Date(),
+        },
+      },
+      staf: {
+        id: "staf-01",
+        nama: "Operator Logistik",
+        email: "ops@voidsupply.local",
+        peran: "operator",
+      },
+    });
+
+    const mockOrderDiproses = {
+      pesanan: {
+        id: "order-id-2",
+        nomorPesanan: "ORD-LOCKED-2",
+        statusPesanan: "diproses",
+        tokenAkses: "token-456",
+      },
+      pengiriman: {
+        id: "ship-2",
+        nomorResi: null,
+        kurir: "jne",
+        biteshipOrderId: "DISPATCHING_LOCKED_123",
+      },
+      pelanggan: {
+        id: "cust-2",
+        email: "locked@gmail.com",
+        namaLengkap: "Rian Tester",
+      },
+    };
+
+    const mockSelectChain = {
+      from: vi.fn().mockReturnThis(),
+      innerJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([mockOrderDiproses]),
+    };
+    vi.mocked(db.select).mockReturnValue(mockSelectChain as any);
+
+    // Update mengembalikan array kosong menandakan CAS lock gagal diambil (sedang di-lock)
+    const mockUpdateChain = {
+      set: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      returning: vi.fn().mockResolvedValue([]),
+    };
+    vi.mocked(db.update).mockReturnValue(mockUpdateChain as any);
+
+    const hasil = await batchRequestPickupBiteshipAction(["ORD-LOCKED-2"]);
+
+    expect(hasil.sukses).toBe(false);
+    expect(hasil.totalGagal).toBe(1);
+    expect(hasil.daftarGagal[0].alasan).toContain("sedang berlangsung");
+    // Pastikan tidak ada pemanggilan side-effect ke Biteship API
+    expect(biteshipService.buatOrderPengirimanBiteship).not.toHaveBeenCalled();
+  });
 });

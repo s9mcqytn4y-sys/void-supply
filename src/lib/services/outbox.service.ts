@@ -122,7 +122,7 @@ export async function prosesAntreanOutbox(batchLimit = 10): Promise<HasilProsesO
     console.warn("[OUTBOX REAPER] Peringatan saat memulihkan lease tugas tertahan:", reaperErr);
   }
 
-  // 1. Ambil daftar tugas yang siap dieksekusi
+  // 1. Ambil daftar tugas yang siap dieksekusi (dengan Exponential Backoff untuk status gagal)
   const antrean = await db
     .select()
     .from(outboxPekerjaan)
@@ -131,7 +131,9 @@ export async function prosesAntreanOutbox(batchLimit = 10): Promise<HasilProsesO
         eq(outboxPekerjaan.status, "antre"),
         and(
           eq(outboxPekerjaan.status, "gagal"),
-          lt(outboxPekerjaan.percobaan, outboxPekerjaan.maksimalPercobaan)
+          lt(outboxPekerjaan.percobaan, outboxPekerjaan.maksimalPercobaan),
+          // Jeda backoff eksponensial: 2^percobaan * 60 detik (misal: coba 1 jeda 2 menit, coba 2 jeda 4 menit)
+          sql`${outboxPekerjaan.diperbaruiPada} + (power(2, ${outboxPekerjaan.percobaan}) * interval '60 second') <= now()`
         )
       )
     )

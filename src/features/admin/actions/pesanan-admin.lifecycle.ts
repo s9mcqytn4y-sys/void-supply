@@ -66,42 +66,106 @@ export async function inquireMidtransStatusAction(
 
     const dataGateway = await res.json();
     const transactionStatus = dataGateway.transaction_status as string;
+    const fraudStatus = (dataGateway.fraud_status as string | undefined)?.toLowerCase();
 
-    // Sinkronisasi status jika lunas / settlement
-    if (transactionStatus === "settlement" || transactionStatus === "capture") {
-      await db
-        .update(pesanan)
-        .set({ statusPesanan: "diproses", diperbaruiPada: new Date() })
-        .where(
-          and(
-            eq(pesanan.id, dataPesanan.id),
-            eq(pesanan.statusPesanan, "menunggu_pembayaran")
+    // 1. Kasus Lunas / Settlement / Capture Resmi Terverifikasi
+    const apakahLunasSah =
+      transactionStatus === "settlement" ||
+      (transactionStatus === "capture" && fraudStatus === "accept");
+
+    // 2. Kasus Gagal / Kadaluwarsa di Gateway
+    const apakahKedaluwarsaAtauGagal =
+      transactionStatus === "expire" ||
+      transactionStatus === "cancel" ||
+      transactionStatus === "deny";
+
+    await db.transaction(async (tx) => {
+      if (apakahLunasSah) {
+        // Atomic Compare-and-Set: hanya ubah pesanan jika masih menunggu pembayaran
+        const [pesananDiproses] = await tx
+          .update(pesanan)
+          .set({ statusPesanan: "diproses", diperbaruiPada: new Date() })
+          .where(
+            and(
+              eq(pesanan.id, dataPesanan.id),
+              eq(pesanan.statusPesanan, "menunggu_pembayaran")
+            )
           )
-        );
+          .returning({ id: pesanan.id });
 
-      await db
-        .update(pembayaran)
-        .set({
-          statusPembayaran: "berhasil",
-          dibayarPada: new Date(),
-          metodePembayaran: dataGateway.payment_type || "qris",
-          gatewayTransactionId: dataGateway.transaction_id,
-          diperbaruiPada: new Date(),
-        })
-        .where(eq(pembayaran.pesananId, dataPesanan.id));
-    }
+        // Update status pembayaran hanya jika pesanan masih aktif (bukan dibatalkan)
+        if (pesananDiproses || dataPesanan.statusPesanan === "diproses" || dataPesanan.statusPesanan === "dikirim" || dataPesanan.statusPesanan === "selesai") {
+          await tx
+            .update(pembayaran)
+            .set({
+              statusPembayaran: "berhasil",
+              dibayarPada: new Date(),
+              metodePembayaran: dataGateway.payment_type || "qris",
+              gatewayTransactionId: dataGateway.transaction_id,
+              diperbaruiPada: new Date(),
+            })
+            .where(eq(pembayaran.pesananId, dataPesanan.id));
+        }
+      } else if (apakahKedaluwarsaAtauGagal) {
+        // Atomic Compare-and-Set pembatalan dan pemulihan kuota stok varian
+        const [pesananDibatalkan] = await tx
+          .update(pesanan)
+          .set({ statusPesanan: "dibatalkan", diperbaruiPada: new Date() })
+          .where(
+            and(
+              eq(pesanan.id, dataPesanan.id),
+              eq(pesanan.statusPesanan, "menunggu_pembayaran")
+            )
+          )
+          .returning({ id: pesanan.id });
 
-    // Catat log audit staf
-    await db.insert(auditAktivitasAdmin).values({
-      adminId: cek.staf.id,
-      tindakan: "inquire_midtrans",
-      targetId: nomorPesanan,
-      payloadAman: { transactionStatus, gateway: dataGateway.payment_type },
+        if (pesananDibatalkan) {
+          await tx
+            .update(pembayaran)
+            .set({
+              statusPembayaran: transactionStatus === "expire" ? "kadaluarsa" : "gagal",
+              diperbaruiPada: new Date(),
+            })
+            .where(eq(pembayaran.pesananId, dataPesanan.id));
+
+          const items = await tx
+            .select()
+            .from(itemPesanan)
+            .where(eq(itemPesanan.pesananId, dataPesanan.id));
+
+          for (const item of items) {
+            if (item.varianId) {
+              await tx
+                .update(varianProduk)
+                .set({
+                  stok: sql`${varianProduk.stok} + ${item.jumlah}`,
+                  diperbaruiPada: new Date(),
+                })
+                .where(eq(varianProduk.id, item.varianId));
+            }
+          }
+        }
+      }
+
+      // Catat log audit staf
+      const stafId = cek.staf?.id;
+      if (stafId) {
+        await tx.insert(auditAktivitasAdmin).values({
+          adminId: stafId,
+          tindakan: "inquire_midtrans",
+          targetId: nomorPesanan,
+          payloadAman: {
+            transactionStatus,
+            fraudStatus: fraudStatus || null,
+            gateway: dataGateway.payment_type,
+          },
+        });
+      }
     });
 
     return {
       sukses: true,
-      pesan: `Status terkini Midtrans: ${transactionStatus.toUpperCase()}`,
+      pesan: `Status terkini Midtrans: ${transactionStatus.toUpperCase()}${fraudStatus ? ` (Fraud: ${fraudStatus.toUpperCase()})` : ""}`,
       statusGateway: transactionStatus,
     };
   } catch (error) {
@@ -153,6 +217,9 @@ export async function batalkanPesananAdminAction(
         };
       }
 
+      const statusSebelumnya = dataPesanan.statusPesanan;
+      const apakahPesananSudahDibayar = statusSebelumnya === "diproses";
+
       const [pesananDibatalkan] = await tx
         .update(pesanan)
         .set({ statusPesanan: "dibatalkan", diperbaruiPada: new Date() })
@@ -172,6 +239,25 @@ export async function batalkanPesananAdminAction(
           sukses: false,
           pesan: "Gagal membatalkan pesanan karena status telah berubah oleh transaksi lain.",
         };
+      }
+
+      // Sinkronkan status pembayaran secara atomik
+      if (apakahPesananSudahDibayar) {
+        await tx
+          .update(pembayaran)
+          .set({
+            statusPembayaran: "dikembalikan",
+            diperbaruiPada: new Date(),
+          })
+          .where(eq(pembayaran.pesananId, pesananDibatalkan.id));
+      } else {
+        await tx
+          .update(pembayaran)
+          .set({
+            statusPembayaran: "gagal",
+            diperbaruiPada: new Date(),
+          })
+          .where(eq(pembayaran.pesananId, pesananDibatalkan.id));
       }
 
       const items = await tx
@@ -210,12 +296,19 @@ export async function batalkanPesananAdminAction(
         adminId: adminAktif.id,
         tindakan: "batalkan_pesanan",
         targetId: nomorPesanan,
-        payloadAman: { alasan },
+        payloadAman: {
+          alasan,
+          statusSebelumnya,
+          apakahPesananSudahDibayar,
+          perluRefundManual: apakahPesananSudahDibayar,
+        },
       });
 
       return {
         sukses: true,
-        pesan: `Pesanan #${nomorPesanan} berhasil dibatalkan dan seluruh stok artikel telah dipulihkan.`,
+        pesan: apakahPesananSudahDibayar
+          ? `Pesanan #${nomorPesanan} (berstatus dibayar) berhasil dibatalkan. Seluruh stok artikel telah dipulihkan dan status pembayaran ditandai 'dikembalikan' (perlu rekonsiliasi refund).`
+          : `Pesanan #${nomorPesanan} berhasil dibatalkan dan seluruh stok artikel telah dipulihkan.`,
       };
     });
 

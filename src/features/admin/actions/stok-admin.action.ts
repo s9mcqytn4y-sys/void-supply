@@ -135,8 +135,22 @@ export async function mutasiStokAdminAction(input: {
 
     const adminAktif = cek.admin;
 
-    if (input.perubahan === 0) {
-      return { sukses: false, pesan: "Nilai perubahan stok tidak boleh nol." };
+    if (!Number.isInteger(input.perubahan) || input.perubahan === 0) {
+      return { sukses: false, pesan: "Nilai perubahan stok harus berupa bilangan bulat bukan nol." };
+    }
+
+    if ((input.jenisMutasi === "restock" || input.jenisMutasi === "retur") && input.perubahan < 0) {
+      return {
+        sukses: false,
+        pesan: `Jenis mutasi '${input.jenisMutasi}' harus menambah stok (nilai perubahan harus positif).`,
+      };
+    }
+
+    if (input.jenisMutasi === "rusak" && input.perubahan > 0) {
+      return {
+        sukses: false,
+        pesan: "Jenis mutasi 'rusak' harus mengurangi stok (nilai perubahan harus bernilai negatif).",
+      };
     }
 
     const hasilTransaksi = await db.transaction(async (tx) => {
