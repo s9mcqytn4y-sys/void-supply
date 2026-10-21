@@ -156,15 +156,22 @@ export async function batchRequestPickupBiteshipAction(
         const lockReservationId = `DISPATCHING_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         const limaMenitLalu = new Date(Date.now() - 5 * 60 * 1000);
 
-        // Pola Inquiry-Before-Dispatch: Jika pengiriman memiliki tanda in-flight sebelumnya,
+        // Pola Inquiry-Before-Dispatch: Jika pengiriman memiliki tanda in-flight sebelumnya dan ID pelacakan tersedia,
         // cek status pelacakan Biteship terlebih dahulu untuk mencegah pembuatan order ganda jika API sempat timeout.
+        const trackingIdTersedia =
+          orderData.pengiriman.biteshipTrackingId ||
+          (orderData.pengiriman.nomorResi && !orderData.pengiriman.nomorResi.startsWith("VOID-")
+            ? orderData.pengiriman.nomorResi
+            : null);
+
         if (
           orderData.pengiriman.biteshipOrderId &&
-          orderData.pengiriman.biteshipOrderId.startsWith("DISPATCHING_")
+          orderData.pengiriman.biteshipOrderId.startsWith("DISPATCHING_") &&
+          trackingIdTersedia
         ) {
           try {
             const inkuiriEksis = await lacakPengirimanBiteship(
-              nomorPesanan,
+              trackingIdTersedia,
               orderData.pengiriman.kurir
             );
             if (

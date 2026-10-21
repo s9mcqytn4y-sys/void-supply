@@ -48,13 +48,7 @@ async function seed() {
       await tx.delete(schema.kategori);
       console.log("✓ Seluruh data lama berhasil dibersihkan dalam transaksi atomik");
     } else {
-      console.log("🛡️ Mode Safe Seeding: Memperbarui katalog referensi tanpa menghapus data transaksi/pelanggan.");
-      await tx.delete(schema.produkKeKoleksi);
-      await tx.delete(schema.varianProduk);
-      await tx.delete(schema.produk);
-      await tx.delete(schema.koleksi);
-      await tx.delete(schema.kategori);
-      console.log("✓ Data katalog referensi disiapkan untuk pembaruan");
+      console.log("🛡️ Mode Safe Seeding: Memperbarui katalog referensi tanpa menghapus data transaksi atau relasi foreign key (Non-Destructive Upsert).");
     }
 
     // 1.1 Seeding Akun Demo Utama (Fokus Testing, Staging Vercel, & Akses Admin)
@@ -182,40 +176,62 @@ async function seed() {
       console.log("✓ Profil pelanggan seed sudah ada, melewati pembuatan duplikat");
     }
 
-    // 2. Seeding Kategori
-    const [katOuterwear, katTshirt, katPants, katAccessories] = await tx
-      .insert(schema.kategori)
-      .values([
-        {
-          nama: "Outerwear",
-          slug: "outerwear",
-          deskripsi: "Heavyweight jackets, zip hoodies, and technical bombers.",
-          urutan: 1,
-        },
-        {
-          nama: "T-Shirt",
-          slug: "tshirt",
-          deskripsi: "24s and 16s oversized boxy cut tees and graphic longsleeves.",
-          urutan: 2,
-        },
-        {
-          nama: "Pants",
-          slug: "pants",
-          deskripsi: "Tactical cargo trousers and relaxed wide-leg silhouettes.",
-          urutan: 3,
-        },
-        {
-          nama: "Accessories",
-          slug: "accessories",
-          deskripsi: "Utility balaclavas, caps, and technical gear.",
-          urutan: 4,
-        },
-      ])
-      .returning();
+    // 2. Seeding Kategori (Upsert berbasis slug)
+    const dataKategori = [
+      {
+        nama: "Outerwear",
+        slug: "outerwear",
+        deskripsi: "Heavyweight jackets, zip hoodies, and technical bombers.",
+        urutan: 1,
+      },
+      {
+        nama: "T-Shirt",
+        slug: "tshirt",
+        deskripsi: "24s and 16s oversized boxy cut tees and graphic longsleeves.",
+        urutan: 2,
+      },
+      {
+        nama: "Pants",
+        slug: "pants",
+        deskripsi: "Tactical cargo trousers and relaxed wide-leg silhouettes.",
+        urutan: 3,
+      },
+      {
+        nama: "Accessories",
+        slug: "accessories",
+        deskripsi: "Utility balaclavas, caps, and technical gear.",
+        urutan: 4,
+      },
+    ];
 
-    console.log("✓ Kategori busana berhasil di-seed");
+    const daftarKategoriTersimpan: (typeof schema.kategori.$inferSelect)[] = [];
+    for (const kat of dataKategori) {
+      const [katTersimpan] = await tx
+        .insert(schema.kategori)
+        .values(kat)
+        .onConflictDoUpdate({
+          target: schema.kategori.slug,
+          set: {
+            nama: kat.nama,
+            deskripsi: kat.deskripsi,
+            urutan: kat.urutan,
+          },
+        })
+        .returning();
+      daftarKategoriTersimpan.push(katTersimpan);
+    }
 
-    // 3. Seeding Koleksi / Drop 04
+    const mapKategori = Object.fromEntries(
+      daftarKategoriTersimpan.map((k) => [k.slug, k])
+    );
+    const katOuterwear = mapKategori["outerwear"]!;
+    const katTshirt = mapKategori["tshirt"]!;
+    const katPants = mapKategori["pants"]!;
+    const katAccessories = mapKategori["accessories"]!;
+
+    console.log("✓ Kategori busana berhasil di-seed (upsert)");
+
+    // 3. Seeding Koleksi / Drop 04 (Upsert berbasis slug)
     const [drop04] = await tx
       .insert(schema.koleksi)
       .values({
@@ -227,9 +243,20 @@ async function seed() {
         apakahAktif: true,
         rilisPada: new Date("2026-10-08T20:00:00Z"),
       })
+      .onConflictDoUpdate({
+        target: schema.koleksi.slug,
+        set: {
+          nama: "Drop 04: Night Transmission",
+          deskripsi: "Limited edition high-density streetwear engineered for urban nocturnal climate.",
+          nomorDrop: "04",
+          bannerGambar: "/images/lookbook/drop-04-editorial-hero.webp",
+          apakahAktif: true,
+          rilisPada: new Date("2026-10-08T20:00:00Z"),
+        },
+      })
       .returning();
 
-    console.log("✓ Koleksi Drop 04 berhasil di-seed");
+    console.log("✓ Koleksi Drop 04 berhasil di-seed (upsert)");
 
   // 4. Katalog Produk Master (8 Artikel Drop 04) dengan Spesifikasi & Size Guide Nyata
   const dataProduk = [
@@ -996,6 +1023,10 @@ async function seed() {
   const mapVarianTersimpan: Record<string, typeof schema.varianProduk.$inferSelect> = {};
 
   for (const item of dataProduk) {
+    const tipeProd = ((item as Record<string, unknown>).tipeProduk as "standar" | "pre_order" | "bundle") || "standar";
+    const estimasiPO = ((item as Record<string, unknown>).estimasiPreOrderHari as number) || null;
+    const metadataBndl = ((item as Record<string, unknown>).metadataBundle as { itemSku: string[]; deskripsiItem?: string[]; diskonPersen?: number; hematNominal?: number; }) || null;
+
     const [produkBaru] = await tx
       .insert(schema.produk)
       .values({
@@ -1005,34 +1036,72 @@ async function seed() {
         deskripsi: item.deskripsi,
         hargaDasar: item.hargaDasar,
         status: "aktif",
-        tipeProduk: ((item as Record<string, unknown>).tipeProduk as "standar" | "pre_order" | "bundle") || "standar",
-        estimasiPreOrderHari: ((item as Record<string, unknown>).estimasiPreOrderHari as number) || null,
-        metadataBundle: ((item as Record<string, unknown>).metadataBundle as { itemSku: string[]; deskripsiItem?: string[]; diskonPersen?: number; hematNominal?: number; }) || null,
+        tipeProduk: tipeProd,
+        estimasiPreOrderHari: estimasiPO,
+        metadataBundle: metadataBndl,
         gambarUtama: item.gambarUtama,
         galeriGambar: item.galeriGambar,
         spesifikasi: item.spesifikasi,
         panduanUkuran: item.panduanUkuran,
       })
+      .onConflictDoUpdate({
+        target: schema.produk.slug,
+        set: {
+          kategoriId: item.kategoriId,
+          nama: item.nama,
+          deskripsi: item.deskripsi,
+          hargaDasar: item.hargaDasar,
+          status: "aktif",
+          tipeProduk: tipeProd,
+          estimasiPreOrderHari: estimasiPO,
+          metadataBundle: metadataBndl,
+          gambarUtama: item.gambarUtama,
+          galeriGambar: item.galeriGambar,
+          spesifikasi: item.spesifikasi,
+          panduanUkuran: item.panduanUkuran,
+          diperbaruiPada: new Date(),
+        },
+      })
       .returning();
 
     // Hubungkan produk ke Koleksi Drop 04
-    await tx.insert(schema.produkKeKoleksi).values({
-      produkId: produkBaru.id,
-      koleksiId: drop04.id,
-    });
+    await tx
+      .insert(schema.produkKeKoleksi)
+      .values({
+        produkId: produkBaru.id,
+        koleksiId: drop04.id,
+      })
+      .onConflictDoNothing();
 
     // Masukkan Varian Produk
     for (const v of item.varians) {
-      const [varianBaru] = await tx.insert(schema.varianProduk).values({
-        produkId: produkBaru.id,
-        ukuran: v.ukuran,
-        warna: v.warna,
-        sku: v.sku,
-        stok: v.stok,
-        beratGram: v.berat,
-        harga: item.hargaDasar,
-        gambar: (v as { gambar?: string }).gambar || item.gambarUtama,
-      }).returning();
+      const gambarVarian = (v as { gambar?: string }).gambar || item.gambarUtama;
+      const [varianBaru] = await tx
+        .insert(schema.varianProduk)
+        .values({
+          produkId: produkBaru.id,
+          ukuran: v.ukuran,
+          warna: v.warna,
+          sku: v.sku,
+          stok: v.stok,
+          beratGram: v.berat,
+          harga: item.hargaDasar,
+          gambar: gambarVarian,
+        })
+        .onConflictDoUpdate({
+          target: schema.varianProduk.sku,
+          set: {
+            produkId: produkBaru.id,
+            ukuran: v.ukuran,
+            warna: v.warna,
+            stok: v.stok,
+            beratGram: v.berat,
+            harga: item.hargaDasar,
+            gambar: gambarVarian,
+            diperbaruiPada: new Date(),
+          },
+        })
+        .returning();
 
       mapVarianTersimpan[v.sku] = varianBaru;
     }

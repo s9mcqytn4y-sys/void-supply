@@ -497,12 +497,25 @@ export async function buatOrderPengirimanBiteship(
       waybill_id?: string;
       status?: string;
       message?: string;
+      error?: string;
+      order?: {
+        id?: string;
+        waybill_id?: string;
+        tracking_id?: string;
+        status?: string;
+        courier?: {
+          waybill_id?: string;
+          tracking_id?: string;
+          link?: string;
+        };
+      };
       courier?: {
         waybill_id?: string;
         tracking_id?: string;
         link?: string;
       };
     } | null;
+
     if (resData && (resData.success || resData.id)) {
       return {
         sukses: true,
@@ -514,9 +527,25 @@ export async function buatOrderPengirimanBiteship(
       };
     }
 
+    // P0-C Recovery: Ekstraksi order eksis dari payload error duplicate reference_id Biteship
+    if (resData?.order && (resData.order.id || resData.order.courier?.tracking_id)) {
+      console.info(
+        `[BITESHIP RECOVERY] Order dengan reference_id '${params.nomorPesanan}' berhasil dipulihkan dari pesanan eksis di Biteship.`
+      );
+      const orderEksis = resData.order;
+      return {
+        sukses: true,
+        orderId: orderEksis.id || `recovered_${params.nomorPesanan}`,
+        waybillId: orderEksis.courier?.waybill_id || orderEksis.waybill_id,
+        trackingId: orderEksis.courier?.tracking_id || orderEksis.id,
+        courierTrackingUrl: orderEksis.courier?.link || (orderEksis.id ? `https://biteship.com/track/${orderEksis.id}` : undefined),
+        status: orderEksis.status || "allocated",
+      };
+    }
+
     return {
       sukses: false,
-      pesan: resData?.message || "Gagal membuat order pengiriman di Biteship.",
+      pesan: resData?.message || resData?.error || "Gagal membuat order pengiriman di Biteship.",
     };
   } catch (error) {
     console.error("Galat saat membuat order pengiriman di Biteship:", error);
