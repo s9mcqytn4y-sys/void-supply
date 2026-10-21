@@ -88,3 +88,19 @@ VOID Supply dibangun menggunakan pemisahan arsitektur 3 pilar yang berbagi domai
 - **Standar Aksesibilitas**: Rasio kontras teks minimal WCAG AA (4.5:1) dengan focus indicator terlihat jelas pada navigasi keyboard.
 - **Asset Authenticity**: Seluruh logo metode pembayaran dan kurir menggunakan aset resmi transparan beresolusi tinggi, bukan file placeholder tiruan atau gambar arbitrer.
 - **Data Kejujuran**: Spesifikasi berat gramasi kain (500 GSM French Terry, 24s Cotton Combed), status kurir, dan biaya transaksi disajikan secara faktual.
+
+---
+
+## 2026-10-20 Roadmap adjustment: Admin-first maturity
+**Decision:** stabilize existing checkout/payment/fulfillment and role security before adding campaign UI. See [evidence audit](docs/audit-admin-architecture-2026-10-20.md), [SRS](SRS.md), [DESIGN](DESIGN.md).
+
+**P0 Reliability & Integrity Gate:** fix staging cron 404/outbox starvation; require real non-fallback auth secret and Biteship webhook verification; atomic stock/cancel/ledger writes; capability RBAC for Administrator vs Operator. Guest checkout remains supported and tested. Exit: two successive green maintenance runs and race/negative tests passed.
+
+**P1 Operational Backbone:** Admin action queue and observability (failed webhook/outbox), batch fulfillment, inventory adjustments and audit, customer support intake. Build role-first task flow, not a generic graph dashboard. Exit: complete ten sandbox orders via UI from payment to shipment status without manual DB repair.
+
+**P2 Commerce Authoring:** Admin product/variant CRUD; images/documents storage; draft/preview/publish; SKU uniqueness, BOM bundles, preorder windows, limited allocation, deterministic price/discount engine with audit. Exit: create/drop/price/publish/order/archive QA across two roles.
+
+**P3 Growth & Insight:** consent-based CRM segments and campaign schedules, CMS journal/lookbook, support/RMA, conversion attribution/UTM, sales/cohort metrics. Track accuracy and unsubscribe; do not spam demo Gmail recipients.
+
+**Non-goals:** production launch, paid provider upgrade, microservices rewrite, automated real payment/shipping, unsupported SEO claims. All statuses in this section are proposals until verified.
+
