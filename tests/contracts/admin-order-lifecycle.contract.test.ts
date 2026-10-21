@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll, afterAll, beforeEach } from "vitest";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import {
   db,
   pesanan,
@@ -7,11 +7,19 @@ import {
   varianProduk,
   produk,
   kategori,
+  itemPesanan,
+  pengiriman,
 } from "@/lib/db";
+import {
+  riwayatMutasiStok,
+  catatanOperasionalPesanan,
+  auditAktivitasAdmin,
+} from "@/lib/db/admin.schema";
 import { buatPesanan } from "@/features/checkout/actions/buat-pesanan.action";
 import {
   inquireMidtransStatusAction,
   batalkanPesananAdminAction,
+  konfirmasiRefundAdminAction,
 } from "@/features/admin/actions/pesanan-admin.lifecycle";
 import { ambilSesiPengguna } from "@/lib/auth/session";
 
@@ -46,6 +54,7 @@ vi.mock("@/lib/auth/session", () => ({
 describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tests", () => {
   let varianUjiId: string;
   let produkUjiId: string;
+  const daftarNomorPesananDibuat: string[] = [];
 
   beforeAll(async () => {
     process.env.ALLOW_PAYMENT_MOCK = "true";
@@ -82,12 +91,37 @@ describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tes
 
   afterAll(async () => {
     if (varianUjiId && produkUjiId) {
-      try {
-        await db.delete(varianProduk).where(eq(varianProduk.id, varianUjiId));
-        await db.delete(produk).where(eq(produk.id, produkUjiId));
-      } catch {
-        // Abaikan jika sudah dibersihkan
+      // Pembersihan database berurutan sesuai relasi Foreign Key tanpa menelan kegagalan
+      await db.delete(riwayatMutasiStok).where(eq(riwayatMutasiStok.varianId, varianUjiId));
+
+      if (daftarNomorPesananDibuat.length > 0) {
+        const orders = await db
+          .select({ id: pesanan.id })
+          .from(pesanan)
+          .where(inArray(pesanan.nomorPesanan, daftarNomorPesananDibuat));
+
+        const orderIds = orders.map((o) => o.id);
+        if (orderIds.length > 0) {
+          await db
+            .delete(catatanOperasionalPesanan)
+            .where(inArray(catatanOperasionalPesanan.pesananId, orderIds));
+          await db
+            .delete(pembayaran)
+            .where(inArray(pembayaran.pesananId, orderIds));
+          await db
+            .delete(pengiriman)
+            .where(inArray(pengiriman.pesananId, orderIds));
+          await db
+            .delete(itemPesanan)
+            .where(inArray(itemPesanan.pesananId, orderIds));
+          await db
+            .delete(pesanan)
+            .where(inArray(pesanan.id, orderIds));
+        }
       }
+
+      await db.delete(varianProduk).where(eq(varianProduk.id, varianUjiId));
+      await db.delete(produk).where(eq(produk.id, produkUjiId));
     }
   });
 
@@ -96,7 +130,7 @@ describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tes
     setGuestSession();
   });
 
-  it("kontrak 1: pembatalan pesanan berstatus 'diproses' (berbayar) memulihkan stok dan menandai status pembayaran 'dikembalikan'", async () => {
+  it("kontrak 1: pembatalan pesanan berstatus 'diproses' (berbayar) memindahkan status ke 'menunggu_refund' dan diselesaikan via konfirmasi refund", async () => {
     const resPesanan = await buatPesanan({
       namaLengkap: "Rian Tester",
       email: "rian.test@example.com",
@@ -113,6 +147,7 @@ describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tes
 
     expect(resPesanan.sukses).toBe(true);
     const nomorPesanan = resPesanan.nomorPesanan!;
+    daftarNomorPesananDibuat.push(nomorPesanan);
 
     const [pesananAwal] = await db
       .select({ id: pesanan.id })
@@ -132,7 +167,7 @@ describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tes
       .set({ statusPembayaran: "berhasil", dibayarPada: new Date() })
       .where(eq(pembayaran.pesananId, pesananAwal.id));
 
-    // Admin mengeksekusi pembatalan pesanan
+    // Admin mengeksekusi pembatalan pesanan berbayar
     setAdminSession();
     const resBatal = await batalkanPesananAdminAction(
       nomorPesanan,
@@ -140,22 +175,47 @@ describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tes
     );
 
     expect(resBatal.sukses).toBe(true);
-    expect(resBatal.pesan).toContain("dikembalikan");
+    expect(resBatal.pesan).toContain("menunggu_refund");
 
-    // Verifikasi status pesanan di database
+    // Verifikasi status pesanan di database: dibatalkan dan perlu tinjauan manual aktif
     const [pesananTerkini] = await db
       .select()
       .from(pesanan)
       .where(eq(pesanan.nomorPesanan, nomorPesanan));
     expect(pesananTerkini.statusPesanan).toBe("dibatalkan");
+    expect(pesananTerkini.perluTinjauanManual).toBe(true);
 
-    // Verifikasi status pembayaran di database berubah menjadi 'dikembalikan'
+    // Verifikasi status pembayaran di database berubah menjadi 'menunggu_refund' (bukan langsung 'dikembalikan')
     const [pembayaranTerkini] = await db
       .select()
       .from(pembayaran)
       .where(eq(pembayaran.pesananId, pesananAwal.id));
-    expect(pembayaranTerkini.statusPembayaran).toBe("dikembalikan");
+    expect(pembayaranTerkini.statusPembayaran).toBe("menunggu_refund");
+
+    // Admin mengeksekusi konfirmasi refund setelah transfer manual berhasil
+    const resKonfirmasi = await konfirmasiRefundAdminAction(
+      nomorPesanan,
+      "REF-BCA-TRANSFER-998877",
+      "Dana telah ditransfer kembali ke rekening BCA pelanggan"
+    );
+
+    expect(resKonfirmasi.sukses).toBe(true);
+    expect(resKonfirmasi.pesan).toContain("berhasil dikonfirmasi");
+
+    // Verifikasi status pembayaran final menjadi 'dikembalikan' dan flag perluTinjauanManual selesai
+    const [pembayaranFinal] = await db
+      .select()
+      .from(pembayaran)
+      .where(eq(pembayaran.pesananId, pesananAwal.id));
+    expect(pembayaranFinal.statusPembayaran).toBe("dikembalikan");
+
+    const [pesananFinal] = await db
+      .select()
+      .from(pesanan)
+      .where(eq(pesanan.nomorPesanan, nomorPesanan));
+    expect(pesananFinal.perluTinjauanManual).toBe(false);
   });
+
 
   it("kontrak 2: pembatalan pesanan berstatus 'menunggu_pembayaran' memulihkan stok dan menandai status pembayaran 'gagal'", async () => {
     const resPesanan = await buatPesanan({
@@ -174,6 +234,7 @@ describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tes
 
     expect(resPesanan.sukses).toBe(true);
     const nomorPesanan = resPesanan.nomorPesanan!;
+    daftarNomorPesananDibuat.push(nomorPesanan);
 
     const [pesananAwal] = await db
       .select({ id: pesanan.id })
@@ -221,6 +282,7 @@ describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tes
 
     expect(resPesanan.sukses).toBe(true);
     const nomorPesanan = resPesanan.nomorPesanan!;
+    daftarNomorPesananDibuat.push(nomorPesanan);
 
     const [pesananAwal] = await db
       .select({ id: pesanan.id })
@@ -282,6 +344,7 @@ describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tes
 
     expect(resPesanan.sukses).toBe(true);
     const nomorPesanan = resPesanan.nomorPesanan!;
+    daftarNomorPesananDibuat.push(nomorPesanan);
 
     const [pesananAwal] = await db
       .select({ id: pesanan.id })
@@ -323,4 +386,80 @@ describe("Fase 0 & 1 Hardening: Admin Order Lifecycle & Payment CAS Contract Tes
       global.fetch = fetchAsli;
     }
   });
+
+  it("kontrak 5: late settlement pada pesanan yang telah dibatalkan menandai status pembayaran 'menunggu_refund' dan mempertahankan status pesanan 'dibatalkan'", async () => {
+    const resPesanan = await buatPesanan({
+      namaLengkap: "Late Settle Tester",
+      email: "late.settle@example.com",
+      telepon: "081234567897",
+      alamatLengkap: "Jl. Rawasari Selatan No. 10",
+      kota: "Jakarta Pusat",
+      provinsi: "DKI Jakarta",
+      kodePos: "10560",
+      kodeKurir: "jne",
+      layananKurir: "Reguler",
+      idempotensiKey: `IDEMP-LC-LATE-SETTLE-${Date.now()}`,
+      items: [{ varianId: varianUjiId, jumlah: 1 }],
+    });
+
+    expect(resPesanan.sukses).toBe(true);
+    const nomorPesanan = resPesanan.nomorPesanan!;
+    daftarNomorPesananDibuat.push(nomorPesanan);
+
+    const [pesananAwal] = await db
+      .select({ id: pesanan.id })
+      .from(pesanan)
+      .where(eq(pesanan.nomorPesanan, nomorPesanan));
+
+    expect(pesananAwal).toBeDefined();
+
+    // Admin membatalkan pesanan sebelum pembayaran tiba
+    setAdminSession();
+    await batalkanPesananAdminAction(nomorPesanan, "Pesanan dibatalkan karena kedaluwarsa atau permintaan pembeli");
+
+    const [pesananBatal] = await db
+      .select()
+      .from(pesanan)
+      .where(eq(pesanan.nomorPesanan, nomorPesanan));
+    expect(pesananBatal.statusPesanan).toBe("dibatalkan");
+
+    // Tiba-tiba Midtrans mengirimkan konfirmasi settlement terlambat (late settlement)
+    const fetchAsli = global.fetch;
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        transaction_status: "settlement",
+        fraud_status: "accept",
+        payment_type: "bank_transfer",
+        transaction_id: "trx-late-settle-999",
+      }),
+    } as any);
+
+    try {
+      const resInquire = await inquireMidtransStatusAction(nomorPesanan);
+      expect(resInquire.sukses).toBe(true);
+
+      const [pesananTerkini] = await db
+        .select()
+        .from(pesanan)
+        .where(eq(pesanan.nomorPesanan, nomorPesanan));
+
+      // Status pesanan HARUS tetap 'dibatalkan' (jangan sampai ter-resurrect) dan perlu tinjauan manual diaktifkan
+      expect(pesananTerkini.statusPesanan).toBe("dibatalkan");
+      expect(pesananTerkini.perluTinjauanManual).toBe(true);
+
+      // Status pembayaran dialihkan ke 'menunggu_refund' dengan detail transaksi gateway tercatat
+      const [pembayaranTerkini] = await db
+        .select()
+        .from(pembayaran)
+        .where(eq(pembayaran.pesananId, pesananAwal.id));
+
+      expect(pembayaranTerkini.statusPembayaran).toBe("menunggu_refund");
+      expect(pembayaranTerkini.gatewayTransactionId).toBe("trx-late-settle-999");
+    } finally {
+      global.fetch = fetchAsli;
+    }
+  });
 });
+

@@ -67,9 +67,7 @@ export const auditAktivitasAdmin = pgTable(
   "audit_aktivitas_admin",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    adminId: text("admin_id")
-      .references(() => pengguna.id, { onDelete: "set null" })
-      .notNull(),
+    adminId: text("admin_id").references(() => pengguna.id, { onDelete: "set null" }),
     tindakan: varchar("tindakan", { length: 100 }).notNull(), // misal: 'mutasi_stok', 'inquire_midtrans', 'request_pickup_biteship'
     targetId: varchar("target_id", { length: 100 }), // ID entitas terkait
     ipAddress: varchar("ip_address", { length: 45 }),

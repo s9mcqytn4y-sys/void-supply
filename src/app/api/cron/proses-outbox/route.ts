@@ -48,7 +48,7 @@ async function handleCronOutbox(req: Request) {
         rincian: hasil.rincian,
         dieksekusiPada: new Date().toISOString(),
       },
-      { status: isDegraded ? 207 : 200 }
+      { status: isDegraded ? 503 : 200 }
     );
   } catch (error) {
     console.error("[CRON OUTBOX] Galat saat menjalankan worker antrean outbox:", error);

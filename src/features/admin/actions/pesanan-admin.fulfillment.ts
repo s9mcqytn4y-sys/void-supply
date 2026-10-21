@@ -15,7 +15,10 @@ import {
 } from "@/lib/db/admin.schema";
 import { verifikasiStafAdmin } from "./auth-guard";
 import { selesaikanKonfigurasiEnvironment } from "@/lib/environment/resolver";
-import { buatOrderPengirimanBiteship } from "@/lib/services/biteship.service";
+import {
+  buatOrderPengirimanBiteship,
+  lacakPengirimanBiteship,
+} from "@/lib/services/biteship.service";
 import { tambahTugasOutboxLangsung } from "@/lib/services/outbox.service";
 
 export interface HasilBatchFulfillment {
@@ -153,6 +156,53 @@ export async function batchRequestPickupBiteshipAction(
         const lockReservationId = `DISPATCHING_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         const limaMenitLalu = new Date(Date.now() - 5 * 60 * 1000);
 
+        // Pola Inquiry-Before-Dispatch: Jika pengiriman memiliki tanda in-flight sebelumnya,
+        // cek status pelacakan Biteship terlebih dahulu untuk mencegah pembuatan order ganda jika API sempat timeout.
+        if (
+          orderData.pengiriman.biteshipOrderId &&
+          orderData.pengiriman.biteshipOrderId.startsWith("DISPATCHING_")
+        ) {
+          try {
+            const inkuiriEksis = await lacakPengirimanBiteship(
+              nomorPesanan,
+              orderData.pengiriman.kurir
+            );
+            if (
+              inkuiriEksis.sukses &&
+              inkuiriEksis.nomorResi &&
+              inkuiriEksis.status !== "unknown"
+            ) {
+              const nomorResiTersedia = inkuiriEksis.nomorResi;
+
+              await db
+                .update(pengiriman)
+                .set({
+                  nomorResi: nomorResiTersedia,
+                  statusPengiriman: "dalam_pengiriman",
+                  diperbaruiPada: new Date(),
+                })
+                .where(eq(pengiriman.pesananId, orderData.pesanan.id));
+
+              await db
+                .update(pesanan)
+                .set({
+                  statusPesanan: "dikirim",
+                  diperbaruiPada: new Date(),
+                })
+                .where(eq(pesanan.id, orderData.pesanan.id));
+
+              daftarSukses.push({
+                nomorPesanan,
+                nomorResi: nomorResiTersedia,
+                kurir: orderData.pengiriman.kurir,
+              });
+              continue;
+            }
+          } catch {
+            // Lanjutkan jika inkuiri tidak menemukan data
+          }
+        }
+
         const [pengirimanTerkunci] = await db
           .update(pengiriman)
           .set({
@@ -178,6 +228,7 @@ export async function batchRequestPickupBiteshipAction(
           });
           continue;
         }
+
 
         // Ambil daftar item pesanan untuk manifest logistik Biteship
         const items = await db

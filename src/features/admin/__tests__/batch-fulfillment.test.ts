@@ -12,6 +12,7 @@ vi.mock("../actions/auth-guard", () => ({
 
 vi.mock("@/lib/services/biteship.service", () => ({
   buatOrderPengirimanBiteship: vi.fn(),
+  lacakPengirimanBiteship: vi.fn(),
 }));
 
 vi.mock("@/lib/services/outbox.service", () => ({

@@ -31,6 +31,7 @@ export const statusPembayaranEnum = pgEnum("status_pembayaran", [
   "berhasil",
   "kadaluarsa",
   "gagal",
+  "menunggu_refund",
   "dikembalikan",
 ]);
 

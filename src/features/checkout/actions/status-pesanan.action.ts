@@ -34,7 +34,7 @@ export interface DetailStatusPesanan {
   nomorPesanan: string;
   isAuthorized: boolean;
   statusPesanan: "menunggu_pembayaran" | "diproses" | "dikirim" | "selesai" | "dibatalkan";
-  statusPembayaran: "menunggu_pembayaran" | "berhasil" | "kadaluarsa" | "gagal" | "dikembalikan";
+  statusPembayaran: "menunggu_pembayaran" | "berhasil" | "kadaluarsa" | "gagal" | "menunggu_refund" | "dikembalikan";
   totalAkhir: number;
   subtotal: number;
   totalOngkir: number;

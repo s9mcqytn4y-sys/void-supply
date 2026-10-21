@@ -60,21 +60,23 @@ async function seed() {
     // 1.1 Seeding Akun Demo Utama (Fokus Testing, Staging Vercel, & Akses Admin)
     const demoUserEmail = "abdulaziz543333@gmail.com";
     const demoUserId = "usr_demo_void_collector_2026";
-    const isProductionEnv =
+    const isStrictEnv =
       process.env.NODE_ENV === "production" ||
       process.env.VERCEL_ENV === "production" ||
-      process.env.APP_ENV === "production";
+      process.env.VERCEL_ENV === "preview" ||
+      process.env.APP_ENV === "production" ||
+      process.env.APP_ENV === "staging";
 
     let rawDemoPassword = process.env.SEED_ADMIN_PASSWORD;
 
     if (!rawDemoPassword) {
-      if (isProductionEnv) {
+      if (isStrictEnv) {
         throw new Error(
-          "Keamanan P0: Variabel SEED_ADMIN_PASSWORD wajib disetel di lingkungan produksi/staging."
+          "Keamanan P0: Variabel SEED_ADMIN_PASSWORD wajib disetel di lingkungan produksi/staging/preview."
         );
       }
       rawDemoPassword = crypto.randomBytes(16).toString("base64url");
-      console.warn(`[KEAMANAN DEV] SEED_ADMIN_PASSWORD tidak disetel. Menggunakan password acak lokal sementara: ${rawDemoPassword}`);
+      console.warn("[KEAMANAN DEV] SEED_ADMIN_PASSWORD tidak disetel. Menggunakan password acak lokal sementara yang di-hash ke basis data.");
     }
 
     const demoPasswordHash = await hashPassword(rawDemoPassword!);

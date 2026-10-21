@@ -42,6 +42,11 @@ const nextConfig: NextConfig = {
     ];
   },
   async headers() {
+    const isStagingOrPreview =
+      process.env.APP_ENV === "staging" ||
+      process.env.VERCEL_ENV === "preview" ||
+      process.env.NEXT_PUBLIC_APP_ENV === "staging";
+
     return [
       {
         source: "/:path*",
@@ -66,6 +71,14 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
+          ...(isStagingOrPreview
+            ? [
+                {
+                  key: "X-Robots-Tag",
+                  value: "noindex, nofollow",
+                },
+              ]
+            : []),
         ],
       },
     ];

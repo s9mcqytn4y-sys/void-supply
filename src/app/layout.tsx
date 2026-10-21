@@ -55,6 +55,12 @@ export const metadata: Metadata = {
     description: "Drop 04: Night Transmission. High-density urban streetwear with verified material specs.",
     images: ["/assets/brand/og-image.webp"],
   },
+  robots:
+    process.env.APP_ENV === "staging" ||
+    process.env.VERCEL_ENV === "preview" ||
+    process.env.NEXT_PUBLIC_APP_ENV === "staging"
+      ? { index: false, follow: false }
+      : { index: true, follow: true },
 };
 
 export default function RootLayout({
